@@ -1,7 +1,6 @@
-package me.ZedBear.InfiniteBuckets.item;
+package me.djtmk.InfiniteBuckets.item;
 
-import me.ZedBear.InfiniteBuckets.Main;
-import org.bukkit.Bukkit;
+import me.djtmk.InfiniteBuckets.Main;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;

@@ -1,8 +1,7 @@
-package me.ZedBear.InfiniteBuckets.commands;
+package me.djtmk.InfiniteBuckets.commands;
 
-import me.ZedBear.InfiniteBuckets.Main;
+import me.djtmk.InfiniteBuckets.Main;
 import net.milkbowl.vault.economy.Economy;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;

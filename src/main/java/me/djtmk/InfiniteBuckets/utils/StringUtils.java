@@ -1,4 +1,4 @@
-package me.ZedBear.InfiniteBuckets.utils;
+package me.djtmk.InfiniteBuckets.utils;
 
 import net.md_5.bungee.api.ChatColor;
 

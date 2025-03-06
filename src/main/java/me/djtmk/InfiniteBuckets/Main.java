@@ -1,8 +1,8 @@
-package me.ZedBear.InfiniteBuckets;
+package me.djtmk.InfiniteBuckets;
 
-import me.ZedBear.InfiniteBuckets.commands.Commands;
-import me.ZedBear.InfiniteBuckets.item.ItemEvents;
-import me.ZedBear.InfiniteBuckets.item.ItemManager;
+import me.djtmk.InfiniteBuckets.commands.Commands;
+import me.djtmk.InfiniteBuckets.item.ItemEvents;
+import me.djtmk.InfiniteBuckets.item.ItemManager;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;

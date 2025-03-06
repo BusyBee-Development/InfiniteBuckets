@@ -1,7 +1,7 @@
-package me.ZedBear.InfiniteBuckets.item;
+package me.djtmk.InfiniteBuckets.item;
 
-import me.ZedBear.InfiniteBuckets.Main;
-import me.ZedBear.InfiniteBuckets.utils.StringUtils;
+import me.djtmk.InfiniteBuckets.Main;
+import me.djtmk.InfiniteBuckets.utils.StringUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;

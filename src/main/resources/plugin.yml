@@ -1,8 +1,8 @@
 name: InfiniteBuckets
 version: 1.1
-main: me.ZedBear.InfiniteBuckets.Main
+main: me.djtmk.InfiniteBuckets.Main
 api-version: 1.16
-authors: [ ZedBear ] # updated by djtmk
+authors: [ ZedBear ] # updated and maintained by djtmk
 depend:
   - Vault
 description: Infinite Water and Lava Buckets - Using Economy

@@ -37,4 +37,4 @@ Vault
 An Economy Plugin (soft-depend)
 
 ### Original Dev ZedBear last updated 4 years ago
-# Github Page: [ZedBear](https://github.com/ZedBear/InfiniteBuckets)
+### Github Page: [ZedBear](https://github.com/ZedBear/InfiniteBuckets)

@@ -6,11 +6,6 @@ Gain Infinite Water and Lava Buckets! Each time you execute the command it will 
 /inflava <confirm> - Buy an infinite lava bucket for a configurable price!
 /ib <reload> or /infinitebuckets <reload> - Reload the configuration.
 
-### Screenshots
-![Infinite Water](https://cdn.discordapp.com/attachments/818053210794360832/880349606096019506/unknown.png)
-
-![Infinite Lava](https://cdn.discordapp.com/attachments/818053210794360832/880349626111258664/unknown.png)
-
 ### Config.yml
 ```
 lava:

@@ -41,4 +41,5 @@ Vault
 
 An Economy Plugin (soft-depend)
 
-#### Spigot Page: [zmaha7/InfiniteBuckets](https://www.spigotmc.org/resources/infinitebuckets.95370/).
+### Original Dev ZedBear last updated 4 years ago
+# Github Page: [ZedBear](https://github.com/ZedBear/InfiniteBuckets)

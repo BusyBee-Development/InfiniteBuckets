@@ -1,19 +1,21 @@
 name: InfiniteBuckets
 version: 1.1
 main: me.djtmk.InfiniteBuckets.Main
-api-version: 1.16
-authors: [ ZedBear ] # updated and maintained by djtmk
-depend:
-  - Vault
-description: Infinite Water and Lava Buckets - Using Economy
+api-version: 1.21
+authors: [ djtmk ]
+description: Infinite Water and Lava Buckets
 commands:
-  infwater:
-    description: Purchase Infinite Water
-    usage: /<command>
-  inflava:
-    description: Purchase Infinite Lava
-    usage: /<command>
-  infinitebuckets:
-    description: Commands to reload / gain a bucket!
-    usgae: /<command>
-    aliases: [ infbuckets, ib ]
+  inf:
+    description: Main command for Infinite Buckets
+    usage: /<command> [water|lava|reload|give]
+    aliases: [ infinitebuckets, ib ]
+permissions:
+  inf.use.water:
+    description: Allows use of infinite water buckets
+    default: true
+  inf.use.lava:
+    description: Allows use of infinite lava buckets
+    default: true
+  inf.admin:
+    description: Allows reload and give commands
+    default: op

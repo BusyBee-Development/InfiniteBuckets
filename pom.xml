@@ -12,7 +12,6 @@
     <name>InfiniteBuckets</name>
 
     <properties>
-        <!-- Updated to Java 17 as Minecraft 1.18+ requires a modern version -->
         <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
@@ -20,7 +19,6 @@
     <build>
         <finalName>InfiniteBuckets</finalName>
         <plugins>
-            <!-- Compiler Plugin updated for Java 17 -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -56,33 +54,18 @@
     </build>
 
     <repositories>
-        <!-- Spigot's snapshot repository -->
         <repository>
             <id>spigot-repo</id>
             <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
         </repository>
-        <repository>
-            <id>jitpack.io</id>
-            <url>https://jitpack.io</url>
-        </repository>
     </repositories>
 
     <dependencies>
-        <!-- Updated Spigot API to Minecraft 1.21.3 -->
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
             <version>1.21.3-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
-
-        <!-- Ensure VaultAPI version is compatible -->
-        <dependency>
-            <groupId>com.github.MilkBowl</groupId>
-            <artifactId>VaultAPI</artifactId>
-            <version>1.7</version> <!-- Updated if newer version is necessary -->
-            <scope>provided</scope>
-        </dependency>
     </dependencies>
-
 </project>

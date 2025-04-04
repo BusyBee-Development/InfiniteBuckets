@@ -1,20 +1,18 @@
 # InfiniteBuckets Spigot Plugin!
 # Create infinite Lava and Water buckets for all your needs!
 #
-# Register the costs you want for each bucket when using /inflava or /infwater
 lava:
-  cost: 50000
   display: "&cInfinite Lava Bucket"
   lore:
-    - "&7&oLegend says this lava bucket"
-    - "&7&owas enchanted by a nice young fairy"
-    - "&7&oto solve the drought that a tiny village"
-    - "&7&owas suffering"
+    - "&7&oLegends murmur of a molten treasure"
+    - "&7&oforged in the shadow of Vesuvius’ rage,"
+    - "&7&otouched by the pleas of Pompeii’s lost souls"
+    - "&7&oto defy the ash that choked their fields,"
+    - "&7&oa spark of mercy spared from ruin."
     - " "
     - "&cThis is an Infinite Lava Bucket"
 
 water:
-  cost: 50000
   display: "&bInfinite Water Bucket"
   lore:
     - "&7&oLegend says this water bucket"

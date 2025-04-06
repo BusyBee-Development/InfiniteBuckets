@@ -20,12 +20,12 @@ A lightweight Spigot plugin that provides players with infinite water and lava b
 
 ## Commands
 
-- **` /inf [water|lava|reload|give] `**  
+- **` /infb [water|lava|reload|give] `**  
   The main command for InfiniteBuckets.
     - `water`: Grants the player an Infinite Water Bucket.
     - `lava`: Grants the player an Infinite Lava Bucket.
-    - `reload`: Reloads the plugin’s configuration file (requires `inf.admin`).
-    - `give`: Grants buckets to other players (requires `inf.admin`).
+    - `reload`: Reloads the plugin’s configuration file (requires `infb.admin`).
+    - `give`: Grants buckets to other players (requires `infb.admin`).
 - **Aliases**: `/infinitebuckets`, `/ib`
 - **Usage**: `/<command> [water|lava|reload|give]`
 
@@ -33,14 +33,14 @@ A lightweight Spigot plugin that provides players with infinite water and lava b
 
 ## Permissions
 
-- **`inf.use.water`**
-    - *Description*: Allows use of the `/inf water` command.
+- **`infb.use.water`**
+    - *Description*: Allows use of the inf water bucket.
     - *Default*: `true`
-- **`inf.use.lava`**
-    - *Description*: Allows use of the `/inf lava` command.
+- **`infb.use.lava`**
+    - *Description*: Allows use of the inf lava bucket.
     - *Default*: `true`
-- **`inf.admin`**
-    - *Description*: Allows use of `/inf reload` and `/inf give` commands.
+- **`infb.admin`**
+    - *Description*: Allows use of `/infb reload` and `/infb give` commands.
     - *Default*: `op`
 
 ## Configuration (`config.yml`)

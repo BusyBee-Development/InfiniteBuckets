@@ -18,20 +18,22 @@ public class Main extends JavaPlugin {
         registerCommands();
         registerListeners();
 
-        getLogger().info(String.format("[%s] Plugin enabled successfully!", getDescription().getName()));
+        getLogger().info(String.format("[%s] v%s enabled successfully!", getDescription().getName(), getDescription().getVersion()));
     }
 
     @Override
     public void onDisable() {
-        getLogger().info("Disabling InfiniteBuckets plugin... Cleaning up!");
+        getLogger().info(String.format("[%s] v%s disabled!", getDescription().getName(), getDescription().getVersion()));
+        instance = null;
     }
 
     private void registerCommands() {
-        if (this.getCommand("inf") != null) {
-            this.getCommand("inf").setExecutor(new Commands(this));
-        } else {
-            getLogger().warning("Command 'inf' not found in plugin.yml!");
+        if (this.getCommand("infb") == null) {
+            getLogger().severe("Command 'infb' not found in plugin.yml! Plugin will not function properly!");
+            setEnabled(false);
+            return;
         }
+        this.getCommand("infb").setExecutor(new Commands(this));
     }
 
     private void registerListeners() {

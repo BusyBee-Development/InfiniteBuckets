@@ -7,6 +7,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 public class Commands implements CommandExecutor {
 
@@ -18,47 +19,14 @@ public class Commands implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-        if (!(sender instanceof Player) && args.length > 0 && !args[0].equalsIgnoreCase("reload")) {
-            sender.sendMessage(ChatColor.RED + "Only players can use most inf commands!");
-            return true;
-        }
-
-        Player player = (sender instanceof Player) ? (Player) sender : null;
-
         if (args.length == 0) {
             sendHelp(sender);
             return true;
         }
 
         switch (args[0].toLowerCase()) {
-            case "water":
-                if (player == null) {
-                    sender.sendMessage(ChatColor.RED + "This command is for players only!");
-                    return true;
-                }
-                if (player.hasPermission("inf.use.water")) {
-                    player.getInventory().addItem(plugin.getItemManager().infiniteWaterBucket());
-                    player.sendMessage(ChatColor.GREEN + "You received an Infinite Water Bucket!");
-                } else {
-                    player.sendMessage(ChatColor.RED + "You don't have permission to obtain an infinite water bucket!");
-                }
-                break;
-
-            case "lava":
-                if (player == null) {
-                    sender.sendMessage(ChatColor.RED + "This command is for players only!");
-                    return true;
-                }
-                if (player.hasPermission("inf.use.lava")) {
-                    player.getInventory().addItem(plugin.getItemManager().infiniteLavaBucket());
-                    player.sendMessage(ChatColor.GREEN + "You received an Infinite Lava Bucket!");
-                } else {
-                    player.sendMessage(ChatColor.RED + "You don't have permission to obtain an infinite lava bucket!");
-                }
-                break;
-
             case "reload":
-                if (sender.hasPermission("inf.admin")) {
+                if (sender.hasPermission("infb.admin")) {
                     plugin.reloadConfig();
                     sender.sendMessage(ChatColor.GREEN + "Configuration reloaded.");
                 } else {
@@ -67,12 +35,12 @@ public class Commands implements CommandExecutor {
                 break;
 
             case "give":
-                if (!sender.hasPermission("inf.admin")) {
+                if (!sender.hasPermission("infb.admin")) {
                     sender.sendMessage(ChatColor.RED + "You do not have permission to use this command.");
                     return true;
                 }
-                if (args.length != 3) {
-                    sender.sendMessage(ChatColor.RED + "Usage: /inf give <player> <water|lava>");
+                if (args.length != 4) {
+                    sender.sendMessage(ChatColor.RED + "Usage: /infb give <player> <water|lava> <amount>");
                     return true;
                 }
                 Player target = Bukkit.getPlayer(args[1]);
@@ -80,16 +48,37 @@ public class Commands implements CommandExecutor {
                     sender.sendMessage(ChatColor.RED + "Player " + args[1] + " not found!");
                     return true;
                 }
+                int amount;
+                try {
+                    amount = Integer.parseInt(args[3]);
+                    if (amount <= 0) throw new NumberFormatException();
+                } catch (NumberFormatException e) {
+                    sendInvalidAmount(sender);
+                    return true;
+                }
+
                 switch (args[2].toLowerCase()) {
                     case "water":
-                        target.getInventory().addItem(plugin.getItemManager().infiniteWaterBucket());
-                        target.sendMessage(ChatColor.GREEN + "You received an Infinite Water Bucket!");
-                        sender.sendMessage(ChatColor.GREEN + "Gave " + target.getName() + " an Infinite Water Bucket!");
+                        if (!target.hasPermission("infb.use.water")) {
+                            sender.sendMessage(ChatColor.RED + target.getName() + " doesn't have permission to use water buckets!");
+                            return true;
+                        }
+                        ItemStack waterBucket = plugin.getItemManager().infiniteWaterBucket();
+                        waterBucket.setAmount(amount);
+                        target.getInventory().addItem(waterBucket);
+                        target.sendMessage(ChatColor.GREEN + "You received " + amount + " Infinite Water Bucket(s)!");
+                        sender.sendMessage(ChatColor.GREEN + "Gave " + target.getName() + " " + amount + " Infinite Water Bucket(s)!");
                         break;
                     case "lava":
-                        target.getInventory().addItem(plugin.getItemManager().infiniteLavaBucket());
-                        target.sendMessage(ChatColor.GREEN + "You received an Infinite Lava Bucket!");
-                        sender.sendMessage(ChatColor.GREEN + "Gave " + target.getName() + " an Infinite Lava Bucket!");
+                        if (!target.hasPermission("infb.use.lava")) {
+                            sender.sendMessage(ChatColor.RED + target.getName() + " doesn't have permission to use lava buckets!");
+                            return true;
+                        }
+                        ItemStack lavaBucket = plugin.getItemManager().infiniteLavaBucket();
+                        lavaBucket.setAmount(amount);
+                        target.getInventory().addItem(lavaBucket);
+                        target.sendMessage(ChatColor.GREEN + "You received " + amount + " Infinite Lava Bucket(s)!");
+                        sender.sendMessage(ChatColor.GREEN + "Gave " + target.getName() + " " + amount + " Infinite Lava Bucket(s)!");
                         break;
                     default:
                         sender.sendMessage(ChatColor.RED + "Invalid bucket type! Use 'water' or 'lava'");
@@ -105,11 +94,15 @@ public class Commands implements CommandExecutor {
 
     private void sendHelp(CommandSender sender) {
         sender.sendMessage(ChatColor.GOLD + "Infinite Buckets Commands:");
-        sender.sendMessage(ChatColor.YELLOW + "/inf water" + ChatColor.WHITE + " - Get an infinite water bucket");
-        sender.sendMessage(ChatColor.YELLOW + "/inf lava" + ChatColor.WHITE + " - Get an infinite lava bucket");
-        if (sender.hasPermission("inf.admin")) {
-            sender.sendMessage(ChatColor.YELLOW + "/inf reload" + ChatColor.WHITE + " - Reload configuration");
-            sender.sendMessage(ChatColor.YELLOW + "/inf give <player> <water|lava>" + ChatColor.WHITE + " - Give a bucket to a player");
+        if (sender.hasPermission("infb.admin")) {
+            sender.sendMessage(ChatColor.YELLOW + "/infb reload" + ChatColor.WHITE + " - Reload configuration");
+            sender.sendMessage(ChatColor.YELLOW + "/infb give <player> <water|lava> <amount>" + ChatColor.WHITE + " - Give buckets to a player");
+        } else {
+            sender.sendMessage(ChatColor.YELLOW + "Ask an admin for infinite buckets!");
         }
+    }
+
+    private void sendInvalidAmount(CommandSender sender) {
+        sender.sendMessage(ChatColor.RED + "Amount must be a positive number!");
     }
 }

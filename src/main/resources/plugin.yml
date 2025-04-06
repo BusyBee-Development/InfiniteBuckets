@@ -5,17 +5,17 @@ api-version: 1.21
 authors: [ djtmk ]
 description: Infinite Water and Lava Buckets
 commands:
-  inf:
+  infb:
     description: Main command for Infinite Buckets
-    usage: /<command> [water|lava|reload|give]
+    usage: /<command> [reload|give]
     aliases: [ infinitebuckets, ib ]
 permissions:
-  inf.use.water:
+  infb.use.water:
     description: Allows use of infinite water buckets
     default: true
-  inf.use.lava:
+  infb.use.lava:
     description: Allows use of infinite lava buckets
     default: true
-  inf.admin:
+  infb.admin:
     description: Allows reload and give commands
     default: op

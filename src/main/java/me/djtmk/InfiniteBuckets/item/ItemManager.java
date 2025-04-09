@@ -50,8 +50,8 @@ public class ItemManager {
         meta.addEnchant(Enchantment.UNBREAKING, 3, false);
         meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
 
-        NamespacedKey key = new NamespacedKey(plugin, "infinite");
-        meta.getPersistentDataContainer().set(key, PersistentDataType.INTEGER, persistentValue);
+        NamespacedKey infiniteKey = new NamespacedKey(plugin, "infinite");
+        meta.getPersistentDataContainer().set(infiniteKey, PersistentDataType.INTEGER, persistentValue);
 
         item.setItemMeta(meta);
         return item;

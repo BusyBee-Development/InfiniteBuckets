@@ -27,7 +27,7 @@ public class ItemEvents implements Listener {
     public ItemEvents(Main plugin) {
         this.plugin = plugin;
         this.infiniteKey = new NamespacedKey(plugin, "infinite");
-        startStackingMonitor(); // Start the monitoring task
+        startStackingMonitor(); // Start the monitoring task to prevent stacking
     }
 
     @EventHandler
@@ -60,12 +60,12 @@ public class ItemEvents implements Listener {
             return;
         }
 
-        if (bucketType == 0) { // Infinite water
+        if (bucketType == 0) {
             if (targetBlock.getType().isAir() || targetBlock.getType() == Material.WATER) {
                 targetBlock.setType(Material.WATER);
                 event.setCancelled(true);
             }
-        } else if (bucketType == 1) { // Infinite lava
+        } else if (bucketType == 1) {
             if (targetBlock.getType().isAir() || targetBlock.getType() == Material.LAVA) {
                 targetBlock.setType(Material.LAVA);
                 event.setCancelled(true);
@@ -75,44 +75,38 @@ public class ItemEvents implements Listener {
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
-        ItemStack current = event.getCurrentItem();
-        ItemStack cursor = event.getCursor();
         Inventory clickedInventory = event.getClickedInventory();
-
-        if (clickedInventory == null || (cursor == null && current == null)) return;
+        if (clickedInventory == null) return;
 
         Player player = (Player) event.getWhoClicked();
+        ItemStack current = event.getCurrentItem();
+        ItemStack cursor = event.getCursor();
 
-        // Check if the current item or cursor is an infinite bucket
-        boolean isCursorInfinite = cursor != null && cursor.hasItemMeta() &&
-                cursor.getItemMeta().getPersistentDataContainer().has(infiniteKey, PersistentDataType.INTEGER);
-        boolean isCurrentInfinite = current != null && current.hasItemMeta() &&
-                current.getItemMeta().getPersistentDataContainer().has(infiniteKey, PersistentDataType.INTEGER);
+        boolean isCursorInfinite = isInfinite(cursor);
+        boolean isCurrentInfinite = isInfinite(current);
 
         if (!isCursorInfinite && !isCurrentInfinite) return;
 
-        // Prevent stacking when dragging an infinite bucket onto another
+        // Prevent stacking by dragging (same logic for water and lava)
         if (isCursorInfinite && isCurrentInfinite && current.isSimilar(cursor)) {
             event.setCancelled(true);
             return;
         }
 
-        // Handle placing an infinite bucket into a chest (manual click)
+        // Prevent placing into chest manually if it's already in there
         if (isCursorInfinite && clickedInventory.getType() == InventoryType.CHEST) {
-            int slot = event.getSlot();
-            ItemStack existingItem = clickedInventory.getItem(slot);
-
-            if (existingItem != null && existingItem.hasItemMeta() &&
-                    existingItem.getItemMeta().getPersistentDataContainer().has(infiniteKey, PersistentDataType.INTEGER)) {
+            ItemStack existingItem = clickedInventory.getItem(event.getSlot());
+            if (isInfinite(existingItem)) {
                 event.setCancelled(true);
                 return;
             }
         }
 
-        // Handle shift-click from player inventory to chest
+        // Shift-click from player -> chest (no stacking)
         if ((event.getClick() == ClickType.SHIFT_LEFT || event.getClick() == ClickType.SHIFT_RIGHT) &&
                 isCurrentInfinite && event.getInventory().getType() == InventoryType.CHEST &&
                 clickedInventory.getType() == InventoryType.PLAYER) {
+
             Inventory chest = event.getInventory();
             ItemStack itemToMove = current.clone();
             itemToMove.setAmount(1);
@@ -126,12 +120,55 @@ public class ItemEvents implements Listener {
             event.setCancelled(true);
         }
 
-        // Handle shift-click from chest to player inventory
+        // Fix: Shift-click from chest -> player (no stacking, direct move)
         if ((event.getClick() == ClickType.SHIFT_LEFT || event.getClick() == ClickType.SHIFT_RIGHT) &&
                 isCurrentInfinite && clickedInventory.getType() == InventoryType.CHEST &&
                 event.getInventory().getType() == InventoryType.PLAYER) {
-            // Let Minecraft handle the transfer; the monitor will fix stacking
+
+            event.setCancelled(true); // Cancel default behavior
+
+            final ItemStack movedItem = current.clone();
+            movedItem.setAmount(1); // Only move a single item
+
+            final int sourceSlot = event.getSlot();
+
+            // New: Prevent stacking when moving infinite lava buckets from chest to player inventory
+            if (isCurrentInfinite) {
+                new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        Inventory playerInv = player.getInventory();
+
+                        // Check if this is an infinite bucket and directly place in the next available slot
+                        int emptySlot = playerInv.firstEmpty();
+                        if (emptySlot != -1) {
+                            playerInv.setItem(emptySlot, movedItem);
+                        } else {
+                            // If no empty slot, drop the item naturally
+                            player.getWorld().dropItemNaturally(player.getLocation(), movedItem);
+                        }
+
+                        // Remove the original bucket from the chest slot
+                        ItemStack chestItem = clickedInventory.getItem(sourceSlot);
+                        if (chestItem != null) {
+                            if (chestItem.getAmount() <= 1) {
+                                clickedInventory.setItem(sourceSlot, null);
+                            } else {
+                                chestItem.setAmount(chestItem.getAmount() - 1);
+                            }
+                        }
+
+                        player.updateInventory(); // Update player inventory to reflect the change
+                    }
+                }.runTaskLater(plugin, 1L); // Run after 1 tick to ensure the transition is smooth
+            }
         }
+    }
+
+    private boolean isInfinite(ItemStack item) {
+        if (item == null || !item.hasItemMeta()) return false;
+        PersistentDataContainer container = item.getItemMeta().getPersistentDataContainer();
+        return container.has(infiniteKey, PersistentDataType.INTEGER);
     }
 
     private void startStackingMonitor() {
@@ -139,22 +176,20 @@ public class ItemEvents implements Listener {
             @Override
             public void run() {
                 for (Player player : plugin.getServer().getOnlinePlayers()) {
-                    Inventory playerInventory = player.getInventory();
-                    for (int i = 0; i < playerInventory.getSize(); i++) {
-                        ItemStack item = playerInventory.getItem(i);
-                        if (item != null && item.getAmount() > 1 && item.hasItemMeta() &&
-                                item.getItemMeta().getPersistentDataContainer().has(infiniteKey, PersistentDataType.INTEGER)) {
-                            plugin.getLogger().info("Stacking detected: " + item.getType() + " x" + item.getAmount() + " at slot " + i + " for " + player.getName());
+                    Inventory inv = player.getInventory();
+                    for (int i = 0; i < inv.getSize(); i++) {
+                        ItemStack item = inv.getItem(i);
+                        if (item != null && item.getAmount() > 1 && isInfinite(item)) {
                             int excess = item.getAmount() - 1;
                             item.setAmount(1);
                             for (int j = 0; j < excess; j++) {
-                                ItemStack singleItem = item.clone();
-                                singleItem.setAmount(1);
-                                int emptySlot = playerInventory.firstEmpty();
-                                if (emptySlot != -1) {
-                                    playerInventory.setItem(emptySlot, singleItem);
+                                ItemStack single = item.clone();
+                                single.setAmount(1);
+                                int empty = inv.firstEmpty();
+                                if (empty != -1) {
+                                    inv.setItem(empty, single);
                                 } else {
-                                    player.getWorld().dropItemNaturally(player.getLocation(), singleItem);
+                                    player.getWorld().dropItemNaturally(player.getLocation(), single);
                                 }
                             }
                             player.updateInventory();
@@ -162,6 +197,6 @@ public class ItemEvents implements Listener {
                     }
                 }
             }
-        }.runTaskTimer(plugin, 0L, 5L); // Run every 5 ticks (0.25 seconds)
+        }.runTaskTimer(plugin, 0L, 5L); // Monitor every 5 ticks
     }
 }

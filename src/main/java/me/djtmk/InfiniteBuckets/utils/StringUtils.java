@@ -8,6 +8,7 @@ import java.util.regex.Pattern;
 public class StringUtils {
 
     public static String format(String string) {
+        if (string == null) return "";
         Pattern pattern = Pattern.compile("#[a-fA-F0-9]{6}");
         Matcher match = pattern.matcher(string);
         while (match.find()) {
@@ -17,5 +18,4 @@ public class StringUtils {
         }
         return org.bukkit.ChatColor.translateAlternateColorCodes('&', string);
     }
-
 }

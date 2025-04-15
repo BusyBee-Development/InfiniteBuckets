@@ -7,7 +7,7 @@ description: Infinite Water and Lava Buckets
 commands:
   infb:
     description: Main command for Infinite Buckets
-    usage: /<command> [reload|give]
+    usage: /<command> [reload|give|debug]
     aliases: [ infinitebuckets, ib ]
 permissions:
   infb.use.water:
@@ -17,5 +17,5 @@ permissions:
     description: Allows use of infinite lava buckets
     default: true
   infb.admin:
-    description: Allows reload and give commands
+    description: Allows reload, give, and debug commands
     default: op

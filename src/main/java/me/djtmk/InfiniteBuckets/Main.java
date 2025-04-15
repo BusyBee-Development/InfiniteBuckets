@@ -3,18 +3,22 @@ package me.djtmk.InfiniteBuckets;
 import me.djtmk.InfiniteBuckets.commands.Commands;
 import me.djtmk.InfiniteBuckets.item.ItemEvents;
 import me.djtmk.InfiniteBuckets.item.ItemManager;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class Main extends JavaPlugin {
 
     private static Main instance;
     private ItemManager itemManager;
+    private boolean debugEnabled;
 
     @Override
     public void onEnable() {
         instance = this;
-        itemManager = new ItemManager(this);
         saveDefaultConfig();
+        debugEnabled = getConfig().getBoolean("debug", false);
+        getLogger().info("Debug mode: " + (debugEnabled ? "enabled" : "disabled"));
+        itemManager = new ItemManager(this);
         registerCommands();
         registerListeners();
 
@@ -33,7 +37,9 @@ public class Main extends JavaPlugin {
             setEnabled(false);
             return;
         }
-        this.getCommand("infb").setExecutor(new Commands(this));
+        Commands commands = new Commands(this);
+        this.getCommand("infb").setExecutor(commands);
+        this.getCommand("infb").setTabCompleter(commands);
     }
 
     private void registerListeners() {
@@ -46,5 +52,32 @@ public class Main extends JavaPlugin {
 
     public ItemManager getItemManager() {
         return itemManager;
+    }
+
+    public boolean isDebugEnabled() {
+        return debugEnabled;
+    }
+
+    public void setDebugEnabled(boolean enabled) {
+        this.debugEnabled = enabled;
+        getConfig().set("debug", enabled);
+        saveConfig();
+        getLogger().info("Debug mode: " + (enabled ? "enabled" : "disabled"));
+    }
+
+    public void debugLog(String message, ItemStack item) {
+        if (debugEnabled) {
+            String itemInfo = item != null ? item.getType().toString() : "null";
+            if (item != null && item.hasItemMeta()) {
+                itemInfo += ", meta: " + item.getItemMeta().toString();
+            }
+            getLogger().info("[DEBUG] " + message + " [Item: " + itemInfo + "]");
+        }
+    }
+
+    public void debugLog(String message) {
+        if (debugEnabled) {
+            getLogger().info("[DEBUG] " + message);
+        }
     }
 }

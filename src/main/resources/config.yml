@@ -1,6 +1,7 @@
 # InfiniteBuckets Spigot Plugin!
 # Create infinite Lava and Water buckets for all your needs!
 #
+debug: false
 lava:
   display: "&cInfinite Lava Bucket"
   lore:

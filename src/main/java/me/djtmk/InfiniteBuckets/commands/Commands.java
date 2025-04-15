@@ -6,10 +6,16 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-public class Commands implements CommandExecutor {
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
+public class Commands implements CommandExecutor, TabCompleter {
 
     private final Main plugin;
 
@@ -28,7 +34,8 @@ public class Commands implements CommandExecutor {
             case "reload":
                 if (sender.hasPermission("infb.admin")) {
                     plugin.reloadConfig();
-                    sender.sendMessage(ChatColor.GREEN + "Configuration reloaded.");
+                    plugin.setDebugEnabled(plugin.getConfig().getBoolean("debug", false));
+                    sender.sendMessage(ChatColor.GREEN + "Configuration reloaded successfully.");
                 } else {
                     sender.sendMessage(ChatColor.RED + "You do not have permission to use this command.");
                 }
@@ -65,8 +72,7 @@ public class Commands implements CommandExecutor {
                         }
                         ItemStack waterBucket = plugin.getItemManager().infiniteWaterBucket();
                         waterBucket.setAmount(amount);
-                        target.getInventory().addItem(waterBucket);
-                        target.sendMessage(ChatColor.GREEN + "You received " + amount + " Infinite Water Bucket(s)!");
+                        giveItem(target, waterBucket, amount, "Water", sender);
                         sender.sendMessage(ChatColor.GREEN + "Gave " + target.getName() + " " + amount + " Infinite Water Bucket(s)!");
                         break;
                     case "lava":
@@ -76,13 +82,26 @@ public class Commands implements CommandExecutor {
                         }
                         ItemStack lavaBucket = plugin.getItemManager().infiniteLavaBucket();
                         lavaBucket.setAmount(amount);
-                        target.getInventory().addItem(lavaBucket);
-                        target.sendMessage(ChatColor.GREEN + "You received " + amount + " Infinite Lava Bucket(s)!");
+                        giveItem(target, lavaBucket, amount, "Lava", sender);
                         sender.sendMessage(ChatColor.GREEN + "Gave " + target.getName() + " " + amount + " Infinite Lava Bucket(s)!");
                         break;
                     default:
                         sender.sendMessage(ChatColor.RED + "Invalid bucket type! Use 'water' or 'lava'");
                 }
+                break;
+
+            case "debug":
+                if (!sender.hasPermission("infb.admin")) {
+                    sender.sendMessage(ChatColor.RED + "You do not have permission to use this command.");
+                    return true;
+                }
+                if (args.length != 2 || (!args[1].equalsIgnoreCase("on") && !args[1].equalsIgnoreCase("off"))) {
+                    sender.sendMessage(ChatColor.RED + "Usage: /infb debug <on|off>");
+                    return true;
+                }
+                boolean enableDebug = args[1].equalsIgnoreCase("on");
+                plugin.setDebugEnabled(enableDebug);
+                sender.sendMessage(ChatColor.GREEN + "Debug mode " + (enableDebug ? "enabled" : "disabled") + ".");
                 break;
 
             default:
@@ -92,11 +111,23 @@ public class Commands implements CommandExecutor {
         return true;
     }
 
+    private void giveItem(Player target, ItemStack item, int amount, String type, CommandSender sender) {
+        if (target.getInventory().firstEmpty() == -1) {
+            target.getWorld().dropItemNaturally(target.getLocation(), item);
+            target.sendMessage(ChatColor.YELLOW + "Inventory full! Dropped " + amount + " Infinite " + type + " Bucket(s)!");
+            sender.sendMessage(ChatColor.YELLOW + target.getName() + "'s inventory was full. Dropped " + amount + " Infinite " + type + " Bucket(s)!");
+        } else {
+            target.getInventory().addItem(item);
+            target.sendMessage(ChatColor.GREEN + "You received " + amount + " Infinite " + type + " Bucket(s)!");
+        }
+    }
+
     private void sendHelp(CommandSender sender) {
         sender.sendMessage(ChatColor.GOLD + "Infinite Buckets Commands:");
         if (sender.hasPermission("infb.admin")) {
             sender.sendMessage(ChatColor.YELLOW + "/infb reload" + ChatColor.WHITE + " - Reload configuration");
             sender.sendMessage(ChatColor.YELLOW + "/infb give <player> <water|lava> <amount>" + ChatColor.WHITE + " - Give buckets to a player");
+            sender.sendMessage(ChatColor.YELLOW + "/infb debug <on|off>" + ChatColor.WHITE + " - Toggle debug mode");
         } else {
             sender.sendMessage(ChatColor.YELLOW + "Ask an admin for infinite buckets!");
         }
@@ -104,5 +135,29 @@ public class Commands implements CommandExecutor {
 
     private void sendInvalidAmount(CommandSender sender) {
         sender.sendMessage(ChatColor.RED + "Amount must be a positive number!");
+    }
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        List<String> completions = new ArrayList<>();
+        if (!sender.hasPermission("infb.admin")) return completions;
+
+        if (args.length == 1) {
+            completions.addAll(Arrays.asList("reload", "give", "debug"));
+        } else if (args.length == 2 && args[0].equalsIgnoreCase("give")) {
+            completions.addAll(Bukkit.getOnlinePlayers().stream()
+                    .map(Player::getName)
+                    .collect(Collectors.toList()));
+        } else if (args.length == 3 && args[0].equalsIgnoreCase("give")) {
+            completions.addAll(Arrays.asList("water", "lava"));
+        } else if (args.length == 4 && args[0].equalsIgnoreCase("give")) {
+            completions.addAll(Arrays.asList("1", "2", "3", "4", "5"));
+        } else if (args.length == 2 && args[0].equalsIgnoreCase("debug")) {
+            completions.addAll(Arrays.asList("on", "off"));
+        }
+
+        return completions.stream()
+                .filter(c -> c.toLowerCase().startsWith(args[args.length - 1].toLowerCase()))
+                .collect(Collectors.toList());
     }
 }

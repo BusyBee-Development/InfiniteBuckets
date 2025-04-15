@@ -26,6 +26,7 @@ A lightweight Spigot plugin that provides players with infinite water and lava b
     - `lava`: Grants the player an Infinite Lava Bucket.
     - `reload`: Reloads the plugin’s configuration file (requires `infb.admin`).
     - `give`: Grants buckets to other players (requires `infb.admin`).
+    - `debug <on|off>`: Toggles debug logging for bucket interactions (requires `infb.admin`).
 - **Aliases**: `/infinitebuckets`, `/ib`
 - **Usage**: `/<command> [water|lava|reload|give]`
 
@@ -51,6 +52,7 @@ Below is the default configuration file. Customize the display names and lore to
 # InfiniteBuckets Spigot Plugin!
 # Create infinite Lava and Water buckets for all your needs!
 #
+debug: false
 lava:
   display: "&cInfinite Lava Bucket"
   lore:
@@ -89,6 +91,3 @@ water:
 -    GitHub Repository: [ZedBear Github](https://github.com/ZedBear/InfiniteBuckets)
 -    Recent Updates:
        - Version 1.1: Removed Vault dependency, updated commands, added permissions, and modernized for Spigot 1.21.
-
-### Future Plans
-- Develop a custom GUI for bucket acquisition.

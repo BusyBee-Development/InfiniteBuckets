@@ -180,22 +180,61 @@ public class ItemEvents implements Listener {
         Player player = (Player) event.getWhoClicked();
         ItemStack current = event.getCurrentItem();
         ItemStack cursor = event.getCursor();
+        ClickType clickType = event.getClick();
+        int slot = event.getSlot();
 
         boolean isCursorInfinite = isInfinite(cursor);
         boolean isCurrentInfinite = isInfinite(current);
 
         plugin.debugLog("InventoryClickEvent for " + player.getName() + ", inventory: " + event.getInventory().getType() +
-                ", clicked: " + (clickedInventory.getType()) + ", current: " + (current != null ? current.getType() : "null") +
+                ", clicked: " + clickedInventory.getType() + ", click: " + clickType +
+                ", slot: " + slot + ", current: " + (current != null ? current.getType() : "null") +
                 ", cursor: " + (cursor != null ? cursor.getType() : "null"));
 
-        // Handle trade inventories
-        if (event.getInventory().getType() == InventoryType.MERCHANT ||
-                event.getView().getTitle().toLowerCase().contains("trade")) {
-            if (isCurrentInfinite || isCursorInfinite) {
-                plugin.debugLog("Infinite bucket detected in trade inventory, cancelling click", isCurrentInfinite ? current : cursor);
-                event.setCancelled(true);
-                return;
+        // Handle trade inventories (AxTrade GUI)
+        boolean isTradeInventory = event.getInventory().getType() == InventoryType.MERCHANT ||
+                event.getView().getTitle().toLowerCase().contains("trade");
+
+        if (isTradeInventory && (isCurrentInfinite || isCursorInfinite)) {
+            ItemStack bucket = isCurrentInfinite ? current : cursor;
+            plugin.debugLog("Infinite bucket detected in trade inventory, click: " + clickType + ", slot: " + slot, bucket);
+
+            // Allow shift-click to valid trade slots
+            if (clickType == ClickType.SHIFT_LEFT || clickType == ClickType.SHIFT_RIGHT) {
+                if (clickedInventory.getType() == InventoryType.PLAYER) {
+                    // Shift-click from player inventory to trade GUI
+                    Inventory tradeInv = event.getInventory();
+                    int targetSlot = findValidTradeSlot(tradeInv);
+                    if (targetSlot != -1) {
+                        tradeInv.setItem(targetSlot, bucket.clone());
+                        clickedInventory.setItem(slot, null);
+                        player.updateInventory();
+                        plugin.debugLog("Shift-clicked infinite bucket to trade slot " + targetSlot, bucket);
+                    } else {
+                        plugin.debugLog("No valid trade slot available, cancelling shift-click", bucket);
+                        event.setCancelled(true);
+                    }
+                    return;
+                } else if (clickedInventory.getType() == InventoryType.MERCHANT) {
+                    // Shift-click within trade GUI, allow if valid slot
+                    if (isValidTradeSlot(slot)) {
+                        plugin.debugLog("Allowed shift-click in trade GUI slot " + slot, bucket);
+                    } else {
+                        plugin.debugLog("Invalid trade slot " + slot + ", cancelling shift-click", bucket);
+                        event.setCancelled(true);
+                    }
+                    return;
+                }
             }
+
+            // Allow regular clicks in valid trade slots
+            if (isValidTradeSlot(slot) || clickedInventory.getType() == InventoryType.PLAYER) {
+                plugin.debugLog("Allowed click for infinite bucket in trade, slot: " + slot, bucket);
+            } else {
+                plugin.debugLog("Blocked click for infinite bucket in invalid trade slot: " + slot, bucket);
+                event.setCancelled(true);
+            }
+            return;
         }
 
         if (!isCursorInfinite && !isCurrentInfinite) return;
@@ -207,7 +246,7 @@ public class ItemEvents implements Listener {
         }
 
         if (isCursorInfinite && clickedInventory.getType() == InventoryType.CHEST) {
-            ItemStack existingItem = clickedInventory.getItem(event.getSlot());
+            ItemStack existingItem = clickedInventory.getItem(slot);
             if (isInfinite(existingItem)) {
                 plugin.debugLog("Infinite bucket already in chest slot, cancelling");
                 event.setCancelled(true);
@@ -215,7 +254,7 @@ public class ItemEvents implements Listener {
             }
         }
 
-        if ((event.getClick() == ClickType.SHIFT_LEFT || event.getClick() == ClickType.SHIFT_RIGHT) &&
+        if ((clickType == ClickType.SHIFT_LEFT || clickType == ClickType.SHIFT_RIGHT) &&
                 isCurrentInfinite && event.getInventory().getType() == InventoryType.CHEST &&
                 clickedInventory.getType() == InventoryType.PLAYER) {
 
@@ -226,14 +265,14 @@ public class ItemEvents implements Listener {
             int emptySlot = chest.firstEmpty();
             if (emptySlot != -1) {
                 chest.setItem(emptySlot, itemToMove);
-                clickedInventory.setItem(event.getSlot(), null);
+                clickedInventory.setItem(slot, null);
                 player.updateInventory();
                 plugin.debugLog("Moved infinite bucket to chest, cleared player slot");
             }
             event.setCancelled(true);
         }
 
-        if ((event.getClick() == ClickType.SHIFT_LEFT || event.getClick() == ClickType.SHIFT_RIGHT) &&
+        if ((clickType == ClickType.SHIFT_LEFT || clickType == ClickType.SHIFT_RIGHT) &&
                 isCurrentInfinite && clickedInventory.getType() == InventoryType.CHEST &&
                 event.getInventory().getType() == InventoryType.PLAYER) {
 
@@ -241,7 +280,7 @@ public class ItemEvents implements Listener {
 
             final ItemStack movedItem = current.clone();
             movedItem.setAmount(1);
-            final int sourceSlot = event.getSlot();
+            final int sourceSlot = slot;
 
             new BukkitRunnable() {
                 @Override
@@ -300,7 +339,7 @@ public class ItemEvents implements Listener {
                         }
                     }
 
-                    // If an infinite bucket remains, warn and remove (assuming trade completed)
+                    // If an infinite bucket remains and trade completed, warn and remove
                     if (foundInfinite) {
                         plugin.debugLog("Potential duplication detected for " + player.getName() + ", removing infinite bucket post-trade");
                         playerInv.setItem(infiniteSlot, null);
@@ -324,5 +363,20 @@ public class ItemEvents implements Listener {
         if (item == null || !item.hasItemMeta()) return false;
         PersistentDataContainer container = item.getItemMeta().getPersistentDataContainer();
         return container.has(infiniteKey, PersistentDataType.INTEGER);
+    }
+
+    private boolean isValidTradeSlot(int slot) {
+        // AxTrade typically uses slots 0-8 for player offers (adjust based on GUI config)
+        return slot >= 0 && slot <= 8;
+    }
+
+    private int findValidTradeSlot(Inventory inventory) {
+        // Find an empty slot in the trade offer area (slots 0-8)
+        for (int i = 0; i <= 8; i++) {
+            if (inventory.getItem(i) == null) {
+                return i;
+            }
+        }
+        return -1;
     }
 }

@@ -14,6 +14,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -171,20 +172,6 @@ public class ItemEvents implements Listener {
         }
     }
 
-    private void preserveBucket(Player player, ItemStack bucket) {
-        PlayerInventory inventory = player.getInventory();
-        int slot = inventory.getHeldItemSlot();
-        inventory.setItem(slot, bucket);
-        player.updateInventory();
-        plugin.debugLog("Synchronously preserved bucket in slot " + slot, bucket);
-    }
-
-    private boolean isInfinite(ItemStack item) {
-        if (item == null || !item.hasItemMeta()) return false;
-        PersistentDataContainer container = item.getItemMeta().getPersistentDataContainer();
-        return container.has(infiniteKey, PersistentDataType.INTEGER);
-    }
-
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
         Inventory clickedInventory = event.getClickedInventory();
@@ -197,9 +184,24 @@ public class ItemEvents implements Listener {
         boolean isCursorInfinite = isInfinite(cursor);
         boolean isCurrentInfinite = isInfinite(current);
 
+        plugin.debugLog("InventoryClickEvent for " + player.getName() + ", inventory: " + event.getInventory().getType() +
+                ", clicked: " + (clickedInventory.getType()) + ", current: " + (current != null ? current.getType() : "null") +
+                ", cursor: " + (cursor != null ? cursor.getType() : "null"));
+
+        // Handle trade inventories
+        if (event.getInventory().getType() == InventoryType.MERCHANT ||
+                event.getView().getTitle().toLowerCase().contains("trade")) {
+            if (isCurrentInfinite || isCursorInfinite) {
+                plugin.debugLog("Infinite bucket detected in trade inventory, cancelling click", isCurrentInfinite ? current : cursor);
+                event.setCancelled(true);
+                return;
+            }
+        }
+
         if (!isCursorInfinite && !isCurrentInfinite) return;
 
         if (isCursorInfinite && isCurrentInfinite && current.isSimilar(cursor)) {
+            plugin.debugLog("Attempt to stack infinite buckets, cancelling");
             event.setCancelled(true);
             return;
         }
@@ -207,6 +209,7 @@ public class ItemEvents implements Listener {
         if (isCursorInfinite && clickedInventory.getType() == InventoryType.CHEST) {
             ItemStack existingItem = clickedInventory.getItem(event.getSlot());
             if (isInfinite(existingItem)) {
+                plugin.debugLog("Infinite bucket already in chest slot, cancelling");
                 event.setCancelled(true);
                 return;
             }
@@ -225,6 +228,7 @@ public class ItemEvents implements Listener {
                 chest.setItem(emptySlot, itemToMove);
                 clickedInventory.setItem(event.getSlot(), null);
                 player.updateInventory();
+                plugin.debugLog("Moved infinite bucket to chest, cleared player slot");
             }
             event.setCancelled(true);
         }
@@ -260,8 +264,65 @@ public class ItemEvents implements Listener {
                     }
 
                     player.updateInventory();
+                    plugin.debugLog("Moved infinite bucket to player inventory, updated chest");
                 }
             }.runTaskLater(plugin, 1L);
         }
+    }
+
+    @EventHandler
+    public void onInventoryClose(InventoryCloseEvent event) {
+        Player player = (Player) event.getPlayer();
+        Inventory inventory = event.getInventory();
+
+        // Check if closing a trade inventory
+        if (inventory.getType() == InventoryType.MERCHANT ||
+                event.getView().getTitle().toLowerCase().contains("trade")) {
+            plugin.debugLog("InventoryCloseEvent for " + player.getName() + ", inventory: " + inventory.getType() +
+                    ", title: " + event.getView().getTitle());
+
+            // Delayed check to ensure trade is complete
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    PlayerInventory playerInv = player.getInventory();
+                    boolean foundInfinite = false;
+                    int infiniteSlot = -1;
+
+                    // Check for infinite buckets in player's inventory
+                    for (int i = 0; i < playerInv.getSize(); i++) {
+                        ItemStack item = playerInv.getItem(i);
+                        if (isInfinite(item)) {
+                            foundInfinite = true;
+                            infiniteSlot = i;
+                            plugin.debugLog("Found infinite bucket in " + player.getName() + "'s inventory after trade, slot: " + i, item);
+                            break;
+                        }
+                    }
+
+                    // If an infinite bucket remains, warn and remove (assuming trade completed)
+                    if (foundInfinite) {
+                        plugin.debugLog("Potential duplication detected for " + player.getName() + ", removing infinite bucket post-trade");
+                        playerInv.setItem(infiniteSlot, null);
+                        player.updateInventory();
+                        player.sendMessage("§cWarning: Infinite bucket was removed to prevent duplication after trading.");
+                    }
+                }
+            }.runTaskLater(plugin, 2L); // Delay to allow trade to finalize
+        }
+    }
+
+    private void preserveBucket(Player player, ItemStack bucket) {
+        PlayerInventory inventory = player.getInventory();
+        int slot = inventory.getHeldItemSlot();
+        inventory.setItem(slot, bucket);
+        player.updateInventory();
+        plugin.debugLog("Synchronously preserved bucket in slot " + slot, bucket);
+    }
+
+    private boolean isInfinite(ItemStack item) {
+        if (item == null || !item.hasItemMeta()) return false;
+        PersistentDataContainer container = item.getItemMeta().getPersistentDataContainer();
+        return container.has(infiniteKey, PersistentDataType.INTEGER);
     }
 }

@@ -4,6 +4,7 @@ main: me.djtmk.InfiniteBuckets.Main
 api-version: 1.21
 authors: [ djtmk ]
 description: Infinite Water and Lava Buckets
+depend: [SuperiorSkyblock2]
 commands:
   infb:
     description: Main command for Infinite Buckets

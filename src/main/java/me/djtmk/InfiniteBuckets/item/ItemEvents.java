@@ -1,6 +1,11 @@
 package me.djtmk.InfiniteBuckets.item;
 
+import com.bgsoftware.superiorskyblock.api.SuperiorSkyblockAPI;
+import com.bgsoftware.superiorskyblock.api.island.Island;
+import com.bgsoftware.superiorskyblock.api.island.IslandPrivilege;
+import com.bgsoftware.superiorskyblock.api.wrappers.SuperiorPlayer;
 import me.djtmk.InfiniteBuckets.Main;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
@@ -8,6 +13,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.Levelled;
 import org.bukkit.block.data.Waterlogged;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
@@ -25,6 +31,7 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.jetbrains.annotations.NotNull;
 
 public class ItemEvents implements Listener {
 
@@ -34,6 +41,18 @@ public class ItemEvents implements Listener {
     public ItemEvents(Main plugin) {
         this.plugin = plugin;
         this.infiniteKey = new NamespacedKey(plugin, "infinite");
+    }
+
+    private boolean islandCheck(final @NotNull Player player) {
+        Island island = SuperiorSkyblockAPI.getIslandAt(player.getLocation());
+        SuperiorPlayer superiorPlayer = SuperiorSkyblockAPI.getPlayer(player.getUniqueId());
+        if(island==null) return true;
+        if(island.getOwner().getUniqueId() == player.getUniqueId()) return true;
+
+        if(superiorPlayer == null) return false;
+        if(island.isMember(superiorPlayer) && island.hasPermission(superiorPlayer, IslandPrivilege.getByName("Build"))) return true;
+        if(superiorPlayer.hasBypassModeEnabled()) return true;
+        return false;
     }
 
     @EventHandler
@@ -58,6 +77,16 @@ public class ItemEvents implements Listener {
         }
 
         plugin.debugLog("Infinite bucket detected. Type: " + item.getType());
+
+        // Check island API
+        if(!islandCheck(player)) return;
+
+        // If event is cancelled, then don't proceed.
+        if(event.isCancelled()) return;
+
+        // If usage is denied, then don't proceed.
+        if(event.useInteractedBlock() == Event.Result.DENY ||
+           event.useItemInHand() == Event.Result.DENY) return;
 
         if (clickedBlock == null) {
             plugin.debugLog("No block clicked");

@@ -3,7 +3,9 @@ package me.djtmk.InfiniteBuckets;
 import me.djtmk.InfiniteBuckets.commands.Commands;
 import me.djtmk.InfiniteBuckets.item.ItemEvents;
 import me.djtmk.InfiniteBuckets.item.ItemManager;
+import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class Main extends JavaPlugin {
@@ -15,6 +17,13 @@ public class Main extends JavaPlugin {
     @Override
     public void onEnable() {
         instance = this;
+
+        if(!hasIslandPlugin()) {
+            Bukkit.getLogger().severe("SuperiorSkyblock2 is not installed on the server.");
+            Bukkit.getPluginManager().disablePlugin(this);
+            return;
+        }
+        Bukkit.getLogger().info("SuperiorSkyblock2 has been found on the server. Initializing...");
         saveDefaultConfig();
         debugEnabled = getConfig().getBoolean("debug", false);
         getLogger().info("Debug mode: " + (debugEnabled ? "enabled" : "disabled"));
@@ -29,6 +38,11 @@ public class Main extends JavaPlugin {
     public void onDisable() {
         getLogger().info(String.format("[%s] v%s disabled!", getDescription().getName(), getDescription().getVersion()));
         instance = null;
+    }
+
+    private boolean hasIslandPlugin() {
+        Plugin plugin = Bukkit.getPluginManager().getPlugin("SuperiorSkyblock2");
+        return plugin != null;
     }
 
     private void registerCommands() {

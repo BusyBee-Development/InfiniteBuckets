@@ -13,17 +13,20 @@ public class Main extends JavaPlugin {
     private static Main instance;
     private ItemManager itemManager;
     private boolean debugEnabled;
+    private boolean isSuperiorSkyblockEnabled;
 
     @Override
     public void onEnable() {
         instance = this;
 
-        if(!hasIslandPlugin()) {
-            Bukkit.getLogger().severe("SuperiorSkyblock2 is not installed on the server.");
-            Bukkit.getPluginManager().disablePlugin(this);
-            return;
+        // Check if SuperiorSkyblock2 is present
+        isSuperiorSkyblockEnabled = hasIslandPlugin();
+        if (!isSuperiorSkyblockEnabled) {
+            getLogger().warning("SuperiorSkyblock2 is not installed on the server. Island checks will be disabled.");
+        } else {
+            getLogger().info("SuperiorSkyblock2 has been found on the server. Island checks enabled.");
         }
-        Bukkit.getLogger().info("SuperiorSkyblock2 has been found on the server. Initializing...");
+
         saveDefaultConfig();
         debugEnabled = getConfig().getBoolean("debug", false);
         getLogger().info("Debug mode: " + (debugEnabled ? "enabled" : "disabled"));
@@ -42,7 +45,7 @@ public class Main extends JavaPlugin {
 
     private boolean hasIslandPlugin() {
         Plugin plugin = Bukkit.getPluginManager().getPlugin("SuperiorSkyblock2");
-        return plugin != null;
+        return plugin != null && plugin.isEnabled();
     }
 
     private void registerCommands() {
@@ -77,6 +80,10 @@ public class Main extends JavaPlugin {
         getConfig().set("debug", enabled);
         saveConfig();
         getLogger().info("Debug mode: " + (enabled ? "enabled" : "disabled"));
+    }
+
+    public boolean isSuperiorSkyblockEnabled() {
+        return isSuperiorSkyblockEnabled;
     }
 
     public void debugLog(String message, ItemStack item) {

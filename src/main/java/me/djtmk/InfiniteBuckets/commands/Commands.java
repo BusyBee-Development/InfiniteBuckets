@@ -102,6 +102,9 @@ public class Commands implements CommandExecutor, TabCompleter {
                 boolean enableDebug = args[1].equalsIgnoreCase("on");
                 plugin.setDebugEnabled(enableDebug);
                 sender.sendMessage(ChatColor.GREEN + "Debug mode " + (enableDebug ? "enabled" : "disabled") + ".");
+                if (enableDebug) {
+                    sender.sendMessage(ChatColor.YELLOW + "Note: Debug mode may generate a lot of logs. Use with caution.");
+                }
                 break;
 
             default:

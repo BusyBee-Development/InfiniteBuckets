@@ -32,10 +32,16 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
 public class ItemEvents implements Listener {
 
     private final Main plugin;
     private final NamespacedKey infiniteKey;
+    // Map to track players who placed infinite buckets in trade slots and the bucket type (0 for water, 1 for lava)
+    private final Map<UUID, Integer> playersInTradeWithInfiniteBucket = new HashMap<>();
 
     public ItemEvents(Main plugin) {
         this.plugin = plugin;
@@ -43,14 +49,18 @@ public class ItemEvents implements Listener {
     }
 
     private boolean islandCheck(final @NotNull Player player) {
+        if (!plugin.isSuperiorSkyblockEnabled()) {
+            return true;
+        }
+
         Island island = SuperiorSkyblockAPI.getIslandAt(player.getLocation());
         SuperiorPlayer superiorPlayer = SuperiorSkyblockAPI.getPlayer(player.getUniqueId());
-        if(island==null) return true;
-        if(island.getOwner().getUniqueId() == player.getUniqueId()) return true;
+        if (island == null) return true;
+        if (island.getOwner().getUniqueId() == player.getUniqueId()) return true;
 
-        if(superiorPlayer == null) return false;
-        if(island.isMember(superiorPlayer) && island.hasPermission(superiorPlayer, IslandPrivilege.getByName("Build"))) return true;
-        if(superiorPlayer.hasBypassModeEnabled()) return true;
+        if (superiorPlayer == null) return false;
+        if (island.isMember(superiorPlayer) && island.hasPermission(superiorPlayer, IslandPrivilege.getByName("Build"))) return true;
+        if (superiorPlayer.hasBypassModeEnabled()) return true;
         return false;
     }
 
@@ -77,15 +87,12 @@ public class ItemEvents implements Listener {
 
         plugin.debugLog("Infinite bucket detected. Type: " + item.getType());
 
-        // Check island API
-        if(!islandCheck(player)) return;
+        if (!islandCheck(player)) return;
 
-        // If event is cancelled, then don't proceed.
-        if(event.isCancelled()) return;
+        if (event.isCancelled()) return;
 
-        // If usage is denied, then don't proceed.
-        if(event.useInteractedBlock() == Event.Result.DENY ||
-           event.useItemInHand() == Event.Result.DENY) return;
+        if (event.useInteractedBlock() == Event.Result.DENY ||
+                event.useItemInHand() == Event.Result.DENY) return;
 
         if (clickedBlock == null) {
             plugin.debugLog("No block clicked");
@@ -99,7 +106,6 @@ public class ItemEvents implements Listener {
         Block targetBlock = clickedBlock.getRelative(face);
         plugin.debugLog("Target block: " + targetBlock.getType());
 
-        // Handle waterlogging for water buckets
         if (bucketType == 0) {
             if (clickedBlock.getBlockData() instanceof Waterlogged waterlogged) {
                 plugin.debugLog("Clicked block waterloggable: " + clickedBlock.getType() + ", Current waterlogged: " + waterlogged.isWaterlogged());
@@ -130,7 +136,6 @@ public class ItemEvents implements Listener {
             }
         }
 
-        // Handle cauldron interactions
         if (clickedBlock.getType() == Material.CAULDRON) {
             plugin.debugLog("Interacting with cauldron");
             if (bucketType == 0) {
@@ -149,7 +154,6 @@ public class ItemEvents implements Listener {
             return;
         }
 
-        // Handle placement in air or replaceable blocks
         if (bucketType == 0) {
             if (targetBlock.getType().isAir() || targetBlock.getType() == Material.WATER) {
                 plugin.debugLog("Placing water at target: " + targetBlock.getType());
@@ -214,12 +218,13 @@ public class ItemEvents implements Listener {
         boolean isCursorInfinite = isInfinite(cursor);
         boolean isCurrentInfinite = isInfinite(current);
 
+        if (!isCursorInfinite && !isCurrentInfinite) return;
+
         plugin.debugLog("InventoryClickEvent for " + player.getName() + ", inventory: " + event.getInventory().getType() +
                 ", clicked: " + clickedInventory.getType() + ", click: " + clickType +
                 ", slot: " + slot + ", current: " + (current != null ? current.getType() : "null") +
                 ", cursor: " + (cursor != null ? cursor.getType() : "null"));
 
-        // Handle trade inventories (AxTrade GUI)
         boolean isTradeInventory = event.getInventory().getType() == InventoryType.MERCHANT ||
                 event.getView().getTitle().toLowerCase().contains("trade");
 
@@ -230,7 +235,6 @@ public class ItemEvents implements Listener {
             // Allow shift-click to valid trade slots
             if (clickType == ClickType.SHIFT_LEFT || clickType == ClickType.SHIFT_RIGHT) {
                 if (clickedInventory.getType() == InventoryType.PLAYER) {
-                    // Shift-click from player inventory to trade GUI
                     Inventory tradeInv = event.getInventory();
                     int targetSlot = findValidTradeSlot(tradeInv);
                     if (targetSlot != -1) {
@@ -239,12 +243,10 @@ public class ItemEvents implements Listener {
                         player.updateInventory();
                         plugin.debugLog("Shift-clicked infinite bucket to trade slot " + targetSlot, bucket);
                     } else {
-                        plugin.debugLog("No valid trade slot available, cancelling shift-click", bucket);
-                        event.setCancelled(true);
+                        plugin.debugLog("No valid trade slot available, shift-click aborted", bucket);
                     }
                     return;
                 } else if (clickedInventory.getType() == InventoryType.MERCHANT) {
-                    // Shift-click within trade GUI, allow if valid slot
                     if (isValidTradeSlot(slot)) {
                         plugin.debugLog("Allowed shift-click in trade GUI slot " + slot, bucket);
                     } else {
@@ -255,8 +257,19 @@ public class ItemEvents implements Listener {
                 }
             }
 
-            // Allow regular clicks in valid trade slots
-            if (isValidTradeSlot(slot) || clickedInventory.getType() == InventoryType.PLAYER) {
+            // Allow regular clicks in valid trade slots, player's inventory, or result slot (slot 2 for MERCHANT)
+            if (isValidTradeSlot(slot) || clickedInventory.getType() == InventoryType.PLAYER ||
+                    (event.getInventory().getType() == InventoryType.MERCHANT && slot == 2)) {
+                if (isValidTradeSlot(slot)) {
+                    // Store the bucket type (0 for water, 1 for lava) when placed in a trade slot
+                    Integer bucketType = bucket.getItemMeta().getPersistentDataContainer().get(infiniteKey, PersistentDataType.INTEGER);
+                    playersInTradeWithInfiniteBucket.put(player.getUniqueId(), bucketType);
+                    plugin.debugLog("Player " + player.getName() + " placed infinite bucket in trade slot: " + slot + ", type: " + (bucketType == 0 ? "Water" : "Lava"), bucket);
+                } else if (clickedInventory.getType() == InventoryType.MERCHANT && slot == 2 && isCurrentInfinite) {
+                    // If the player picks up the bucket from the trade slot, remove them from tracking
+                    playersInTradeWithInfiniteBucket.remove(player.getUniqueId());
+                    plugin.debugLog("Player " + player.getName() + " removed infinite bucket from trade slot via result slot, cleared tracking", bucket);
+                }
                 plugin.debugLog("Allowed click for infinite bucket in trade, slot: " + slot, bucket);
             } else {
                 plugin.debugLog("Blocked click for infinite bucket in invalid trade slot: " + slot, bucket);
@@ -264,8 +277,6 @@ public class ItemEvents implements Listener {
             }
             return;
         }
-
-        if (!isCursorInfinite && !isCurrentInfinite) return;
 
         if (isCursorInfinite && isCurrentInfinite && current.isSimilar(cursor)) {
             plugin.debugLog("Attempt to stack infinite buckets, cancelling");
@@ -342,40 +353,48 @@ public class ItemEvents implements Listener {
         Player player = (Player) event.getPlayer();
         Inventory inventory = event.getInventory();
 
-        // Check if closing a trade inventory
         if (inventory.getType() == InventoryType.MERCHANT ||
                 event.getView().getTitle().toLowerCase().contains("trade")) {
             plugin.debugLog("InventoryCloseEvent for " + player.getName() + ", inventory: " + inventory.getType() +
                     ", title: " + event.getView().getTitle());
 
-            // Delayed check to ensure trade is complete
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    PlayerInventory playerInv = player.getInventory();
-                    boolean foundInfinite = false;
-                    int infiniteSlot = -1;
+            UUID playerUUID = player.getUniqueId();
+            Integer bucketType = playersInTradeWithInfiniteBucket.get(playerUUID);
 
-                    // Check for infinite buckets in player's inventory
-                    for (int i = 0; i < playerInv.getSize(); i++) {
-                        ItemStack item = playerInv.getItem(i);
-                        if (isInfinite(item)) {
-                            foundInfinite = true;
-                            infiniteSlot = i;
-                            plugin.debugLog("Found infinite bucket in " + player.getName() + "'s inventory after trade, slot: " + i, item);
-                            break;
-                        }
-                    }
+            if (bucketType == null) {
+                plugin.debugLog("No infinite bucket was placed in trade slots by " + player.getName());
+                return;
+            }
 
-                    // If an infinite bucket remains and trade completed, warn and remove
-                    if (foundInfinite) {
-                        plugin.debugLog("Potential duplication detected for " + player.getName() + ", removing infinite bucket post-trade");
-                        playerInv.setItem(infiniteSlot, null);
+            // Check if trade slots (0 and 1) are empty, indicating a trade might have occurred
+            boolean tradeSlotEmpty = (inventory.getItem(0) == null || !isInfinite(inventory.getItem(0))) &&
+                    (inventory.getItem(1) == null || !isInfinite(inventory.getItem(1)));
+
+            if (!tradeSlotEmpty) {
+                plugin.debugLog("Trade slots still contain items, no trade occurred for " + player.getName());
+                playersInTradeWithInfiniteBucket.remove(playerUUID);
+                return;
+            }
+
+            // A trade likely occurred, check for duplication
+            plugin.debugLog("Player " + player.getName() + " likely completed a trade with an infinite bucket, checking for duplication");
+
+            PlayerInventory playerInv = player.getInventory();
+            for (int i = 0; i < playerInv.getSize(); i++) {
+                ItemStack item = playerInv.getItem(i);
+                if (isInfinite(item)) {
+                    Integer foundBucketType = item.getItemMeta().getPersistentDataContainer().get(infiniteKey, PersistentDataType.INTEGER);
+                    if (foundBucketType != null && foundBucketType.equals(bucketType)) {
+                        plugin.debugLog("Found infinite bucket in " + player.getName() + "'s inventory after trade, slot: " + i + ", type: " + (bucketType == 0 ? "Water" : "Lava"), item);
+                        playerInv.setItem(i, null);
                         player.updateInventory();
                         player.sendMessage("§cWarning: Infinite bucket was removed to prevent duplication after trading.");
+                        break;
                     }
                 }
-            }.runTaskLater(plugin, 2L); // Delay to allow trade to finalize
+            }
+
+            playersInTradeWithInfiniteBucket.remove(playerUUID);
         }
     }
 
@@ -394,15 +413,15 @@ public class ItemEvents implements Listener {
     }
 
     private boolean isValidTradeSlot(int slot) {
-        // AxTrade typically uses slots 0-8 for player offers (adjust based on GUI config)
-        return slot >= 0 && slot <= 8;
+        return slot == 0 || slot == 1;
     }
 
     private int findValidTradeSlot(Inventory inventory) {
-        // Find an empty slot in the trade offer area (slots 0-8)
-        for (int i = 0; i <= 8; i++) {
-            if (inventory.getItem(i) == null) {
-                return i;
+        if (inventory.getType() == InventoryType.MERCHANT) {
+            for (int i = 0; i <= 1; i++) {
+                if (inventory.getItem(i) == null) {
+                    return i;
+                }
             }
         }
         return -1;

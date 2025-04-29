@@ -42,7 +42,14 @@ public class ItemEvents implements Listener {
         this.infiniteKey = new NamespacedKey(plugin, "infinite");
     }
 
+    private boolean isSuperiorSkyblockInstalled() {
+        return plugin.getServer().getPluginManager().getPlugin("SuperiorSkyblock2") != null;
+    }
+
     private boolean islandCheck(final @NotNull Player player) {
+        if (!isSuperiorSkyblockInstalled()) {
+            return true;
+        }
         Island island = SuperiorSkyblockAPI.getIslandAt(player.getLocation());
         SuperiorPlayer superiorPlayer = SuperiorSkyblockAPI.getPlayer(player.getUniqueId());
         if(island==null) return true;
@@ -76,6 +83,13 @@ public class ItemEvents implements Listener {
         }
 
         plugin.debugLog("Infinite bucket detected. Type: " + item.getType());
+
+        if(clickedBlock != null && clickedBlock.getType().name().contains("CHEST")){
+            event.setCancelled(true);
+            player.updateInventory();
+            plugin.debugLog("Detected chest, cancelling the interaction.", new ItemStack(clickedBlock.getType()));
+            return;
+        }
 
         // Check island API
         if(!islandCheck(player)) return;

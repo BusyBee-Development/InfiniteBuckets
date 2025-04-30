@@ -50,12 +50,12 @@ public class ItemEvents implements Listener {
         }
         Island island = SuperiorSkyblockAPI.getIslandAt(player.getLocation());
         SuperiorPlayer superiorPlayer = SuperiorSkyblockAPI.getPlayer(player.getUniqueId());
-        if(island==null) return true;
-        if(island.getOwner().getUniqueId() == player.getUniqueId()) return true;
+        if (island == null) return true;
+        if (island.getOwner().getUniqueId() == player.getUniqueId()) return true;
 
-        if(superiorPlayer == null) return false;
-        if(island.isMember(superiorPlayer) && island.hasPermission(superiorPlayer, IslandPrivilege.getByName("Build"))) return true;
-        if(superiorPlayer.hasBypassModeEnabled()) return true;
+        if (superiorPlayer == null) return false;
+        if (island.isMember(superiorPlayer) && island.hasPermission(superiorPlayer, IslandPrivilege.getByName("Build"))) return true;
+        if (superiorPlayer.hasBypassModeEnabled()) return true;
         return false;
     }
 
@@ -82,7 +82,7 @@ public class ItemEvents implements Listener {
 
         plugin.debugLog("Infinite bucket detected. Type: " + item.getType());
 
-        if(clickedBlock != null && clickedBlock.getType().name().contains("CHEST")){
+        if (clickedBlock != null && clickedBlock.getType().name().contains("CHEST")) {
             event.setCancelled(true);
             player.updateInventory();
             plugin.debugLog("Detected chest, cancelling the interaction.", new ItemStack(clickedBlock.getType()));
@@ -90,13 +90,13 @@ public class ItemEvents implements Listener {
         }
 
         // Check island API
-        if(!islandCheck(player)) return;
+        if (!islandCheck(player)) return;
 
         // If event is cancelled, then don't proceed.
-        if(event.isCancelled()) return;
+        if (event.isCancelled()) return;
 
         // If usage is denied, then don't proceed.
-        if(event.useInteractedBlock() == Event.Result.DENY ||
+        if (event.useInteractedBlock() == Event.Result.DENY ||
                 event.useItemInHand() == Event.Result.DENY) return;
 
         if (clickedBlock == null) {
@@ -226,7 +226,7 @@ public class ItemEvents implements Listener {
         boolean isCursorInfinite = isInfinite(cursor);
         boolean isCurrentInfinite = isInfinite(current);
 
-        // Debug logs
+        //	Debug logs
         plugin.debugLog("InventoryClickEvent for " + player.getName() + ", inventory: " + event.getInventory().getType() +
                 ", clicked: " + clickedInventory.getType() + ", click: " + clickType +
                 ", slot: " + slot + ", current: " + (current != null ? current.getType() : "null") +
@@ -261,22 +261,35 @@ public class ItemEvents implements Listener {
             return;
         }
 
-        // Allow movement of infinite buckets in chest inventories
+        // Handle shift-clicking infinite buckets between player inventory and chest
         if (clickType == ClickType.SHIFT_LEFT || clickType == ClickType.SHIFT_RIGHT) {
-            if (isCurrentInfinite && event.getInventory().getType() == InventoryType.CHEST &&
-                    clickedInventory.getType() == InventoryType.PLAYER) {
-
-                ItemStack itemToMove = current.clone();
-                itemToMove.setAmount(1);
-
-                // Handle moving the item to an empty slot in chest
-                int emptySlot = clickedInventory.firstEmpty();
-                if (emptySlot != -1) {
-                    clickedInventory.setItem(emptySlot, itemToMove);
-                    player.updateInventory();
-                    plugin.debugLog("Moved infinite bucket to chest.");
+            if (isCurrentInfinite && event.getInventory().getType() == InventoryType.CHEST) {
+                if (clickedInventory.getType() == InventoryType.PLAYER) {
+                    // Shift-click from player inventory to chest
+                    Inventory chestInventory = event.getInventory();
+                    int emptySlot = chestInventory.firstEmpty();
+                    if (emptySlot != -1) {
+                        // Allow default behavior to move the bucket to the chest
+                        plugin.debugLog("Allowing shift-click of infinite bucket to chest.");
+                        return; // Do not cancel the event, let default behavior handle it
+                    } else {
+                        // No space in chest, cancel to prevent duplication
+                        event.setCancelled(true);
+                        plugin.debugLog("No space in chest, cancelling shift-click.");
+                    }
+                } else if (clickedInventory.getType() == InventoryType.CHEST) {
+                    // Shift-click from chest to player inventory
+                    // Allow default behavior if player inventory has space
+                    PlayerInventory playerInventory = player.getInventory();
+                    if (playerInventory.firstEmpty() != -1) {
+                        plugin.debugLog("Allowing shift-click of infinite bucket to player inventory.");
+                        return; // Do not cancel, let default behavior handle it
+                    } else {
+                        // No space in player inventory, cancel to prevent issues
+                        event.setCancelled(true);
+                        plugin.debugLog("No space in player inventory, cancelling shift-click.");
+                    }
                 }
-                event.setCancelled(true);
             }
         }
     }

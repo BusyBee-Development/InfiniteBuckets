@@ -61,14 +61,17 @@ public class ItemEvents implements Listener {
 
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || event.getHand() != EquipmentSlot.HAND) {
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK && event.getAction() != Action.RIGHT_CLICK_AIR) {
+            return;
+        }
+        if (event.getHand() != EquipmentSlot.HAND) {
             return;
         }
 
         Player player = event.getPlayer();
         ItemStack item = event.getItem();
         Block clickedBlock = event.getClickedBlock();
-        plugin.debugLog("PlayerInteractEvent for " + player.getName() + ", block: " + (clickedBlock != null ? clickedBlock.getType() : "null"), item);
+        plugin.debugLog("PlayerInteractEvent for " + player.getName() + ", action: " + event.getAction() + ", block: " + (clickedBlock != null ? clickedBlock.getType() : "null"), item);
 
         if (item == null || (item.getType() != Material.WATER_BUCKET && item.getType() != Material.LAVA_BUCKET)) {
             plugin.debugLog("Not a bucket item");
@@ -90,29 +93,41 @@ public class ItemEvents implements Listener {
         }
 
         // Check island API
-        if (!islandCheck(player)) return;
+        if (!islandCheck(player)) {
+            event.setCancelled(true);
+            plugin.debugLog("Island check failed, cancelling interaction");
+            return;
+        }
 
-        // If event is cancelled, then don't proceed.
-        if (event.isCancelled()) return;
-
-        // If usage is denied, then don't proceed.
-        if (event.useInteractedBlock() == Event.Result.DENY ||
-                event.useItemInHand() == Event.Result.DENY) return;
-
-        if (clickedBlock == null) {
-            plugin.debugLog("No block clicked");
+        // If event is cancelled or usage is denied, don't proceed
+        if (event.isCancelled() || event.useInteractedBlock() == Event.Result.DENY || event.useItemInHand() == Event.Result.DENY) {
+            plugin.debugLog("Event cancelled or usage denied");
             return;
         }
 
         Integer bucketType = item.getItemMeta().getPersistentDataContainer().get(infiniteKey, PersistentDataType.INTEGER);
         plugin.debugLog("Bucket infinite type: " + (bucketType == 0 ? "Water" : "Lava"));
 
-        BlockFace face = event.getBlockFace();
-        Block targetBlock = clickedBlock.getRelative(face);
-        plugin.debugLog("Target block: " + targetBlock.getType());
+        Block targetBlock;
+        if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+            BlockFace face = event.getBlockFace();
+            targetBlock = clickedBlock.getRelative(face);
+            plugin.debugLog("Target block: " + targetBlock.getType());
+        } else {
+            // Right-click in air: use player's eye location or block in front
+            targetBlock = player.getTargetBlockExact(5);
+            if (targetBlock == null) {
+                targetBlock = player.getEyeLocation().getBlock();
+            }
+            plugin.debugLog("Right-click air, target block: " + targetBlock.getType());
+        }
+
+        // Check if player is in their own element
+        boolean isInOwnElement = (bucketType == 0 && player.isInWater()) || (bucketType == 1 && player.getLocation().getBlock().getType() == Material.LAVA);
+        plugin.debugLog("Player in own element: " + isInOwnElement);
 
         // Handle waterlogging for water buckets
-        if (bucketType == 0) {
+        if (bucketType == 0 && clickedBlock != null) {
             if (clickedBlock.getBlockData() instanceof Waterlogged waterlogged) {
                 plugin.debugLog("Clicked block waterloggable: " + clickedBlock.getType() + ", Current waterlogged: " + waterlogged.isWaterlogged());
                 if (!waterlogged.isWaterlogged()) {
@@ -143,7 +158,7 @@ public class ItemEvents implements Listener {
         }
 
         // Handle cauldron interactions
-        if (clickedBlock.getType() == Material.CAULDRON) {
+        if (clickedBlock != null && clickedBlock.getType() == Material.CAULDRON) {
             plugin.debugLog("Interacting with cauldron");
             if (bucketType == 0) {
                 clickedBlock.setType(Material.WATER_CAULDRON);
@@ -161,9 +176,9 @@ public class ItemEvents implements Listener {
             return;
         }
 
-        // Handle placement in air or replaceable blocks
+        // Handle placement, including in own element
         if (bucketType == 0) {
-            if (targetBlock.getType().isAir() || targetBlock.getType() == Material.WATER) {
+            if (isInOwnElement || targetBlock.getType().isAir() || targetBlock.getType() == Material.WATER) {
                 plugin.debugLog("Placing water at target: " + targetBlock.getType());
                 targetBlock.setType(Material.WATER);
                 event.setCancelled(true);
@@ -171,7 +186,7 @@ public class ItemEvents implements Listener {
                 plugin.debugLog("Water placement complete, bucket preserved");
             }
         } else if (bucketType == 1) {
-            if (targetBlock.getType().isAir() || targetBlock.getType() == Material.LAVA) {
+            if (isInOwnElement || targetBlock.getType().isAir() || targetBlock.getType() == Material.LAVA) {
                 plugin.debugLog("Placing lava at target: " + targetBlock.getType());
                 targetBlock.setType(Material.LAVA);
                 event.setCancelled(true);
@@ -189,8 +204,9 @@ public class ItemEvents implements Listener {
         plugin.debugLog("PlayerBucketEmptyEvent for " + player.getName() + ", bucket type: " + event.getBucket(), bucket);
 
         if (isInfinite(bucket)) {
-            plugin.debugLog("Infinite bucket detected, cancelling to defer to PlayerInteractEvent", bucket);
+            plugin.debugLog("Infinite bucket detected, cancelling and preserving bucket", bucket);
             event.setCancelled(true);
+            preserveBucket(player, bucket);
             return;
         }
 
@@ -226,7 +242,7 @@ public class ItemEvents implements Listener {
         boolean isCursorInfinite = isInfinite(cursor);
         boolean isCurrentInfinite = isInfinite(current);
 
-        //	Debug logs
+        // Debug logs
         plugin.debugLog("InventoryClickEvent for " + player.getName() + ", inventory: " + event.getInventory().getType() +
                 ", clicked: " + clickedInventory.getType() + ", click: " + clickType +
                 ", slot: " + slot + ", current: " + (current != null ? current.getType() : "null") +

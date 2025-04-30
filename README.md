@@ -78,6 +78,10 @@ water:
 - None!
   * As of version 1.1, InfiniteBuckets operates independently, with Vault and economy plugin support removed for simplicity.
 
+### Soft-Dependencies
+- Yes - SuperiorSkyBlock2 
+  * This plugin works with SSB2 to listen to the protection made by the plugin. Players can not place on other peoples island with out permission. This plugin can work without SSB2 as well. 
+
 ### Installation
 * Download the latest InfiniteBuckets .jar file from the GitHub Releases page.
     Place the .jar file in your server’s plugins folder.
@@ -89,5 +93,3 @@ water:
     Last Updated by ZedBear: 4 years ago
 -    Current Developer: djtmk
 -    GitHub Repository: [ZedBear Github](https://github.com/ZedBear/InfiniteBuckets)
--    Recent Updates:
-       - Version 1.1: Removed Vault dependency, updated commands, added permissions, and modernized for Spigot 1.21.

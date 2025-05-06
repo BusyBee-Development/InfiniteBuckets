@@ -14,6 +14,7 @@ import org.bukkit.block.data.Waterlogged;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockPlaceEvent;
@@ -28,6 +29,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
 public class ItemEvents implements Listener {
@@ -59,7 +61,7 @@ public class ItemEvents implements Listener {
         return false;
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerInteract(PlayerInteractEvent event) {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK && event.getAction() != Action.RIGHT_CLICK_AIR) {
             return;
@@ -196,7 +198,7 @@ public class ItemEvents implements Listener {
         }
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onBucketDrain(PlayerBucketEmptyEvent event) {
         Player player = event.getPlayer();
         ItemStack bucket = event.getItemStack();
@@ -207,13 +209,25 @@ public class ItemEvents implements Listener {
             plugin.debugLog("Infinite bucket detected, cancelling and preserving bucket", bucket);
             event.setCancelled(true);
             preserveBucket(player, bucket);
+            // Additional check to ensure bucket is preserved
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    PlayerInventory inventory = player.getInventory();
+                    ItemStack heldItem = inventory.getItem(inventory.getHeldItemSlot());
+                    if (heldItem == null || !isInfinite(heldItem)) {
+                        plugin.debugLog("Bucket missing after PlayerBucketEmptyEvent, restoring", bucket);
+                        inventory.setItem(inventory.getHeldItemSlot(), bucket.clone());
+                    }
+                }
+            }.runTaskLater(plugin, 1L);
             return;
         }
 
         plugin.debugLog("Non-infinite bucket, allowing default behavior", bucket);
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onBlockPlace(BlockPlaceEvent event) {
         ItemStack item = event.getItemInHand();
         Block block = event.getBlock();
@@ -313,9 +327,20 @@ public class ItemEvents implements Listener {
     private void preserveBucket(Player player, ItemStack bucket) {
         PlayerInventory inventory = player.getInventory();
         int slot = inventory.getHeldItemSlot();
-        inventory.setItem(slot, bucket);
-        player.updateInventory();
-        plugin.debugLog("Synchronously preserved bucket in slot " + slot, bucket);
+        ItemStack clonedBucket = bucket.clone(); // Clone to avoid reference issues
+        inventory.setItem(slot, clonedBucket);
+        // Schedule a task to ensure the bucket is preserved
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                ItemStack currentItem = inventory.getItem(slot);
+                if (currentItem == null || !isInfinite(currentItem)) {
+                    plugin.debugLog("Bucket missing in slot " + slot + ", restoring", clonedBucket);
+                    inventory.setItem(slot, clonedBucket.clone());
+                }
+            }
+        }.runTaskLater(plugin, 1L);
+        plugin.debugLog("Preserved bucket in slot " + slot, clonedBucket);
     }
 
     private boolean isInfinite(ItemStack item) {

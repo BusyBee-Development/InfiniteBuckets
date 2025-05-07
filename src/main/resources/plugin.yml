@@ -1,10 +1,13 @@
 name: InfiniteBuckets
-version: 1.4
+version: 1.4.1
 main: me.djtmk.InfiniteBuckets.Main
 api-version: 1.21
 authors: [ djtmk ]
 description: Infinite Water and Lava Buckets
+website: https://builtbybit.com/resources/infinitebuckets.61863/
 softdepend: [SuperiorSkyblock2]
+
+
 commands:
   infb:
     description: Main command for Infinite Buckets

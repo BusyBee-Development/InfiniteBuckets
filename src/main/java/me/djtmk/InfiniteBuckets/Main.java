@@ -27,6 +27,7 @@ public class Main extends JavaPlugin implements Listener {
     private boolean debugEnabled;
     private boolean isSuperiorSkyblockEnabled;
     private final String currentVersion = getDescription().getVersion(); // Current plugin version
+    private String latestVersionCache = null; // Cache for latest version
 
     @Override
     public void onEnable() {
@@ -81,33 +82,42 @@ public class Main extends JavaPlugin implements Listener {
     }
 
     private void checkForUpdates() {
-        String latestVersion = fetchLatestVersion(); // Dynamic fetch from version.txt
+        latestVersionCache = fetchLatestVersion(); // Cache the latest version
         String lastNotifiedVersion = getConfig().getString("lastNotifiedVersion", "0.0.0");
 
-        if (!currentVersion.equals(latestVersion) && isNewerVersion(latestVersion, currentVersion) && !latestVersion.equals(lastNotifiedVersion)) {
+        if (!currentVersion.equals(latestVersionCache) && isNewerVersion(latestVersionCache, currentVersion)) {
             getLogger().warning("-------------------------------------------");
             getLogger().warning("A new version of InfiniteBuckets is available!");
-            getLogger().warning("Current: " + currentVersion + " | Latest: " + latestVersion);
+            getLogger().warning("Current: " + currentVersion + " | Latest: " + latestVersionCache);
             getLogger().warning("Download the latest version to stay up to date!");
             getLogger().warning("Links: https://builtbybit.com/resources/infinitebuckets.61863/");
             getLogger().warning("       https://modrinth.com/plugin/infinitebuckets");
             getLogger().warning("-------------------------------------------");
-
-            // Update the last notified version in config
-            getConfig().set("lastNotifiedVersion", latestVersion);
-            saveConfig();
         } else if (debugEnabled) {
-            debugLog("No new update available. Current: " + currentVersion + ", Latest: " + latestVersion + ", Last Notified: " + lastNotifiedVersion);
+            debugLog("No new update available. Current: " + currentVersion + ", Latest: " + latestVersionCache + ", Last Notified: " + lastNotifiedVersion);
         }
     }
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        String latestVersion = fetchLatestVersion(); // Dynamic fetch from version.txt
+        if (!player.isOp()) {
+            if (debugEnabled) debugLog("Player " + player.getName() + " is not an OP, skipping update notification.");
+            return;
+        }
+
+        String latestVersion = latestVersionCache != null ? latestVersionCache : fetchLatestVersion();
         String lastNotifiedVersion = getConfig().getString("lastNotifiedVersion", "0.0.0");
 
-        if (player.isOp() && !currentVersion.equals(latestVersion) && isNewerVersion(latestVersion, currentVersion) && !latestVersion.equals(lastNotifiedVersion)) {
+        if (debugEnabled) {
+            debugLog("Checking update for OP " + player.getName() + ": Current=" + currentVersion +
+                    ", Latest=" + latestVersion + ", LastNotified=" + lastNotifiedVersion +
+                    ", isNewer=" + isNewerVersion(latestVersion, currentVersion) +
+                    ", versionMismatch=" + !currentVersion.equals(latestVersion) +
+                    ", notNotified=" + !latestVersion.equals(lastNotifiedVersion));
+        }
+
+        if (!currentVersion.equals(latestVersion) && isNewerVersion(latestVersion, currentVersion) && !latestVersion.equals(lastNotifiedVersion)) {
             // Prepare the message with clickable links for the OP player
             TextComponent message = new TextComponent(ChatColor.GOLD + "-----------------------------------------\n");
             TextComponent updateNotice = new TextComponent(ChatColor.RED + "[InfiniteBuckets] " + ChatColor.GREEN + "A new version is available! (v" + latestVersion + ")\n");
@@ -157,19 +167,27 @@ public class Main extends JavaPlugin implements Listener {
     }
 
     private String fetchLatestVersion() {
+        if (latestVersionCache != null) {
+            return latestVersionCache; // Return cached version
+        }
         try {
-            // Fetch the version from GitHub
             URL url = new URL("https://raw.githubusercontent.com/OneBlock-Odyssey/InfiniteBuckets/main/src/main/version.txt");
             BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
             String version = in.readLine();
-            in.close(); // Close the BufferedReader to prevent resource leaks
-            return version != null ? version.trim() : currentVersion; // Trim to remove any whitespace
+            in.close();
+            if (version != null && version.matches("\\d+\\.\\d+\\.\\d+")) { // Validate version format
+                latestVersionCache = version.trim();
+                return latestVersionCache;
+            } else {
+                getLogger().warning("Invalid version format fetched from GitHub: " + version);
+                return currentVersion;
+            }
         } catch (IOException e) {
             getLogger().warning("Error fetching the latest version from GitHub: " + e.getMessage());
             if (debugEnabled) {
                 debugLog("Failed URL: https://raw.githubusercontent.com/OneBlock-Odyssey/InfiniteBuckets/main/src/main/version.txt");
             }
-            return currentVersion; // Fallback to current version if error
+            return currentVersion;
         }
     }
 

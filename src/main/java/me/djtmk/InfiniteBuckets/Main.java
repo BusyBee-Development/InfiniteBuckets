@@ -159,11 +159,16 @@ public class Main extends JavaPlugin implements Listener {
     private String fetchLatestVersion() {
         try {
             // Fetch the version from GitHub
-            URL url = new URL("https://raw.githubusercontent.com/OneBlock-Odyssey/InfiniteBuckets/main/version.txt");
+            URL url = new URL("https://raw.githubusercontent.com/OneBlock-Odyssey/InfiniteBuckets/main/src/main/version.txt");
             BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
-            return in.readLine();
+            String version = in.readLine();
+            in.close(); // Close the BufferedReader to prevent resource leaks
+            return version != null ? version.trim() : currentVersion; // Trim to remove any whitespace
         } catch (IOException e) {
             getLogger().warning("Error fetching the latest version from GitHub: " + e.getMessage());
+            if (debugEnabled) {
+                debugLog("Failed URL: https://raw.githubusercontent.com/OneBlock-Odyssey/InfiniteBuckets/main/src/main/version.txt");
+            }
             return currentVersion; // Fallback to current version if error
         }
     }

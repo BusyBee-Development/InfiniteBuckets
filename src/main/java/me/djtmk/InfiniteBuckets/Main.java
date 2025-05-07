@@ -163,7 +163,7 @@ public class Main extends JavaPlugin implements Listener {
             BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
             return in.readLine();
         } catch (IOException e) {
-            getLogger().warning("Error fetching the latest version from GitHub.");
+            getLogger().warning("Error fetching the latest version from GitHub: " + e.getMessage());
             return currentVersion; // Fallback to current version if error
         }
     }

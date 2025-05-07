@@ -6,7 +6,7 @@
 
     <groupId>me.djtmk</groupId>
     <artifactId>InfiniteBuckets</artifactId>
-    <version>1.4.2</version>
+    <version>1.4.4</version>
     <packaging>jar</packaging>
 
     <name>InfiniteBuckets</name>

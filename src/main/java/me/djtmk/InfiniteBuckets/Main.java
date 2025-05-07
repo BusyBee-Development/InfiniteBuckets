@@ -16,6 +16,7 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 
@@ -25,12 +26,13 @@ public class Main extends JavaPlugin implements Listener {
     private ItemManager itemManager;
     private boolean debugEnabled;
     private boolean isSuperiorSkyblockEnabled;
-    private final String currentVersion = getDescription().getVersion();
+    private final String currentVersion = getDescription().getVersion(); // Current plugin version
 
     @Override
     public void onEnable() {
         instance = this;
 
+        // Check if SuperiorSkyblock2 is present
         isSuperiorSkyblockEnabled = hasIslandPlugin();
         if (!isSuperiorSkyblockEnabled) {
             getLogger().warning("SuperiorSkyblock2 is not installed on the server. Island checks will be disabled.");
@@ -41,20 +43,19 @@ public class Main extends JavaPlugin implements Listener {
         saveDefaultConfig();
         debugEnabled = getConfig().getBoolean("debug", false);
         getLogger().info("Debug mode: " + (debugEnabled ? "enabled" : "disabled"));
-
         itemManager = new ItemManager(this);
         registerCommands();
         registerListeners();
 
-        // Check for updates asynchronously
+        // Check for updates and log to console during startup
         checkForUpdates();
 
-        getLogger().info(String.format("[%s] v%s enabled successfully!", getDescription().getName(), currentVersion));
+        getLogger().info(String.format("[%s] v%s enabled successfully!", getDescription().getName(), getDescription().getVersion()));
     }
 
     @Override
     public void onDisable() {
-        getLogger().info(String.format("[%s] v%s disabled!", getDescription().getName(), currentVersion));
+        getLogger().info(String.format("[%s] v%s disabled!", getDescription().getName(), getDescription().getVersion()));
         instance = null;
     }
 
@@ -76,98 +77,76 @@ public class Main extends JavaPlugin implements Listener {
 
     private void registerListeners() {
         getServer().getPluginManager().registerEvents(new ItemEvents(this), this);
-        getServer().getPluginManager().registerEvents(this, this);
+        getServer().getPluginManager().registerEvents(this, this); // Register this class as a listener
     }
 
     private void checkForUpdates() {
-        Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
-            try {
-                URL url = new URL("https://raw.githubusercontent.com/OneBlock-Odyssey/InfiniteBuckets/main/version.txt");
-                BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()));
-                String latestVersion = reader.readLine().trim();
-                reader.close();
+        String latestVersion = fetchLatestVersion(); // Dynamic fetch from version.txt
+        String lastNotifiedVersion = getConfig().getString("lastNotifiedVersion", "0.0.0");
 
-                String lastNotifiedVersion = getConfig().getString("lastNotifiedVersion", "0.0.0");
+        if (!currentVersion.equals(latestVersion) && isNewerVersion(latestVersion, currentVersion) && !latestVersion.equals(lastNotifiedVersion)) {
+            getLogger().warning("-------------------------------------------");
+            getLogger().warning("A new version of InfiniteBuckets is available!");
+            getLogger().warning("Current: " + currentVersion + " | Latest: " + latestVersion);
+            getLogger().warning("Download the latest version to stay up to date!");
+            getLogger().warning("Links: https://builtbybit.com/resources/infinitebuckets.61863/");
+            getLogger().warning("       https://modrinth.com/plugin/infinitebuckets");
+            getLogger().warning("-------------------------------------------");
 
-                if (isNewerVersion(latestVersion, currentVersion)) {
-                    getLogger().warning("-------------------------------------------");
-                    getLogger().warning("A new version of InfiniteBuckets is available!");
-                    getLogger().warning("Current: " + currentVersion + " | Latest: " + latestVersion);
-                    getLogger().warning("Download the latest version here:");
-                    getLogger().warning("BuiltByBit: https://builtbybit.com/resources/infinitebuckets.61863/");
-                    getLogger().warning("Modrinth:   https://modrinth.com/plugin/infinitebuckets");
-                    getLogger().warning("-------------------------------------------");
-
-                    if (!latestVersion.equals(lastNotifiedVersion)) {
-                        getConfig().set("lastNotifiedVersion", latestVersion);
-                        saveConfig();
-                    }
-                } else {
-                    getLogger().info("InfiniteBuckets is up to date (v" + currentVersion + ").");
-                }
-
-            } catch (Exception e) {
-                getLogger().warning("Could not check for updates: " + e.getMessage());
-            }
-        });
+            // Update the last notified version in config
+            getConfig().set("lastNotifiedVersion", latestVersion);
+            saveConfig();
+        } else if (debugEnabled) {
+            debugLog("No new update available. Current: " + currentVersion + ", Latest: " + latestVersion + ", Last Notified: " + lastNotifiedVersion);
+        }
     }
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
+        String latestVersion = fetchLatestVersion(); // Dynamic fetch from version.txt
+        String lastNotifiedVersion = getConfig().getString("lastNotifiedVersion", "0.0.0");
 
-        if (!player.isOp()) return;
+        if (player.isOp() && !currentVersion.equals(latestVersion) && isNewerVersion(latestVersion, currentVersion) && !latestVersion.equals(lastNotifiedVersion)) {
+            // Prepare the message with clickable links for the OP player
+            TextComponent message = new TextComponent(ChatColor.GOLD + "-----------------------------------------\n");
+            TextComponent updateNotice = new TextComponent(ChatColor.RED + "[InfiniteBuckets] " + ChatColor.GREEN + "A new version is available! (v" + latestVersion + ")\n");
+            TextComponent currentVersionText = new TextComponent(ChatColor.YELLOW + "You're on: " + ChatColor.RED + currentVersion + "\n");
+            TextComponent downloadText = new TextComponent(ChatColor.GREEN + "Download the latest version here:\n");
 
-        Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
-            try {
-                URL url = new URL("https://raw.githubusercontent.com/OneBlock-Odyssey/InfiniteBuckets/main/version.txt");
-                BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()));
-                String latestVersion = reader.readLine().trim();
-                reader.close();
+            TextComponent builtByBitText = new TextComponent(ChatColor.YELLOW + "[BuiltByBit] ");
+            TextComponent builtByBitLink = new TextComponent(ChatColor.WHITE + "https://builtbybit.com/resources/infinitebuckets.61863/\n");
+            builtByBitLink.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://builtbybit.com/resources/infinitebuckets.61863/"));
 
-                String lastNotifiedVersion = getConfig().getString("lastNotifiedVersion", "0.0.0");
+            TextComponent modrinthText = new TextComponent(ChatColor.AQUA + "[Modrinth] ");
+            TextComponent modrinthLink = new TextComponent(ChatColor.WHITE + "https://modrinth.com/plugin/infinitebuckets\n");
+            modrinthLink.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://modrinth.com/plugin/infinitebuckets"));
 
-                if (isNewerVersion(latestVersion, currentVersion) && !latestVersion.equals(lastNotifiedVersion)) {
-                    TextComponent message = new TextComponent(ChatColor.GOLD + "-----------------------------------------\n");
-                    TextComponent updateNotice = new TextComponent(ChatColor.RED + "[InfiniteBuckets] " + ChatColor.GREEN + "A new version is available! (v" + latestVersion + ")\n");
-                    TextComponent currentVersionText = new TextComponent(ChatColor.YELLOW + "You're on: " + ChatColor.RED + currentVersion + "\n");
-                    TextComponent downloadText = new TextComponent(ChatColor.GREEN + "Download the latest version here:\n");
+            TextComponent endLine = new TextComponent(ChatColor.GOLD + "-----------------------------------------");
 
-                    TextComponent builtByBitText = new TextComponent(ChatColor.YELLOW + "[BuiltByBit] ");
-                    TextComponent builtByBitLink = new TextComponent(ChatColor.WHITE + "https://builtbybit.com/resources/infinitebuckets.61863/\n");
-                    builtByBitLink.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://builtbybit.com/resources/infinitebuckets.61863/"));
+            message.addExtra(updateNotice);
+            message.addExtra(currentVersionText);
+            message.addExtra(downloadText);
+            message.addExtra(builtByBitText);
+            message.addExtra(builtByBitLink);
+            message.addExtra(modrinthText);
+            message.addExtra(modrinthLink);
+            message.addExtra(endLine);
 
-                    TextComponent modrinthText = new TextComponent(ChatColor.AQUA + "[Modrinth] ");
-                    TextComponent modrinthLink = new TextComponent(ChatColor.WHITE + "https://modrinth.com/plugin/infinitebuckets\n");
-                    modrinthLink.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://modrinth.com/plugin/infinitebuckets"));
+            player.spigot().sendMessage(message);
 
-                    TextComponent endLine = new TextComponent(ChatColor.GOLD + "-----------------------------------------");
-
-                    message.addExtra(updateNotice);
-                    message.addExtra(currentVersionText);
-                    message.addExtra(downloadText);
-                    message.addExtra(builtByBitText);
-                    message.addExtra(builtByBitLink);
-                    message.addExtra(modrinthText);
-                    message.addExtra(modrinthLink);
-                    message.addExtra(endLine);
-
-                    Bukkit.getScheduler().runTask(this, () -> player.spigot().sendMessage(message));
-
-                    getConfig().set("lastNotifiedVersion", latestVersion);
-                    saveConfig();
-                }
-            } catch (Exception e) {
-                getLogger().warning("Could not check for updates on player join: " + e.getMessage());
-            }
-        });
+            // Update the last notified version in config
+            getConfig().set("lastNotifiedVersion", latestVersion);
+            saveConfig();
+        }
     }
 
     private boolean isNewerVersion(String latest, String current) {
+        // Simple version comparison (e.g., "1.4.2" > "1.4.1")
         String[] latestParts = latest.split("\\.");
         String[] currentParts = current.split("\\.");
-        int length = Math.max(latestParts.length, currentParts.length);
 
+        int length = Math.max(latestParts.length, currentParts.length);
         for (int i = 0; i < length; i++) {
             int latestNum = i < latestParts.length ? Integer.parseInt(latestParts[i]) : 0;
             int currentNum = i < currentParts.length ? Integer.parseInt(currentParts[i]) : 0;
@@ -175,6 +154,18 @@ public class Main extends JavaPlugin implements Listener {
             if (latestNum < currentNum) return false;
         }
         return false;
+    }
+
+    private String fetchLatestVersion() {
+        try {
+            // Fetch the version from GitHub
+            URL url = new URL("https://raw.githubusercontent.com/OneBlock-Odyssey/InfiniteBuckets/main/version.txt");
+            BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
+            return in.readLine();
+        } catch (IOException e) {
+            getLogger().warning("Error fetching the latest version from GitHub.");
+            return currentVersion; // Fallback to current version if error
+        }
     }
 
     public static Main getInstance() {

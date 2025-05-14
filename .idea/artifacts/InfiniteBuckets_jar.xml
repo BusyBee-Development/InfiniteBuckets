@@ -3,6 +3,7 @@
     <output-path>$PROJECT_DIR$/out/artifacts/InfiniteBuckets_jar</output-path>
     <root id="archive" name="InfiniteBuckets.jar">
       <element id="module-output" name="InfiniteBuckets" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/jetbrains/annotations/26.0.2/annotations-26.0.2.jar" path-in-jar="/" />
     </root>
   </artifact>
 </component>

@@ -9,15 +9,13 @@
     <version>1.4.5</version>
     <packaging>jar</packaging>
 
-    <name>InfiniteBuckets</name>
-
     <properties>
         <java.version>21</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
     <build>
-        <finalName>InfiniteBuckets</finalName>
+        <finalName>${project.artifactId}-${project.version}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

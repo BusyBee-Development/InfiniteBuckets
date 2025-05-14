@@ -1,5 +1,5 @@
 name: InfiniteBuckets
-version: 1.4.5
+version: ${project.version}
 main: me.djtmk.InfiniteBuckets.Main
 api-version: 1.21
 folia-supported: true

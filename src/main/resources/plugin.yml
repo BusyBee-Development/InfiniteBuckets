@@ -1,12 +1,12 @@
 name: InfiniteBuckets
-version: 1.4.4
+version: ${project.version}
 main: me.djtmk.InfiniteBuckets.Main
 api-version: 1.21
+folia-supported: true
 authors: [ djtmk ]
 description: Infinite Water and Lava Buckets
 website: https://builtbybit.com/resources/infinitebuckets.61863/
 softdepend: [SuperiorSkyblock2]
-
 
 commands:
   infb:

@@ -29,7 +29,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
 public class ItemEvents implements Listener {
@@ -57,8 +56,7 @@ public class ItemEvents implements Listener {
 
         if (superiorPlayer == null) return false;
         if (island.isMember(superiorPlayer) && island.hasPermission(superiorPlayer, IslandPrivilege.getByName("Build"))) return true;
-        if (superiorPlayer.hasBypassModeEnabled()) return true;
-        return false;
+        return superiorPlayer.hasBypassModeEnabled();
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -101,8 +99,8 @@ public class ItemEvents implements Listener {
             return;
         }
 
-        // If event is cancelled or usage is denied, don't proceed
-        if (event.isCancelled() || event.useInteractedBlock() == Event.Result.DENY || event.useItemInHand() == Event.Result.DENY) {
+        // If event is canceled or usage is denied, don't proceed
+        if (event.useInteractedBlock() == Event.Result.DENY || event.useItemInHand() == Event.Result.DENY) {
             plugin.debugLog("Event cancelled or usage denied");
             return;
         }
@@ -113,6 +111,7 @@ public class ItemEvents implements Listener {
         Block targetBlock;
         if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
             BlockFace face = event.getBlockFace();
+            assert clickedBlock != null;
             targetBlock = clickedBlock.getRelative(face);
             plugin.debugLog("Target block: " + targetBlock.getType());
         } else {
@@ -178,20 +177,19 @@ public class ItemEvents implements Listener {
             return;
         }
 
-        // Handle placement, including in own element
+        // Handle placement, including in its own element
+        event.setCancelled(true);
         if (bucketType == 0) {
-            if (isInOwnElement || targetBlock.getType().isAir() || targetBlock.getType() == Material.WATER) {
+            if (isInOwnElement || targetBlock.getType().isAir() || targetBlock.getType() == Material.WATER || targetBlock.isPassable()) {
                 plugin.debugLog("Placing water at target: " + targetBlock.getType());
                 targetBlock.setType(Material.WATER);
-                event.setCancelled(true);
                 preserveBucket(player, item);
                 plugin.debugLog("Water placement complete, bucket preserved");
             }
         } else if (bucketType == 1) {
-            if (isInOwnElement || targetBlock.getType().isAir() || targetBlock.getType() == Material.LAVA) {
+            if (isInOwnElement || targetBlock.getType().isAir() || targetBlock.getType() == Material.LAVA || targetBlock.isPassable()) {
                 plugin.debugLog("Placing lava at target: " + targetBlock.getType());
                 targetBlock.setType(Material.LAVA);
-                event.setCancelled(true);
                 preserveBucket(player, item);
                 plugin.debugLog("Lava placement complete, bucket preserved");
             }
@@ -209,18 +207,15 @@ public class ItemEvents implements Listener {
             plugin.debugLog("Infinite bucket detected, cancelling and preserving bucket", bucket);
             event.setCancelled(true);
             preserveBucket(player, bucket);
-            // Additional check to ensure bucket is preserved
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    PlayerInventory inventory = player.getInventory();
-                    ItemStack heldItem = inventory.getItem(inventory.getHeldItemSlot());
-                    if (heldItem == null || !isInfinite(heldItem)) {
-                        plugin.debugLog("Bucket missing after PlayerBucketEmptyEvent, restoring", bucket);
-                        inventory.setItem(inventory.getHeldItemSlot(), bucket.clone());
-                    }
+            // Additional check to ensure the bucket is preserved
+            player.getScheduler().runDelayed(plugin, scheduledTask -> {
+                PlayerInventory inv = player.getInventory();
+                ItemStack heldItem = inv.getItem(inv.getHeldItemSlot());
+                if (!isInfinite(heldItem)) {
+                    plugin.debugLog("Bucket missing after PlayerBucketEmptyEvent, restoring", bucket);
+                    inv.setItem(inv.getHeldItemSlot(), bucket.clone());
                 }
-            }.runTaskLater(plugin, 1L);
+            }, null, 1L);
             return;
         }
 
@@ -260,7 +255,7 @@ public class ItemEvents implements Listener {
         plugin.debugLog("InventoryClickEvent for " + player.getName() + ", inventory: " + event.getInventory().getType() +
                 ", clicked: " + clickedInventory.getType() + ", click: " + clickType +
                 ", slot: " + slot + ", current: " + (current != null ? current.getType() : "null") +
-                ", cursor: " + (cursor != null ? cursor.getType() : "null"));
+                ", cursor: " + cursor.getType());
 
         // Handle trade inventories (AxTrade GUI)
         boolean isTradeInventory = event.getInventory().getType() == InventoryType.MERCHANT ||
@@ -295,15 +290,14 @@ public class ItemEvents implements Listener {
         if (clickType == ClickType.SHIFT_LEFT || clickType == ClickType.SHIFT_RIGHT) {
             if (isCurrentInfinite && event.getInventory().getType() == InventoryType.CHEST) {
                 if (clickedInventory.getType() == InventoryType.PLAYER) {
-                    // Shift-click from player inventory to chest
+                    // Shift-click from player inventory to "chest"
                     Inventory chestInventory = event.getInventory();
                     int emptySlot = chestInventory.firstEmpty();
                     if (emptySlot != -1) {
                         // Allow default behavior to move the bucket to the chest
                         plugin.debugLog("Allowing shift-click of infinite bucket to chest.");
-                        return; // Do not cancel the event, let default behavior handle it
                     } else {
-                        // No space in chest, cancel to prevent duplication
+                        // No space in "chest," cancel to prevent duplication
                         event.setCancelled(true);
                         plugin.debugLog("No space in chest, cancelling shift-click.");
                     }
@@ -313,7 +307,6 @@ public class ItemEvents implements Listener {
                     PlayerInventory playerInventory = player.getInventory();
                     if (playerInventory.firstEmpty() != -1) {
                         plugin.debugLog("Allowing shift-click of infinite bucket to player inventory.");
-                        return; // Do not cancel, let default behavior handle it
                     } else {
                         // No space in player inventory, cancel to prevent issues
                         event.setCancelled(true);
@@ -330,16 +323,14 @@ public class ItemEvents implements Listener {
         ItemStack clonedBucket = bucket.clone(); // Clone to avoid reference issues
         inventory.setItem(slot, clonedBucket);
         // Schedule a task to ensure the bucket is preserved
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                ItemStack currentItem = inventory.getItem(slot);
-                if (currentItem == null || !isInfinite(currentItem)) {
-                    plugin.debugLog("Bucket missing in slot " + slot + ", restoring", clonedBucket);
-                    inventory.setItem(slot, clonedBucket.clone());
-                }
+        player.getScheduler().runDelayed(plugin, scheduledTask -> {
+            PlayerInventory inv = player.getInventory();
+            ItemStack heldItem = inv.getItem(inv.getHeldItemSlot());
+            if (!isInfinite(heldItem)) {
+                plugin.debugLog("Bucket missing after PlayerBucketEmptyEvent, restoring", bucket);
+                inv.setItem(inv.getHeldItemSlot(), bucket.clone());
             }
-        }.runTaskLater(plugin, 1L);
+        }, null, 1L);
         plugin.debugLog("Preserved bucket in slot " + slot, clonedBucket);
     }
 

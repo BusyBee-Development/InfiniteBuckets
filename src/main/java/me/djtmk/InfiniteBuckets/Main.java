@@ -27,7 +27,7 @@ public class Main extends JavaPlugin implements Listener {
     private boolean debugEnabled;
     private boolean isSuperiorSkyblockEnabled;
     private final String currentVersion = getDescription().getVersion(); // Current plugin version
-    private String latestVersionCache = null; // Cache for latest version
+    private String latestVersionCache = null; // Cache for the latest version
 
     @Override
     public void onEnable() {
@@ -152,7 +152,7 @@ public class Main extends JavaPlugin implements Listener {
     }
 
     private boolean isNewerVersion(String latest, String current) {
-        // Simple version comparison (e.g., "1.4.2" > "1.4.1")
+        // Simple version comparison (e.g., "1.4.5" > "1.4.4")
         String[] latestParts = latest.split("\\.");
         String[] currentParts = current.split("\\.");
 

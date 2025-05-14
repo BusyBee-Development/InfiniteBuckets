@@ -178,19 +178,18 @@ public class ItemEvents implements Listener {
         }
 
         // Handle placement, including in its own element
+        event.setCancelled(true);
         if (bucketType == 0) {
-            if (isInOwnElement || targetBlock.getType().isAir() || targetBlock.getType() == Material.WATER) {
+            if (isInOwnElement || targetBlock.getType().isAir() || targetBlock.getType() == Material.WATER || targetBlock.isPassable()) {
                 plugin.debugLog("Placing water at target: " + targetBlock.getType());
                 targetBlock.setType(Material.WATER);
-                event.setCancelled(true);
                 preserveBucket(player, item);
                 plugin.debugLog("Water placement complete, bucket preserved");
             }
         } else if (bucketType == 1) {
-            if (isInOwnElement || targetBlock.getType().isAir() || targetBlock.getType() == Material.LAVA) {
+            if (isInOwnElement || targetBlock.getType().isAir() || targetBlock.getType() == Material.LAVA || targetBlock.isPassable()) {
                 plugin.debugLog("Placing lava at target: " + targetBlock.getType());
                 targetBlock.setType(Material.LAVA);
-                event.setCancelled(true);
                 preserveBucket(player, item);
                 plugin.debugLog("Lava placement complete, bucket preserved");
             }

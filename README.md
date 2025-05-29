@@ -50,23 +50,54 @@ A lightweight Spigot plugin that provides players with infinite water and lava b
 Below is the default configuration file. Customize the display names and lore to fit your server’s theme!
 
 ```
-# InfiniteBuckets Spigot Plugin!
-# Create infinite Lava and Water buckets for all your needs!
+#=======================================================
+# InfiniteBuckets Configuration
+#=======================================================
+# A lightweight Spigot plugin that provides players with
+# infinite water and lava buckets.
 #
+# Color codes:
+# &c = Red      &b = Aqua     &7 = Gray
+# &o = Italic   &l = Bold     &n = Underline
+#=======================================================
+
+#-------------------------------------------------------
+# General Settings
+#-------------------------------------------------------
+# Enable debug mode to see detailed logs in console
 debug: false
+
+#-------------------------------------------------------
+# Lava Bucket Settings
+#-------------------------------------------------------
 lava:
+  # Display name shown on the bucket item
   display: "&cInfinite Lava Bucket"
+
+  # Lore text shown when hovering over the bucket
+  # DO NOT CHANGE the formatting or order of these lines
   lore:
     - "&7&oLegends murmur of a molten treasure"
-    - "&7&oforged in the shadow of Vesuvius’ rage,"
-    - "&7&otouched by the pleas of Pompeii’s lost souls"
+    - "&7&oforged in the shadow of Vesuvius' rage,"
+    - "&7&otouched by the pleas of Pompeii's lost souls"
     - "&7&oto defy the ash that choked their fields,"
     - "&7&oa spark of mercy spared from ruin."
     - " "
     - "&cThis is an Infinite Lava Bucket"
 
+#-------------------------------------------------------
+# Water Bucket Settings
+#-------------------------------------------------------
 water:
+  # Display name shown on the bucket item
   display: "&bInfinite Water Bucket"
+
+  # Whether the infinite water bucket works in the Nether
+  # true = works in Nether, false = doesn't work in Nether
+  work_in_nether: false
+
+  # Lore text shown when hovering over the bucket
+  # DO NOT CHANGE the formatting or order of these lines
   lore:
     - "&7&oLegend says this water bucket"
     - "&7&owas enchanted by a nice young fairy"
@@ -74,6 +105,7 @@ water:
     - "&7&owas suffering"
     - " "
     - "&bThis is an Infinite Water Bucket"
+
   ```
 ### Dependencies
 - None!

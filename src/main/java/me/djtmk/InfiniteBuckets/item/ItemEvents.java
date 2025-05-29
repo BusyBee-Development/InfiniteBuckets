@@ -36,10 +36,12 @@ public class ItemEvents implements Listener {
 
     private final Main plugin;
     private final NamespacedKey infiniteKey;
+    private boolean waterWorksInNether;
 
     public ItemEvents(Main plugin) {
         this.plugin = plugin;
         this.infiniteKey = new NamespacedKey(plugin, "infinite");
+        this.waterWorksInNether = plugin.getConfig().getBoolean("water.work_in_nether", false);
     }
 
     private boolean isSuperiorSkyblockInstalled() {
@@ -194,6 +196,13 @@ public class ItemEvents implements Listener {
         // Handle placement, including in its own element
         event.setCancelled(true);
         if (bucketType == 0) {
+            // Check if player is in the Nether and water buckets are not allowed to work there
+            if (player.getWorld().getEnvironment() == org.bukkit.World.Environment.NETHER && !waterWorksInNether) {
+                plugin.debugLog("Water bucket blocked in Nether due to configuration");
+                player.sendMessage(ChatColor.RED + "Water buckets don't work in the Nether!");
+                return;
+            }
+
             if (isInOwnElement || targetBlock.getType().isAir() || targetBlock.getType() == Material.WATER || targetBlock.isPassable()) {
                 plugin.debugLog("Placing water at target: " + targetBlock.getType());
                 targetBlock.setType(Material.WATER);
@@ -366,5 +375,13 @@ public class ItemEvents implements Listener {
             }
         }
         return -1;
+    }
+
+    /**
+     * Updates configuration settings from the config file
+     */
+    public void updateConfig() {
+        this.waterWorksInNether = plugin.getConfig().getBoolean("water.work_in_nether", false);
+        plugin.debugLog("Updated water_in_nether setting: " + waterWorksInNether);
     }
 }

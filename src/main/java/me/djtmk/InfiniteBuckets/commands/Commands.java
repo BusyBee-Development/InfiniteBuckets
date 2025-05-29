@@ -36,6 +36,7 @@ public class Commands implements CommandExecutor, TabCompleter {
                 if (sender.hasPermission("infb.admin")) {
                     plugin.reloadConfig();
                     plugin.setDebugEnabled(plugin.getConfig().getBoolean("debug", false));
+                    plugin.updateAllConfigs();
                     sender.sendMessage(ChatColor.GREEN + "Configuration reloaded successfully.");
                 } else {
                     sender.sendMessage(ChatColor.RED + "You do not have permission to use this command.");

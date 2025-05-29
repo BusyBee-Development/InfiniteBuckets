@@ -44,6 +44,7 @@ public class Main extends JavaPlugin implements Listener {
         versionCheck = new VersionCheck(this);
         registerCommands();
         registerListeners();
+        updateAllConfigs();
 
         // Check for updates and log to console during startup
         versionCheck.checkForUpdates();
@@ -73,9 +74,22 @@ public class Main extends JavaPlugin implements Listener {
         this.getCommand("infb").setTabCompleter(commands);
     }
 
+    private ItemEvents itemEvents;
+
     private void registerListeners() {
-        getServer().getPluginManager().registerEvents(new ItemEvents(this), this);
+        itemEvents = new ItemEvents(this);
+        getServer().getPluginManager().registerEvents(itemEvents, this);
         getServer().getPluginManager().registerEvents(this, this);
+    }
+
+    /**
+     * Updates all components with the latest configuration
+     */
+    public void updateAllConfigs() {
+        if (itemEvents != null) {
+            itemEvents.updateConfig();
+        }
+        // Add other components that need config updates here
     }
 
     @EventHandler

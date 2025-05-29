@@ -5,6 +5,7 @@ import com.bgsoftware.superiorskyblock.api.island.Island;
 import com.bgsoftware.superiorskyblock.api.island.IslandPrivilege;
 import com.bgsoftware.superiorskyblock.api.wrappers.SuperiorPlayer;
 import me.djtmk.InfiniteBuckets.Main;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
@@ -83,6 +84,20 @@ public class ItemEvents implements Listener {
             return;
         }
 
+        // Check if player has permission to use this bucket
+        Integer bucketType = item.getItemMeta().getPersistentDataContainer().get(infiniteKey, PersistentDataType.INTEGER);
+        if (bucketType == 0 && !player.hasPermission("infb.use.water")) {
+            plugin.debugLog("Player " + player.getName() + " doesn't have permission to use water bucket");
+            event.setCancelled(true);
+            player.sendMessage(ChatColor.RED + "You don't have permission to use this bucket!");
+            return;
+        } else if (bucketType == 1 && !player.hasPermission("infb.use.lava")) {
+            plugin.debugLog("Player " + player.getName() + " doesn't have permission to use lava bucket");
+            event.setCancelled(true);
+            player.sendMessage(ChatColor.RED + "You don't have permission to use this bucket!");
+            return;
+        }
+
         plugin.debugLog("Infinite bucket detected. Type: " + item.getType());
 
         if (clickedBlock != null && clickedBlock.getType().name().contains("CHEST")) {
@@ -105,7 +120,6 @@ public class ItemEvents implements Listener {
             return;
         }
 
-        Integer bucketType = item.getItemMeta().getPersistentDataContainer().get(infiniteKey, PersistentDataType.INTEGER);
         plugin.debugLog("Bucket infinite type: " + (bucketType == 0 ? "Water" : "Lava"));
 
         Block targetBlock;

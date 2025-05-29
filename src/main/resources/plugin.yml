@@ -16,10 +16,10 @@ commands:
 permissions:
   infb.use.water:
     description: Allows use of infinite water buckets
-    default: true
+    default: op
   infb.use.lava:
     description: Allows use of infinite lava buckets
-    default: true
+    default: op
   infb.admin:
     description: Allows reload, give, and debug commands
     default: op

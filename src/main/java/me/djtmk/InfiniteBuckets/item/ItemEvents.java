@@ -5,7 +5,8 @@ import com.bgsoftware.superiorskyblock.api.island.Island;
 import com.bgsoftware.superiorskyblock.api.island.IslandPrivilege;
 import com.bgsoftware.superiorskyblock.api.wrappers.SuperiorPlayer;
 import me.djtmk.InfiniteBuckets.Main;
-import org.bukkit.ChatColor;
+import me.djtmk.InfiniteBuckets.utils.ConfigKey;
+import me.djtmk.InfiniteBuckets.utils.StringUtils;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
@@ -41,7 +42,7 @@ public class ItemEvents implements Listener {
     public ItemEvents(Main plugin) {
         this.plugin = plugin;
         this.infiniteKey = new NamespacedKey(plugin, "infinite");
-        this.waterWorksInNether = plugin.getConfig().getBoolean("water.work_in_nether", false);
+        this.waterWorksInNether = ConfigKey.WATER_WORK_IN_NETHER.getBoolean(plugin, false);
     }
 
     private boolean isSuperiorSkyblockInstalled() {
@@ -91,12 +92,12 @@ public class ItemEvents implements Listener {
         if (bucketType == 0 && !player.hasPermission("infb.use.water")) {
             plugin.debugLog("Player " + player.getName() + " doesn't have permission to use water bucket");
             event.setCancelled(true);
-            player.sendMessage(ChatColor.RED + "You don't have permission to use this bucket!");
+            player.sendMessage(StringUtils.color("&cYou don't have permission to use this bucket!"));
             return;
         } else if (bucketType == 1 && !player.hasPermission("infb.use.lava")) {
             plugin.debugLog("Player " + player.getName() + " doesn't have permission to use lava bucket");
             event.setCancelled(true);
-            player.sendMessage(ChatColor.RED + "You don't have permission to use this bucket!");
+            player.sendMessage(StringUtils.color("&cYou don't have permission to use this bucket!"));
             return;
         }
 
@@ -199,7 +200,7 @@ public class ItemEvents implements Listener {
             // Check if player is in the Nether and water buckets are not allowed to work there
             if (player.getWorld().getEnvironment() == org.bukkit.World.Environment.NETHER && !waterWorksInNether) {
                 plugin.debugLog("Water bucket blocked in Nether due to configuration");
-                player.sendMessage(ChatColor.RED + "Water buckets don't work in the Nether!");
+                player.sendMessage(StringUtils.color("&cWater buckets don't work in the Nether!"));
                 return;
             }
 
@@ -381,7 +382,7 @@ public class ItemEvents implements Listener {
      * Updates configuration settings from the config file
      */
     public void updateConfig() {
-        this.waterWorksInNether = plugin.getConfig().getBoolean("water.work_in_nether", false);
+        this.waterWorksInNether = ConfigKey.WATER_WORK_IN_NETHER.getBoolean(plugin, false);
         plugin.debugLog("Updated water_in_nether setting: " + waterWorksInNether);
     }
 }

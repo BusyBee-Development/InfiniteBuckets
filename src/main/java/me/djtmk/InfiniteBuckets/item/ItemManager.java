@@ -1,8 +1,8 @@
 package me.djtmk.InfiniteBuckets.item;
 
 import me.djtmk.InfiniteBuckets.Main;
+import me.djtmk.InfiniteBuckets.utils.ConfigKey;
 import me.djtmk.InfiniteBuckets.utils.StringUtils;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
@@ -24,19 +24,19 @@ public class ItemManager {
 
     public ItemManager(Main plugin) {
         this.plugin = plugin;
-        this.waterDisplay = plugin.getConfig().getString("water.display", ChatColor.RESET + "Infinite Water Bucket");
-        this.waterLore = plugin.getConfig().getStringList("water.lore").stream()
+        this.waterDisplay = ConfigKey.WATER_DISPLAY.getString(plugin, StringUtils.color("&rInfinite Water Bucket"));
+        this.waterLore = ConfigKey.WATER_LORE.getStringList(plugin).stream()
                 .map(StringUtils::format)
                 .collect(Collectors.toList());
         if (waterLore.isEmpty()) {
-            waterLore.add(ChatColor.GRAY + "Right-click to use this bucket!");
+            waterLore.add(StringUtils.color("&7Right-click to use this bucket!"));
         }
-        this.lavaDisplay = plugin.getConfig().getString("lava.display", ChatColor.RESET + "Infinite Lava Bucket");
-        this.lavaLore = plugin.getConfig().getStringList("lava.lore").stream()
+        this.lavaDisplay = ConfigKey.LAVA_DISPLAY.getString(plugin, StringUtils.color("&rInfinite Lava Bucket"));
+        this.lavaLore = ConfigKey.LAVA_LORE.getStringList(plugin).stream()
                 .map(StringUtils::format)
                 .collect(Collectors.toList());
         if (lavaLore.isEmpty()) {
-            lavaLore.add(ChatColor.GRAY + "Right-click to use this bucket!");
+            lavaLore.add(StringUtils.color("&7Right-click to use this bucket!"));
         }
     }
 

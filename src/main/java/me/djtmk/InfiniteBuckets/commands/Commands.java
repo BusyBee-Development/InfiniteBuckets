@@ -1,8 +1,9 @@
 package me.djtmk.InfiniteBuckets.commands;
 
 import me.djtmk.InfiniteBuckets.Main;
+import me.djtmk.InfiniteBuckets.utils.ConfigKey;
+import me.djtmk.InfiniteBuckets.utils.StringUtils;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -35,26 +36,26 @@ public class Commands implements CommandExecutor, TabCompleter {
             case "reload":
                 if (sender.hasPermission("infb.admin")) {
                     plugin.reloadConfig();
-                    plugin.setDebugEnabled(plugin.getConfig().getBoolean("debug", false));
+                    plugin.setDebugEnabled(ConfigKey.DEBUG.getBoolean(plugin, false));
                     plugin.updateAllConfigs();
-                    sender.sendMessage(ChatColor.GREEN + "Configuration reloaded successfully.");
+                    sender.sendMessage(StringUtils.color("&aConfiguration reloaded successfully."));
                 } else {
-                    sender.sendMessage(ChatColor.RED + "You do not have permission to use this command.");
+                    sender.sendMessage(StringUtils.color("&cYou do not have permission to use this command."));
                 }
                 break;
 
             case "give":
                 if (!sender.hasPermission("infb.admin")) {
-                    sender.sendMessage(ChatColor.RED + "You do not have permission to use this command.");
+                    sender.sendMessage(StringUtils.color("&cYou do not have permission to use this command."));
                     return true;
                 }
                 if (args.length != 4) {
-                    sender.sendMessage(ChatColor.RED + "Usage: /infb give <player> <water|lava> <amount>");
+                    sender.sendMessage(StringUtils.color("&cUsage: /infb give <player> <water|lava> <amount>"));
                     return true;
                 }
                 Player target = Bukkit.getPlayer(args[1]);
                 if (target == null) {
-                    sender.sendMessage(ChatColor.RED + "Player " + args[1] + " not found!");
+                    sender.sendMessage(StringUtils.color("&cPlayer " + args[1] + " not found!"));
                     return true;
                 }
                 int amount;
@@ -69,43 +70,43 @@ public class Commands implements CommandExecutor, TabCompleter {
                 switch (args[2].toLowerCase()) {
                     case "water":
                         if (!target.hasPermission("infb.use.water")) {
-                            sender.sendMessage(ChatColor.RED + target.getName() + " doesn't have permission to use water buckets!");
+                            sender.sendMessage(StringUtils.color("&c" + target.getName() + " doesn't have permission to use water buckets!"));
                             return true;
                         }
                         ItemStack waterBucket = plugin.getItemManager().infiniteWaterBucket();
                         waterBucket.setAmount(amount);
                         giveItem(target, waterBucket, amount, "Water", sender);
-                        sender.sendMessage(ChatColor.GREEN + "Gave " + target.getName() + " " + amount + " Infinite Water Bucket(s)!");
+                        sender.sendMessage(StringUtils.color("&aGave " + target.getName() + " " + amount + " Infinite Water Bucket(s)!"));
                         break;
                     case "lava":
                         if (!target.hasPermission("infb.use.lava")) {
-                            sender.sendMessage(ChatColor.RED + target.getName() + " doesn't have permission to use lava buckets!");
+                            sender.sendMessage(StringUtils.color("&c" + target.getName() + " doesn't have permission to use lava buckets!"));
                             return true;
                         }
                         ItemStack lavaBucket = plugin.getItemManager().infiniteLavaBucket();
                         lavaBucket.setAmount(amount);
                         giveItem(target, lavaBucket, amount, "Lava", sender);
-                        sender.sendMessage(ChatColor.GREEN + "Gave " + target.getName() + " " + amount + " Infinite Lava Bucket(s)!");
+                        sender.sendMessage(StringUtils.color("&aGave " + target.getName() + " " + amount + " Infinite Lava Bucket(s)!"));
                         break;
                     default:
-                        sender.sendMessage(ChatColor.RED + "Invalid bucket type! Use 'water' or 'lava'");
+                        sender.sendMessage(StringUtils.color("&cInvalid bucket type! Use 'water' or 'lava'"));
                 }
                 break;
 
             case "debug":
                 if (!sender.hasPermission("infb.admin")) {
-                    sender.sendMessage(ChatColor.RED + "You do not have permission to use this command.");
+                    sender.sendMessage(StringUtils.color("&cYou do not have permission to use this command."));
                     return true;
                 }
                 if (args.length != 2 || (!args[1].equalsIgnoreCase("on") && !args[1].equalsIgnoreCase("off"))) {
-                    sender.sendMessage(ChatColor.RED + "Usage: /infb debug <on|off>");
+                    sender.sendMessage(StringUtils.color("&cUsage: /infb debug <on|off>"));
                     return true;
                 }
                 boolean enableDebug = args[1].equalsIgnoreCase("on");
                 plugin.setDebugEnabled(enableDebug);
-                sender.sendMessage(ChatColor.GREEN + "Debug mode " + (enableDebug ? "enabled" : "disabled") + ".");
+                sender.sendMessage(StringUtils.color("&aDebug mode " + (enableDebug ? "enabled" : "disabled") + "."));
                 if (enableDebug) {
-                    sender.sendMessage(ChatColor.YELLOW + "Note: Debug mode may generate a lot of logs. Use with caution.");
+                    sender.sendMessage(StringUtils.color("&eNote: Debug mode may generate a lot of logs. Use with caution."));
                 }
                 break;
 
@@ -119,27 +120,27 @@ public class Commands implements CommandExecutor, TabCompleter {
     private void giveItem(Player target, ItemStack item, int amount, String type, CommandSender sender) {
         if (target.getInventory().firstEmpty() == -1) {
             target.getWorld().dropItemNaturally(target.getLocation(), item);
-            target.sendMessage(ChatColor.YELLOW + "Inventory full! Dropped " + amount + " Infinite " + type + " Bucket(s)!");
-            sender.sendMessage(ChatColor.YELLOW + target.getName() + "'s inventory was full. Dropped " + amount + " Infinite " + type + " Bucket(s)!");
+            target.sendMessage(StringUtils.color("&eInventory full! Dropped " + amount + " Infinite " + type + " Bucket(s)!"));
+            sender.sendMessage(StringUtils.color("&e" + target.getName() + "'s inventory was full. Dropped " + amount + " Infinite " + type + " Bucket(s)!"));
         } else {
             target.getInventory().addItem(item);
-            target.sendMessage(ChatColor.GREEN + "You received " + amount + " Infinite " + type + " Bucket(s)!");
+            target.sendMessage(StringUtils.color("&aYou received " + amount + " Infinite " + type + " Bucket(s)!"));
         }
     }
 
     private void sendHelp(CommandSender sender) {
-        sender.sendMessage(ChatColor.GOLD + "Infinite Buckets Commands:");
+        sender.sendMessage(StringUtils.color("&6Infinite Buckets Commands:"));
         if (sender.hasPermission("infb.admin")) {
-            sender.sendMessage(ChatColor.YELLOW + "/infb reload" + ChatColor.WHITE + " - Reload configuration");
-            sender.sendMessage(ChatColor.YELLOW + "/infb give <player> <water|lava> <amount>" + ChatColor.WHITE + " - Give buckets to a player");
-            sender.sendMessage(ChatColor.YELLOW + "/infb debug <on|off>" + ChatColor.WHITE + " - Toggle debug mode");
+            sender.sendMessage(StringUtils.color("&e/infb reload &f- Reload configuration"));
+            sender.sendMessage(StringUtils.color("&e/infb give <player> <water|lava> <amount> &f- Give buckets to a player"));
+            sender.sendMessage(StringUtils.color("&e/infb debug <on|off> &f- Toggle debug mode"));
         } else {
-            sender.sendMessage(ChatColor.YELLOW + "Ask an admin for infinite buckets!");
+            sender.sendMessage(StringUtils.color("&eAsk an admin for infinite buckets!"));
         }
     }
 
     private void sendInvalidAmount(CommandSender sender) {
-        sender.sendMessage(ChatColor.RED + "Amount must be a positive number!");
+        sender.sendMessage(StringUtils.color("&cAmount must be a positive number!"));
     }
 
     @Override

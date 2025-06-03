@@ -5,7 +5,7 @@ A lightweight Spigot plugin that provides players with infinite water and lava b
 ## Plugin Details
 
 - **Name**: InfiniteBuckets
-- **Version**: 1.4.6
+- **Version**: 1.4.7
 - **API Version**: 1.21
 - **Folia Supported**: True (Supports Folia)
 - **Authors**: [djtmk]
@@ -106,7 +106,8 @@ water:
     - " "
     - "&bThis is an Infinite Water Bucket"
 
-  ```
+```
+
 ### Dependencies
 - None!
   * As of version 1.1, InfiniteBuckets operates independently, with Vault and economy plugin support removed for simplicity.
@@ -116,13 +117,15 @@ water:
   * This plugin works with SSB2 to listen to the protection made by the plugin. Players can not place on other peoples island with out permission. This plugin can work without SSB2 as well. 
 
 ### Installation
-* Download the latest InfiniteBuckets .jar file from the GitHub Releases page.
-    Place the .jar file in your server’s plugins folder.
-    Restart your server or use /inf reload to load the plugin.
-    Customize the config.yml file in plugins/InfiniteBuckets/ as desired.
+1. Download the latest InfiniteBuckets .jar file from one of these sources:
+   - [Modrinth](https://modrinth.com/plugin/infinitebuckets)
+   - [BuiltByBit](https://builtbybit.com/resources/infinitebuckets.61863/)
+2. Place the .jar file in your server's plugins folder.
+3. Restart your server or use `/infb reload` to load the plugin.
+4. Customize the config.yml file in plugins/InfiniteBuckets/ as desired.
 
 ### Credits
-- Original Developer: ZedBear
-    Last Updated by ZedBear: 4 years ago
--    Current Developer: djtmk
--    GitHub Repository: [ZedBear Github](https://github.com/ZedBear/InfiniteBuckets)
+- **Original Developer**: ZedBear
+  - Last Updated by ZedBear: 4 years ago
+  - Original GitHub Repository: [ZedBear Github](https://github.com/ZedBear/InfiniteBuckets)
+- **Current Developer**: djtmk

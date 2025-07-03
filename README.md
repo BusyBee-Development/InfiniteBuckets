@@ -5,7 +5,7 @@ A lightweight Spigot plugin that provides players with infinite water and lava b
 ## Plugin Details
 
 - **Name**: InfiniteBuckets
-- **Version**: 1.4.7
+- **Version**: 1.4.8
 - **API Version**: 1.21
 - **Folia Supported**: True (Supports Folia)
 - **Authors**: [djtmk]

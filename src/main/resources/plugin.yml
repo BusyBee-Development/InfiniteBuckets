@@ -1,6 +1,6 @@
 name: InfiniteBuckets
 version: ${project.version}
-main: me.djtmk.infinitebuckets.Main
+main: me.djtmk.InfiniteBuckets.Main
 api-version: 1.20
 folia-supported: true
 authors: [ djtmk ]

@@ -1,25 +1,23 @@
 name: InfiniteBuckets
 version: ${project.version}
-main: me.djtmk.InfiniteBuckets.Main
-api-version: 1.21
+main: me.djtmk.infinitebuckets.Main
+api-version: 1.20
 folia-supported: true
 authors: [ djtmk ]
-description: Infinite Water and Lava Buckets
+description: Provides customizable infinite water and lava buckets.
 website: https://modrinth.com/plugin/infinitebuckets
 softdepend: [SuperiorSkyblock2]
-
 commands:
-  infb:
-    description: Main command for Infinite Buckets
-    usage: /<command> [reload|give|debug]
-    aliases: [ infinitebuckets, ib ]
+  infinitebuckets:
+    description: Main command for InfiniteBuckets.
+    aliases: [infb, ib]
 permissions:
-  infb.use.water:
-    description: Allows use of infinite water buckets
-    default: op
-  infb.use.lava:
-    description: Allows use of infinite lava buckets
-    default: op
   infb.admin:
-    description: Allows reload, give, and debug commands
+    description: Allows access to all admin commands for InfiniteBuckets.
     default: op
+  infb.use.water:
+    description: Allows use of the infinite water bucket.
+    default: true
+  infb.use.lava:
+    description: Allows use of the infinite lava bucket.
+    default: true

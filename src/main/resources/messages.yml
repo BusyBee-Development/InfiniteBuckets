@@ -1,0 +1,10 @@
+# InfBuckets by: djtmk
+
+reload-success: "<green>✓</green> <gray>InfiniteBuckets configuration has been reloaded.</gray>"
+no-permission-use: "<red>You do not have permission to use the <bucket_name><red>.</red>"
+no-island-permission: "<red>You do not have permission to build here.</red>"
+nether-disabled: "<red>This bucket is disabled in the Nether.</red>"
+
+give:
+  sender: "<gray>You have given <aqua><player></aqua> <white><amount>x</white> <bucket_name><gray>.</gray>"
+  receiver: "<gray>You have received <white><amount>x</white> <bucket_name><gray>.</gray>"

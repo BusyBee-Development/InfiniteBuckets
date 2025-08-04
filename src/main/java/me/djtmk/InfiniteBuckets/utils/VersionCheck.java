@@ -4,13 +4,16 @@ import me.djtmk.InfiniteBuckets.Main;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public final class VersionCheck implements Listener {
@@ -42,10 +45,26 @@ public final class VersionCheck implements Listener {
 
         String currentVersion = plugin.getDescription().getVersion();
         if (latestVersion != null && !currentVersion.equalsIgnoreCase(latestVersion)) {
-            String messageString = "<#00aaff>[InfiniteBuckets] <gray>A new version is available: <gold>" + latestVersion + "</gold>. Click to download.";
-            Component message = MiniMessage.miniMessage().deserialize(messageString)
-                    .clickEvent(ClickEvent.openUrl("https://www.spigotmc.org/resources/infinitebuckets.107565/"));
-            player.sendMessage(message);
+            // Get the message lines from the config
+            List<String> lines = plugin.getMessageManager().getMessagesConfig().getStringList("update-notifier");
+            MiniMessage mm = MiniMessage.miniMessage();
+
+            for (int i = 0; i < lines.size(); i++) {
+                String line = lines.get(i);
+
+                // Replace placeholders
+                Component component = mm.deserialize(line,
+                        Placeholder.unparsed("current_version", currentVersion),
+                        Placeholder.unparsed("new_version", latestVersion)
+                );
+
+                // Add the click event only to the last line
+                if (i == lines.size() - 1) {
+                    component = component.clickEvent(ClickEvent.openUrl("https://www.spigotmc.org/resources/infinitebuckets.107565/"));
+                }
+
+                player.sendMessage(component);
+            }
         }
     }
 }

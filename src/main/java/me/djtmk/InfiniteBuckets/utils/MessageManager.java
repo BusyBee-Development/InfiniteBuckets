@@ -7,13 +7,20 @@ import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+
 import java.io.File;
+import java.util.List;
 
 public final class MessageManager {
 
     private final Main plugin;
     private final MiniMessage miniMessage;
     private FileConfiguration messagesConfig;
+    private Component prefix;
+
+    public FileConfiguration getMessagesConfig() {
+        return this.messagesConfig;
+    }
 
     public MessageManager(Main plugin) {
         this.plugin = plugin;
@@ -31,11 +38,21 @@ public final class MessageManager {
             plugin.saveResource("messages.yml", false);
         }
         this.messagesConfig = YamlConfiguration.loadConfiguration(messagesFile);
+
+        String prefixString = messagesConfig.getString("plugin-prefix", "<gray>[<aqua>InfiniteBuckets</aqua>]</gray>");
+        this.prefix = miniMessage.deserialize(prefixString + " <gray>»</gray> ");
     }
 
     public void send(CommandSender sender, String key, TagResolver... placeholders) {
         String messageStr = messagesConfig.getString(key, "<red>Unknown message key: " + key + "</red>");
         Component message = miniMessage.deserialize(messageStr, placeholders);
-        sender.sendMessage(message);
+        sender.sendMessage(prefix.append(message));
+    }
+
+    public void sendRaw(CommandSender sender, String key) {
+        List<String> messageLines = messagesConfig.getStringList(key);
+        for (String line : messageLines) {
+            sender.sendMessage(miniMessage.deserialize(line));
+        }
     }
 }

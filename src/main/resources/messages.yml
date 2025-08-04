@@ -1,10 +1,46 @@
-# InfBuckets by: djtmk
+# The prefix that appears before most plugin messages.
+# You can use MiniMessage formatting here, including gradients and hex colors.
+plugin-prefix: "<gradient:#00A6FF:#00E1FF>InfiniteBuckets</gradient>"
 
-reload-success: "<green>✓</green> <gray>InfiniteBuckets configuration has been reloaded.</gray>"
-no-permission-use: "<red>You do not have permission to use the <bucket_name><red>.</red>"
+# The message sent when a player doesn't have permission for a command.
+no-permission-command: "<red>You do not have permission to use this command.</red>"
+
+# The message sent when a player tries to use a bucket they don't have permission for.
+no-permission-use: "<gray>You do not have permission to use the <bucket_name><gray>.</gray>"
+
+# The message sent when a player cannot build in a protected region.
 no-island-permission: "<red>You do not have permission to build here.</red>"
+
+# The message sent when a bucket is disabled in the Nether.
 nether-disabled: "<red>This bucket is disabled in the Nether.</red>"
 
+# Message sent on successful plugin reload.
+reload-success: "<gray>Plugin configuration has been successfully reloaded.</gray>"
+
+# Messages for the /infb give command.
 give:
-  sender: "<gray>You have given <aqua><player></aqua> <white><amount>x</white> <bucket_name><gray>.</gray>"
+  sender: "<gray>You have given <#00E1FF><player></#00E1FF> <white><amount>x</white> <bucket_name><gray>.</gray>"
   receiver: "<gray>You have received <white><amount>x</white> <bucket_name><gray>.</gray>"
+  player-not-found: "<red>Player not found: <player>.</red>"
+  invalid-bucket: "<red>Invalid bucket type specified: <bucket>.</red>"
+  invalid-amount: "<red>The amount must be a positive number.</red>"
+
+# The help menu displayed with /infb help.
+# Each line in the list will be sent as a separate message.
+help-menu:
+  - ""
+  - " <gradient:#00A6FF:#00E1FF><b>InfiniteBuckets Help Menu</b></gradient>"
+  - ""
+  - " <gray>» <#00E1FF>/infb give <player> <bucket> [amount]</#00E1FF> <dark_gray>- Gives a player an infinite bucket.</dark_gray>"
+  - " <gray>» <#00E1FF>/infb reload</#00E1FF> <dark_gray>- Reloads the plugin's configuration.</dark_gray>"
+  - " <gray>» <#00E1FF>/infb help</#00E1FF> <dark_gray>- Shows this help menu.</dark_gray>"
+  - ""
+# The message sent to admins when a new version of the plugin is available.
+# The click-to-download action is automatically attached to the last line.
+update-notifier:
+  - ""
+  - " <gradient:#00A6FF:#00E1FF><b>InfiniteBuckets Update</b></gradient>"
+  - " <gray>A new version is available! <dark_gray>(You are on v<current_version>)</dark_gray>"
+  - " <green>»</green> <white>Latest Version: <gold><b>v<new_version></b></gold>"
+  - " <aqua><i><hover:show_text:'<gray>Click to open the download page.'>Click here to download the update.</hover></i></aqua>"
+  - ""

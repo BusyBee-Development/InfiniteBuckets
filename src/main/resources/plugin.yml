@@ -1,16 +1,26 @@
 name: InfiniteBuckets
 version: ${project.version}
 main: me.djtmk.InfiniteBuckets.Main
-api-version: 1.20
+api-version: '1.21'
 folia-supported: true
 authors: [ djtmk ]
 description: Provides customizable infinite water and lava buckets.
 website: https://modrinth.com/plugin/infinitebuckets
-softdepend: [SuperiorSkyblock2]
+
+softdepend:
+  - SuperiorSkyblock2
+  - WorldGuard
+  - GriefPrevention
+  - Towny
+  - Lands
+  - PlotSquared
+  - Residence
+
 commands:
   infinitebuckets:
     description: Main command for InfiniteBuckets.
     aliases: [infb, ib]
+
 permissions:
   infb.admin:
     description: Allows access to all admin commands for InfiniteBuckets.

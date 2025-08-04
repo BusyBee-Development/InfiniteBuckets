@@ -1,19 +1,65 @@
+# =================================================================== #
+#                                                                     #
+#                      InfiniteBuckets Configuration                  #
+#                      Author: djtmk                                  #
+#                                                                     #
+# =================================================================== #
+#
+# For help with formatting (colors, gradients, etc.), please refer to
+# the MiniMessage documentation: https://docs.advntr.dev/minimessage/format.html
+#
+
+# Enable this to see detailed diagnostic messages in the console.
+# This is useful for debugging issues with hooks or bucket usage.
 debug-mode: false
 
+# =================================================================== #
+#                          BUCKET DEFINITIONS                         #
+# =================================================================== #
+#
+# This is where you define all your custom infinite buckets.
+# You can add, remove, or edit any bucket you want. The key (e.g., 'water')
+# is the ID you will use in the /infb give command.
+#
 buckets:
+  # The default infinite water bucket.
   water:
+    # The Minecraft material for the item. Must be a bucket type.
+    # A full list can be found here: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html
     material: "WATER_BUCKET"
-    display-name: "<aqua>Infinite Water Bucket</aqua>"
+    # The name of the item as it appears in-game. Supports MiniMessage formatting.
+    display-name: "<gradient:#00A6FF:#00E1FF>Infinite Water Bucket</gradient>"
+    # The lore (description) of the item. Each line is a new entry.
     lore:
-      - "<gray>A bucket filled with an endless supply of water.</gray>"
+      - "<gray>An endless supply of pure, refreshing water.</gray>"
+      - ""
+      - "<dark_aqua>» <italic>Can extinguish flames and farm crops.</italic>"
+    # The permission node required to use this specific bucket.
     permission: "infb.use.water"
+    # If set to false, this bucket cannot be used in the Nether.
     works-in-nether: false
 
+  # The default infinite lava bucket.
   lava:
     material: "LAVA_BUCKET"
-    display-name: "<gold>Infinite Lava Bucket</gold>"
+    display-name: "<gradient:#FF8C00:#FF4500>Infinite Lava Bucket</gradient>"
     lore:
-      - "<gray>A bucket filled with an endless supply of lava.</gray>"
+      - "<gray>A bucket filled with an endless supply of molten rock.</gray>"
+      - ""
+      - "<dark_red>» <italic>Dangerously hot!</italic>"
     permission: "infb.use.lava"
-
+    # If true, this bucket can be used anywhere, including the Nether.
     works-in-nether: true
+
+  # --- Example Custom Bucket (Commented out by default) ---
+  #
+  # This is an example of how you could create a custom milk bucket.
+  # To enable it, just remove the '#' from the beginning of each line below.
+  #
+  #milk:
+  #  material: "MILK_BUCKET"
+  #  display-name: "<white>Infinite Milk Bucket</white>"
+  #  lore:
+  #    - "<gray>Clears all potion effects upon use.</gray>"
+  #  permission: "infb.use.milk"
+  #  works-in-nether: true

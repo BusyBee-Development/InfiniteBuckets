@@ -129,3 +129,6 @@ Admins with `infb.admin` will be notified in‑game on join if a new version is 
 
 ## License
 This project includes a [LICENSE](https://github.com/BusyBee-Development/ClearLaggEnhanced/edit/main/LICENSE) file in the repository root. Please review it for usage terms.
+
+## Contributing
+We welcome contributions from the community. Please read [CONTRIBUTING.md](CONTRIBUTING.md) for setup instructions, coding standards, and the PR process.

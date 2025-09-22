@@ -9,6 +9,8 @@ import me.djtmk.InfiniteBuckets.utils.MessageManager;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.Levelled;
 import org.bukkit.block.data.Waterlogged;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -51,7 +53,7 @@ public final class ItemEvents implements Listener {
         event.setCancelled(true);
         Player player = event.getPlayer();
         InfiniteBucket bucket = bucketOptional.get();
-        
+
         debugLogger.debug("Player " + player.getName() + " attempting to use " + bucket.id() + " bucket");
 
         if (!player.hasPermission(bucket.permission())) {
@@ -74,7 +76,33 @@ public final class ItemEvents implements Listener {
 
         Block clickedBlock = event.getClickedBlock();
         Material placeMaterial = (bucket.material() == Material.WATER_BUCKET) ? Material.WATER : Material.LAVA;
-        
+
+        if (clickedBlock != null && event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+            Material clickedMaterial = clickedBlock.getType();
+            BlockData blockData = clickedBlock.getBlockData();
+
+            if (placeMaterial == Material.WATER && (clickedMaterial == Material.CAULDRON || clickedMaterial == Material.WATER_CAULDRON)) {
+                if (blockData instanceof Levelled levelled) { // It's a water cauldron
+                    if (levelled.getLevel() < levelled.getMaximumLevel()) {
+                        levelled.setLevel(levelled.getLevel() + 1);
+                        clickedBlock.setBlockData(levelled);
+                        debugLogger.debug("Increased water cauldron level at " + clickedBlock.getLocation());
+                        return; // Action is complete
+                    }
+                } else if (clickedMaterial == Material.CAULDRON) { // It's an empty cauldron
+                    clickedBlock.setType(Material.WATER_CAULDRON);
+                    debugLogger.debug("Filled empty cauldron with water at " + clickedBlock.getLocation());
+                    return; // Action is complete
+                }
+            }
+
+            if (placeMaterial == Material.LAVA && clickedMaterial == Material.CAULDRON) {
+                clickedBlock.setType(Material.LAVA_CAULDRON);
+                debugLogger.debug("Filled empty cauldron with lava at " + clickedBlock.getLocation());
+                return; // Action is complete
+            }
+        }
+
         debugLogger.debug("Player " + player.getName() + " using " + bucket.id() + " bucket with material " + placeMaterial);
 
         if (clickedBlock != null && placeMaterial == Material.WATER && clickedBlock.getBlockData() instanceof Waterlogged waterlogged && !waterlogged.isWaterlogged()) {

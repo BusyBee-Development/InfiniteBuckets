@@ -1,0 +1,211 @@
+# =================================================================== #
+#                                                                     #
+#                   InfiniteBuckets - Advanced Configuration          #
+#                   Author: djtmk                                     #
+#                                                                     #
+# =================================================================== #
+#
+# This configuration file defines all bucket types available on the server.
+# It includes built-in presets that can be toggled, plus custom buckets
+# defined by server administrators.
+#
+# Schema Version: 1
+#
+
+version: 1
+
+# =================================================================== #
+#                           BUILT-IN PRESETS                         #
+# =================================================================== #
+#
+# These are the default bucket types that come with the plugin.
+# You can disable any of them by setting enabled: false
+#
+
+presets:
+  # Standard water bucket behavior
+  water_bucket:
+    id: "water_bucket"
+    displayName: "<aqua>Infinite Water Bucket</aqua>"
+    lore:
+      - "<blue><!italic>• Never runs out of water</blue>"
+      - "<gray><!italic>• Right-click to place water</gray>"
+      - "<gray><!italic>• Works in most dimensions</gray>"
+    icon: "minecraft:water_bucket"
+    mode: "vanilla_like"
+    fluids: ["minecraft:water"]
+    capacity: 1
+    crafting:
+      enabled: false
+    permissions:
+      use: "buckets.use.water"
+      craft: ""
+    enabled: true
+
+  # Standard lava bucket behavior  
+  lava_bucket:
+    id: "lava_bucket"
+    displayName: "<red>Infinite Lava Bucket</red>"
+    lore:
+      - "<orange><!italic>• Never runs out of lava</orange>"
+      - "<gray><!italic>• Right-click to place lava</gray>"
+      - "<yellow><!italic>⚠ Use with caution!</yellow>"
+    icon: "minecraft:lava_bucket"
+    mode: "vanilla_like"
+    fluids: ["minecraft:lava"]
+    capacity: 1
+    crafting:
+      enabled: false
+    permissions:
+      use: "buckets.use.lava"
+      craft: ""
+    enabled: true
+
+  # Sponge-like bucket that drains water from an area
+  empty_sponge_bucket:
+    id: "sponge_bucket"
+    displayName: "<yellow>Infinite Sponge Bucket</yellow>"
+    lore:
+      - "<aqua><!italic>• Absorbs water in a 5x5x5 area</aqua>"
+      - "<gray><!italic>• Right-click to drain water</gray>"
+      - "<green><!italic>• Removes waterlogging too!</green>"
+    icon: "minecraft:bucket"
+    mode: "drain_area" 
+    behavior:
+      radius: 2  # 5x5x5 cube around use point
+      maxBlocksPerUse: 200
+      cooldown: 10  # ticks
+      waterlogged: true  # removes waterlogging from blocks
+      fluids: ["minecraft:water"]  # only drains water
+    crafting:
+      enabled: false
+    permissions:
+      use: "buckets.use.sponge"
+      craft: ""
+    enabled: true
+
+# =================================================================== #
+#                          CUSTOM BUCKETS                            #
+# =================================================================== #
+#
+# Define your own custom bucket types here. Each bucket must have a unique ID.
+# 
+# Available modes:
+#   - vanilla_like: Normal bucket behavior (fill from source, place fluid)
+#   - drain_area: Sponge-like behavior (drain fluids in radius)
+#
+# For vanilla_like buckets, specify fluids/fluidTags to control what can be collected
+# For drain_area buckets, use the behavior section to configure drain behavior
+#
+
+customBuckets:
+#  - id: "milk_bucket"
+#    displayName: "<white>Infinite Milk Bucket</white>"
+# lore:
+#   - "<gray><!italic>Cures all that ails you.</gray>"
+# icon: "minecraft:milk_bucket"
+# mode: "EFFECT"
+# action: "CLEAR_EFFECTS"
+# permissions:
+#   use: "buckets.use.milk"
+# enabled: true
+
+# =================================================================== #
+#                        EXAMPLE CUSTOM BUCKETS                      #
+# =================================================================== #
+#
+# Here are some examples of custom buckets you can create.
+# Remove the # at the beginning of each line to enable them.
+#
+
+# Example 1: Multi-fluid bucket that can hold any fluid
+#customBuckets:
+#  - id: "custom:universal_bucket"
+#    displayName: "Universal Fluid Bucket"
+#    icon: "custom:universal_bucket"
+#    mode: "vanilla_like"
+#    fluidTags: ["#minecraft:fluids"]  # accepts any fluid
+#    capacity: 5  # can hold 5 units
+#    permissions:
+#      use: "buckets.use.universal"
+#      craft: "buckets.craft.universal"
+#    crafting:
+#      enabled: true
+#      recipe: "universal_bucket_recipe"
+#    enabled: true
+
+# Example 2: Super sponge that drains large areas
+#  - id: "custom:super_sponge"
+#    displayName: "Super Absorbent Sponge"
+#    icon: "custom:super_sponge"
+#    mode: "drain_area"
+#    behavior:
+#      radius: 4  # 9x9x9 cube
+#      maxBlocksPerUse: 500
+#      cooldown: 20
+#      waterlogged: true
+#      fluidTags: ["#minecraft:water"]  # drains all water-type fluids
+#    permissions:
+#      use: "buckets.use.supersponge"
+#      craft: "buckets.craft.supersponge"
+#    crafting:
+#      enabled: true
+#      recipe: "super_sponge_recipe"
+#    enabled: true
+
+# Example 3: Lava-specific drain bucket
+#  - id: "custom:lava_absorber"
+#    displayName: "Lava Absorber"
+#    icon: "custom:lava_absorber" 
+#    mode: "drain_area"
+#    behavior:
+#      radius: 3  # 7x7x7 cube
+#      maxBlocksPerUse: 300
+#      cooldown: 40
+#      waterlogged: false  # doesn't affect waterlogged blocks
+#      fluids: ["minecraft:lava"]  # only drains lava
+#    permissions:
+#      use: "buckets.use.lavaabsorber"
+#      craft: ""
+#    enabled: true
+
+# =================================================================== #
+#                        CONFIGURATION NOTES                         #
+# =================================================================== #
+#
+# Field Descriptions:
+#
+# id: Unique identifier for the bucket (required)
+# displayName: Name shown to players (required)  
+# icon: Item icon/texture identifier (optional)
+# mode: Bucket behavior type - "vanilla_like" or "drain_area" (required)
+# capacity: How many fluid units can be stored (optional, default: 1)
+# fluids: Array of specific fluid IDs this bucket can handle (optional)
+# fluidTags: Array of fluid tags this bucket accepts (optional)
+# enabled: Whether this bucket is available (optional, default: true)
+#
+# For vanilla_like buckets:
+# - Must specify either fluids or fluidTags (or both)
+# - Capacity determines how much fluid can be stored
+#
+# For drain_area buckets:
+# - behavior section is required
+# - radius: Manhattan distance for drain area (max 6 without unsafe flag)
+# - maxBlocksPerUse: Safety limit on blocks drained per use (max 5000 without unsafe)
+# - cooldown: Ticks between uses
+# - waterlogged: Whether to remove waterlogging from blocks
+# - unsafe: Set to true to bypass safety limits (not recommended)
+#
+# Permissions:
+# - use: Permission required to use this bucket type
+# - craft: Permission required to craft this bucket (if crafting enabled)
+#
+# Crafting:
+# - enabled: Whether this bucket can be crafted
+# - recipe: Recipe identifier for crafting system
+#
+# Security Notes:
+# - Large radius or maxBlocksPerUse values can cause server lag
+# - Use the unsafe flag only if you understand the performance implications
+# - Consider setting appropriate permissions for powerful buckets
+#

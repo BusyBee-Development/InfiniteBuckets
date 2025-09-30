@@ -8,6 +8,7 @@ import me.djtmk.InfiniteBuckets.utils.DebugLogger;
 import me.djtmk.InfiniteBuckets.utils.MessageManager;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Levelled;
@@ -54,26 +55,113 @@ public final class ItemEvents implements Listener {
         Player player = event.getPlayer();
         InfiniteBucket bucket = bucketOptional.get();
 
-        debugLogger.debug("Player " + player.getName() + " attempting to use " + bucket.id() + " bucket");
+        debugLogger.debug("Player " + player.getName() + " attempting to use " + bucket.id() + " bucket with mode " + bucket.mode());
 
-        if (!player.hasPermission(bucket.permission())) {
-            debugLogger.debug("Player " + player.getName() + " does not have permission: " + bucket.permission());
+        if (!player.hasPermission(bucket.getUsePermission())) {
+            debugLogger.debug("Player " + player.getName() + " does not have permission: " + bucket.getUsePermission());
             messages.send(player, "no-permission-use", Placeholder.component("bucket_name", bucket.displayName()));
             return;
         }
 
-        if (isSuperiorSkyblockEnabled && !hasIslandPermission(player)) {
-            debugLogger.debug("Player " + player.getName() + " does not have island permission to use bucket");
-            messages.send(player, "no-island-permission");
+        // Handle different bucket modes
+        if (bucket.mode() == InfiniteBucket.BucketMode.DRAIN_AREA) {
+            handleDrainAreaBucket(player, bucket, event);
+        } else if (bucket.mode() == InfiniteBucket.BucketMode.EFFECT) {
+            handleEffectBucket(player, bucket);
+        } else {
+            handleVanillaLikeBucket(player, bucket, event);
+        }
+    }
+
+    private void handleEffectBucket(Player player, InfiniteBucket bucket) {
+        if ("CLEAR_EFFECTS".equalsIgnoreCase(bucket.action())) {
+            if (player.getActivePotionEffects().isEmpty()) {
+                // Optional: send a message that they have no effects to clear
+                // messages.send(player, "no-effects-to-clear");
+                return;
+            }
+            // Clear all potion effects
+            player.getActivePotionEffects().forEach(effect -> player.removePotionEffect(effect.getType()));
+            player.playSound(player.getLocation(), Sound.ENTITY_GENERIC_DRINK, 1.0F, 1.0F);
+            // Optional: send a success message
+            // messages.send(player, "effects-cleared", Placeholder.component("bucket_name", bucket.displayName()));
+            debugLogger.debug("Cleared potion effects for " + player.getName() + " using " + bucket.id());
+        }
+    }
+
+    // ... (handleDrainAreaBucket and handleVanillaLikeBucket methods remain the same) ...
+
+    private void handleDrainAreaBucket(Player player, InfiniteBucket bucket, PlayerInteractEvent event) {
+        InfiniteBucket.DrainBehavior behavior = bucket.drainBehavior();
+        if (behavior == null) {
+            debugLogger.debug("Drain area bucket " + bucket.id() + " has no drain behavior configured.");
             return;
         }
 
-        if (player.getWorld().getEnvironment() == org.bukkit.World.Environment.NETHER && !bucket.worksInNether()) {
-            debugLogger.debug("Player " + player.getName() + " attempted to use " + bucket.id() + " bucket in nether, but it's disabled");
-            messages.send(player, "nether-disabled");
+        Block clickedBlock = event.getClickedBlock();
+        Block targetBlock;
+
+        if (event.getAction() == Action.RIGHT_CLICK_BLOCK && clickedBlock != null) {
+            if (!clickedBlock.isPassable()) {
+                targetBlock = clickedBlock.getRelative(event.getBlockFace());
+            } else {
+                targetBlock = clickedBlock;
+            }
+        } else {
+            targetBlock = player.getTargetBlock(null, 5);
+        }
+
+        if (targetBlock == null) {
+            debugLogger.debug("Could not determine a target block for the drain effect.");
             return;
         }
 
+        debugLogger.debug("Draining area centered at " + targetBlock.getLocation() + " with radius " + behavior.radius());
+
+        int blocksRemoved = 0;
+        int radius = behavior.radius();
+        int maxBlocks = behavior.maxBlocksPerUse();
+
+        boolean canDrainWater = behavior.drainFluids().contains("minecraft:water");
+        boolean canDrainLava = behavior.drainFluids().contains("minecraft:lava");
+
+        for (int x = -radius; x <= radius; x++) {
+            for (int y = -radius; y <= radius; y++) {
+                for (int z = -radius; z <= radius; z++) {
+                    if (blocksRemoved >= maxBlocks) {
+                        break;
+                    }
+
+                    Block currentBlock = targetBlock.getRelative(x, y, z);
+                    Material blockType = currentBlock.getType();
+                    BlockData blockData = currentBlock.getBlockData();
+
+                    if (canDrainWater && behavior.waterlogged() && blockData instanceof Waterlogged waterlogged && waterlogged.isWaterlogged()) {
+                        waterlogged.setWaterlogged(false);
+                        currentBlock.setBlockData(waterlogged);
+                        blocksRemoved++;
+                        debugLogger.debug("Removed waterlogging from block at " + currentBlock.getLocation());
+                    } else if ((canDrainWater && blockType == Material.WATER) || (canDrainLava && blockType == Material.LAVA)) {
+                        currentBlock.setType(Material.AIR);
+                        blocksRemoved++;
+                        debugLogger.debug("Drained block at " + currentBlock.getLocation());
+                    }
+                }
+                if (blocksRemoved >= maxBlocks) break;
+            }
+            if (blocksRemoved >= maxBlocks) break;
+        }
+
+        debugLogger.debug("Drained " + blocksRemoved + " blocks with " + bucket.id() + " bucket.");
+        if (blocksRemoved > 0) {
+            messages.send(player, "drain-success",
+                    Placeholder.component("bucket_name", bucket.displayName()),
+                    Placeholder.component("blocks_drained", net.kyori.adventure.text.Component.text(blocksRemoved))
+            );
+        }
+    }
+
+    private void handleVanillaLikeBucket(Player player, InfiniteBucket bucket, PlayerInteractEvent event) {
         Block clickedBlock = event.getClickedBlock();
         Material placeMaterial = (bucket.material() == Material.WATER_BUCKET) ? Material.WATER : Material.LAVA;
 
@@ -87,19 +175,19 @@ public final class ItemEvents implements Listener {
                         levelled.setLevel(levelled.getLevel() + 1);
                         clickedBlock.setBlockData(levelled);
                         debugLogger.debug("Increased water cauldron level at " + clickedBlock.getLocation());
-                        return; // Action is complete
+                        return;
                     }
                 } else if (clickedMaterial == Material.CAULDRON) { // It's an empty cauldron
                     clickedBlock.setType(Material.WATER_CAULDRON);
                     debugLogger.debug("Filled empty cauldron with water at " + clickedBlock.getLocation());
-                    return; // Action is complete
+                    return;
                 }
             }
 
             if (placeMaterial == Material.LAVA && clickedMaterial == Material.CAULDRON) {
                 clickedBlock.setType(Material.LAVA_CAULDRON);
                 debugLogger.debug("Filled empty cauldron with lava at " + clickedBlock.getLocation());
-                return; // Action is complete
+                return;
             }
         }
 
@@ -115,10 +203,8 @@ public final class ItemEvents implements Listener {
         Block blockToPlaceIn = null;
         if (clickedBlock != null && event.getAction() == Action.RIGHT_CLICK_BLOCK) {
             blockToPlaceIn = clickedBlock.getRelative(event.getBlockFace());
-            debugLogger.debug("Placing " + placeMaterial + " relative to clicked block at " + blockToPlaceIn.getLocation());
         } else if (event.getAction() == Action.RIGHT_CLICK_AIR) {
-            blockToPlaceIn = player.getTargetBlockExact(5);
-            debugLogger.debug("Placing " + placeMaterial + " at targeted block: " + (blockToPlaceIn != null ? blockToPlaceIn.getLocation() : "no target found"));
+            blockToPlaceIn = player.getTargetBlock(null, 5);
         }
 
         if (blockToPlaceIn != null && (blockToPlaceIn.isPassable() || blockToPlaceIn.isLiquid())) {

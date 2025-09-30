@@ -1,65 +1,58 @@
 # =================================================================== #
-#                                                                     #
-#                      InfiniteBuckets Configuration                  #
-#                      Author: djtmk                                  #
-#                                                                     #
+#                           GENERAL SETTINGS                          #
 # =================================================================== #
-#
-# For help with formatting (colors, gradients, etc.), please refer to
-# the MiniMessage documentation: https://docs.advntr.dev/minimessage/format.html
-#
 
 # Enable this to see detailed diagnostic messages in the console.
 # This is useful for debugging issues with hooks or bucket usage.
 debug-mode: false
 
+# Enable automatic update checking and notifications for admins
+update-checker:
+  enabled: true
+  notify-admins: true
+  check-interval: 24  # hours
+
+# Performance and safety settings
+performance:
+  # Maximum number of blocks that can be affected by drain-area buckets per use
+  max-drain-blocks: 1000
+  # Global cooldown between bucket uses (in ticks, 20 ticks = 1 second)
+  global-cooldown: 5
+  # Enable async processing for large drain operations
+  async-processing: true
+
+# Integration settings for protection plugins
+integrations:
+  # Automatically detect and hook into protection plugins
+  auto-detect-hooks: true
+  # List of protection plugins to explicitly enable/disable
+  hooks:
+    worldguard: true
+    griefprevention: true
+    towny: true
+    lands: true
+    plotsquared: true
+    residence: true
+    superiorskyblock: true
+
+# World restrictions
+world-settings:
+  # Worlds where infinite buckets are completely disabled
+  disabled-worlds: []
+  # Default nether restrictions (can be overridden per bucket)
+  default-nether-restriction: false
+  # Worlds with special rules
+  world-rules:
+    # Example:
+    # nether:
+    #   allow-water-buckets: false
+    #   allow-lava-buckets: true
+
 # =================================================================== #
 #                          BUCKET DEFINITIONS                         #
 # =================================================================== #
 #
-# This is where you define all your custom infinite buckets.
-# You can add, remove, or edit any bucket you want. The key (e.g., 'water')
-# is the ID you will use in the /infb give command.
+# Bucket definitions have been moved to buckets.yml for better organization
+# and more advanced configuration options. Please refer to buckets.yml to
+# configure all bucket types and behaviors.
 #
-buckets:
-  # The default infinite water bucket.
-  water:
-    # The Minecraft material for the item. Must be a bucket type.
-    # A full list can be found here: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html
-    material: "WATER_BUCKET"
-    # The name of the item as it appears in-game. Supports MiniMessage formatting.
-    display-name: "<gradient:#00A6FF:#00E1FF>Infinite Water Bucket</gradient>"
-    # The lore (description) of the item. Each line is a new entry.
-    lore:
-      - "<gray>An endless supply of pure, refreshing water.</gray>"
-      - ""
-      - "<dark_aqua>» <italic>Can extinguish flames and farm crops.</italic>"
-    # The permission node required to use this specific bucket.
-    permission: "infb.use.water"
-    # If set to false, this bucket cannot be used in the Nether.
-    works-in-nether: false
-
-  # The default infinite lava bucket.
-  lava:
-    material: "LAVA_BUCKET"
-    display-name: "<gradient:#FF8C00:#FF4500>Infinite Lava Bucket</gradient>"
-    lore:
-      - "<gray>A bucket filled with an endless supply of molten rock.</gray>"
-      - ""
-      - "<dark_red>» <italic>Dangerously hot!</italic>"
-    permission: "infb.use.lava"
-    # If true, this bucket can be used anywhere, including the Nether.
-    works-in-nether: true
-
-  # --- Example Custom Bucket (Commented out by default) ---
-  #
-  # This is an example of how you could create a custom milk bucket.
-  # To enable it, just remove the '#' from the beginning of each line below.
-  #
-  #milk:
-  #  material: "MILK_BUCKET"
-  #  display-name: "<white>Infinite Milk Bucket</white>"
-  #  lore:
-  #    - "<gray>Clears all potion effects upon use.</gray>"
-  #  permission: "infb.use.milk"
-  #  works-in-nether: true

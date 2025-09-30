@@ -23,7 +23,12 @@ public final class Main extends JavaPlugin {
     public void onEnable() {
         instance = this;
 
+        // Save default config files
         this.saveDefaultConfig();
+        if (!new java.io.File(this.getDataFolder(), "buckets.yml").exists()) {
+            this.saveResource("buckets.yml", false);
+        }
+        
         this.debugLogger = new DebugLogger(this);
         this.messageManager = new MessageManager(this);
         this.bucketRegistry = new BucketRegistry(this);

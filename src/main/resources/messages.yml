@@ -1,3 +1,7 @@
+
+# For help with formatting (colors, gradients, etc.), please refer to
+# the MiniMessage documentation: https://docs.advntr.dev/minimessage/format.html
+
 # The prefix that appears before most plugin messages.
 # You can use MiniMessage formatting here, including gradients and hex colors.
 plugin-prefix: "<gradient:#00A6FF:#00E1FF>InfiniteBuckets</gradient>"
@@ -16,6 +20,9 @@ nether-disabled: "<red>This bucket is disabled in the Nether.</red>"
 
 # Message sent on successful plugin reload.
 reload-success: "<gray>Plugin configuration has been successfully reloaded.</gray>"
+
+# Message sent on successful bucket drain.
+drain-success: "<green>Successfully drained <aqua><blocks_drained></aqua> blocks with the <bucket_name><green>."
 
 # Messages for the /infb give command.
 give:

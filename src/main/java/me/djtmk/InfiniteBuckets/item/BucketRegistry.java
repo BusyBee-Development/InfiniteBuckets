@@ -1,18 +1,17 @@
 package me.djtmk.InfiniteBuckets.item;
 
-import com.google.common.base.Preconditions;
 import me.djtmk.InfiniteBuckets.Main;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.MemoryConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.io.File;
+import java.util.*;
 
 public final class BucketRegistry {
 
@@ -32,17 +31,59 @@ public final class BucketRegistry {
     }
 
     private void loadBuckets() {
-        ConfigurationSection bucketSection = plugin.getConfig().getConfigurationSection("buckets");
-        Preconditions.checkNotNull(bucketSection, "Config is missing 'buckets' section.");
-
-        for (String key : bucketSection.getKeys(false)) {
-            ConfigurationSection individualBucketSection = bucketSection.getConfigurationSection(key);
-            if (individualBucketSection != null) {
-                InfiniteBucket.fromConfig(plugin, key, individualBucketSection)
-                        .ifPresent(bucket -> bucketMap.put(key, bucket));
+        // Load buckets.yml configuration file
+        File bucketsFile = new File(plugin.getDataFolder(), "buckets.yml");
+        if (!bucketsFile.exists()) {
+            plugin.saveResource("buckets.yml", false);
+        }
+        
+        YamlConfiguration bucketsConfig = YamlConfiguration.loadConfiguration(bucketsFile);
+        
+        // Load preset buckets
+        ConfigurationSection presetsSection = bucketsConfig.getConfigurationSection("presets");
+        if (presetsSection != null) {
+            for (String key : presetsSection.getKeys(false)) {
+                ConfigurationSection presetSection = presetsSection.getConfigurationSection(key);
+                if (presetSection != null && presetSection.getBoolean("enabled", true)) {
+                    InfiniteBucket.fromBucketsConfig(plugin, presetSection)
+                            .ifPresent(bucket -> {
+                                bucketMap.put(bucket.id(), bucket);
+                                plugin.getDebugLogger().debug("Loaded preset bucket: " + bucket.id());
+                            });
+                }
             }
         }
-        plugin.getLogger().info("Loaded " + bucketMap.size() + " valid infinite buckets.");
+        
+        // Load custom buckets
+        List<?> customBucketsList = bucketsConfig.getList("customBuckets");
+        if (customBucketsList != null) {
+            for (Object bucketObj : customBucketsList) {
+                if (bucketObj instanceof Map<?, ?> bucketMap) {
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> bucketData = (Map<String, Object>) bucketMap;
+                    
+                    // Convert map to ConfigurationSection for easier handling
+                    MemoryConfiguration memConfig = new MemoryConfiguration();
+                    for (Map.Entry<String, Object> entry : bucketData.entrySet()) {
+                        memConfig.set(entry.getKey(), entry.getValue());
+                    }
+                    
+                    if (memConfig.getBoolean("enabled", true)) {
+                        InfiniteBucket.fromBucketsConfig(plugin, memConfig)
+                                .ifPresent(bucket -> {
+                                    // Check for ID conflicts with presets
+                                    if (this.bucketMap.containsKey(bucket.id())) {
+                                        plugin.getLogger().warning("Custom bucket overrides preset: " + bucket.id());
+                                    }
+                                    this.bucketMap.put(bucket.id(), bucket);
+                                    plugin.getDebugLogger().debug("Loaded custom bucket: " + bucket.id());
+                                });
+                    }
+                }
+            }
+        }
+        
+        plugin.getLogger().info("Loaded " + bucketMap.size() + " valid infinite buckets from buckets.yml");
     }
 
     public Optional<InfiniteBucket> getBucket(String id) {

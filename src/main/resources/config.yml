@@ -12,6 +12,11 @@ update-checker:
   notify-admins: true
   check-interval: 24  # hours
 
+# Message settings
+messages:
+  # When true, only update notifications will be shown (all other messages from messages.yml will be disabled)
+  only-update-messages: false
+
 # Performance and safety settings
 performance:
   # Maximum number of blocks that can be affected by drain-area buckets per use

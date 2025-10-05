@@ -46,7 +46,7 @@ public final class InfiniteBucketsCommand implements CommandExecutor, TabComplet
             case "reload" -> handleReload(sender);
             case "give" -> handleGive(sender, args);
             case "help" -> handleHelp(sender);
-            default -> handleHelp(sender); // Show help for unknown commands
+            default -> handleHelp(sender);
         }
 
         return true;
@@ -73,7 +73,7 @@ public final class InfiniteBucketsCommand implements CommandExecutor, TabComplet
         }
 
         if (args.length < 3) {
-            messages.sendRaw(sender, "help-menu"); // Show help on incorrect usage
+            messages.sendRaw(sender, "help-menu");
             return;
         }
 

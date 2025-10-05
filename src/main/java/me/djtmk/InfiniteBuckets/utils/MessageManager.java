@@ -44,12 +44,22 @@ public final class MessageManager {
     }
 
     public void send(CommandSender sender, String key, TagResolver... placeholders) {
+        boolean onlyUpdateMessages = plugin.getConfig().getBoolean("messages.only-update-messages", false);
+        if (onlyUpdateMessages && !key.equals("update-notifier")) {
+            return; // Skip non-update messages
+        }
+
         String messageStr = messagesConfig.getString(key, "<red>Unknown message key: " + key + "</red>");
         Component message = miniMessage.deserialize(messageStr, placeholders);
         sender.sendMessage(prefix.append(message));
     }
 
     public void sendRaw(CommandSender sender, String key) {
+        boolean onlyUpdateMessages = plugin.getConfig().getBoolean("messages.only-update-messages", false);
+        if (onlyUpdateMessages && !key.equals("update-notifier")) {
+            return; // Skip non-update messages
+        }
+
         List<String> messageLines = messagesConfig.getStringList(key);
         for (String line : messageLines) {
             sender.sendMessage(miniMessage.deserialize(line));

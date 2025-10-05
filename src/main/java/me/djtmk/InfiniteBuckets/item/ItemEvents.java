@@ -18,8 +18,11 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.PlayerInventory;
 
 import java.util.Optional;
 
@@ -38,6 +41,44 @@ public final class ItemEvents implements Listener {
         this.debugLogger = plugin.getDebugLogger();
         this.isSuperiorSkyblockEnabled = plugin.getServer().getPluginManager().isPluginEnabled("SuperiorSkyblock2");
         this.debugLogger.debug("ItemEvents initialized. SuperiorSkyblock2 enabled: " + isSuperiorSkyblockEnabled);
+    }
+
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onPlayerSwapHandItems(PlayerSwapHandItemsEvent event) {
+        // Prevent infinite buckets from being moved to off-hand to avoid duplication exploits
+        if (registry.getBucket(event.getMainHandItem()).isPresent() ||
+            registry.getBucket(event.getOffHandItem()).isPresent()) {
+            event.setCancelled(true);
+            debugLogger.debug("Prevented " + event.getPlayer().getName() + " from swapping infinite bucket to off-hand");
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onInventoryClick(InventoryClickEvent event) {
+        // Prevent dragging infinite buckets into off-hand slot
+        if (!(event.getWhoClicked() instanceof Player player)) {
+            return;
+        }
+
+        if (!(event.getClickedInventory() instanceof PlayerInventory)) {
+            return;
+        }
+
+        // Check if player is trying to move an infinite bucket to off-hand slot (slot 40)
+        if (event.getSlot() == 40 && registry.getBucket(event.getCursor()).isPresent()) {
+            event.setCancelled(true);
+            debugLogger.debug("Prevented " + player.getName() + " from placing infinite bucket in off-hand slot");
+            return;
+        }
+
+        // Check if shift-clicking an infinite bucket that might go to off-hand
+        if (event.isShiftClick() && registry.getBucket(event.getCurrentItem()).isPresent()) {
+            // Check if off-hand is empty - shift click might move it there
+            if (player.getInventory().getItemInOffHand().getType() == Material.AIR) {
+                event.setCancelled(true);
+                debugLogger.debug("Prevented " + player.getName() + " from shift-clicking infinite bucket to off-hand");
+            }
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGH)

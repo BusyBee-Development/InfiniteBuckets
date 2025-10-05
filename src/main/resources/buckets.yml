@@ -28,9 +28,9 @@ presets:
     id: "water_bucket"
     displayName: "<aqua>Infinite Water Bucket</aqua>"
     lore:
-      - "<blue><!italic>• Never runs out of water</blue>"
-      - "<gray><!italic>• Right-click to place water</gray>"
-      - "<gray><!italic>• Works in most dimensions</gray>"
+      - "<!i><blue>• Never runs out of water</blue>"
+      - "<!i><gray>• Right-click to place water</gray>"
+      - "<!i><gray>• Works in most dimensions</gray>"
     icon: "minecraft:water_bucket"
     mode: "vanilla_like"
     fluids: ["minecraft:water"]
@@ -42,14 +42,14 @@ presets:
       craft: ""
     enabled: true
 
-  # Standard lava bucket behavior  
+  # Standard lava bucket behavior
   lava_bucket:
     id: "lava_bucket"
     displayName: "<red>Infinite Lava Bucket</red>"
     lore:
-      - "<orange><!italic>• Never runs out of lava</orange>"
-      - "<gray><!italic>• Right-click to place lava</gray>"
-      - "<yellow><!italic>⚠ Use with caution!</yellow>"
+      - "<!i><#FF8800>• Never runs out of lava</#FF8800>"
+      - "<!i><gray>• Right-click to place lava</gray>"
+      - "<!i><yellow>⚠ Use with caution!</yellow>"
     icon: "minecraft:lava_bucket"
     mode: "vanilla_like"
     fluids: ["minecraft:lava"]
@@ -66,9 +66,9 @@ presets:
     id: "sponge_bucket"
     displayName: "<yellow>Infinite Sponge Bucket</yellow>"
     lore:
-      - "<aqua><!italic>• Absorbs water in a 5x5x5 area</aqua>"
-      - "<gray><!italic>• Right-click to drain water</gray>"
-      - "<green><!italic>• Removes waterlogging too!</green>"
+      - "<!i><aqua>• Absorbs water in a 5x5x5 area</aqua>"
+      - "<!i><gray>• Right-click to drain water</gray>"
+      - "<!i><green>• Removes waterlogging too!</green>"
     icon: "minecraft:bucket"
     mode: "drain_area" 
     behavior:

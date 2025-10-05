@@ -2,6 +2,7 @@ package me.djtmk.InfiniteBuckets.item;
 
 import me.djtmk.InfiniteBuckets.Main;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -90,6 +91,7 @@ public record InfiniteBucket(
 
         List<Component> lore = config.getStringList("lore").stream()
                 .map(mm::deserialize)
+                .map(component -> component.decoration(TextDecoration.ITALIC, false))
                 .collect(Collectors.toList());
 
         String modeString = config.getString("mode", "vanilla_like").toUpperCase();

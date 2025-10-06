@@ -1,8 +1,15 @@
 # Java compiled classes
 *.class
+*.log
+hs_err_pid*
+replay_pid*
+*.tmp
+*.swp
 
 # Maven build output
 target/
+build/
+out/
 
 # Maven specific files
 pom.xml.tag
@@ -12,15 +19,17 @@ pom.xml.next
 release.properties
 dependency-reduced-pom.xml
 buildNumber.properties
-.mvn/timing.properties
-.mvn/wrapper/maven-wrapper.jar
+.m2/
 
 # IntelliJ IDEA
 .idea/
 *.iml
 *.ipr
 *.iws
-out/
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/**/dictionaries
+.idea/**/shelf/
 
 # Eclipse
 .project
@@ -29,17 +38,9 @@ out/
 
 # NetBeans
 nbproject/private/
-build/
-nbbuild/
-dist/
-nbdist/
-.nb-gradle/
 
 # VS Code
 .vscode/
-
-# Logs
-*.log
 
 # OS-specific files
 .DS_Store

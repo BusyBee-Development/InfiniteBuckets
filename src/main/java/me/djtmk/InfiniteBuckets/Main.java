@@ -1,6 +1,8 @@
 package me.djtmk.InfiniteBuckets;
 
 import com.google.common.base.Preconditions;
+import com.tcoded.folialib.FoliaLib;
+import com.tcoded.folialib.impl.PlatformScheduler;
 import me.djtmk.InfiniteBuckets.commands.InfiniteBucketsCommand;
 import me.djtmk.InfiniteBuckets.hooks.HookManager;
 import me.djtmk.InfiniteBuckets.item.BucketRegistry;
@@ -14,14 +16,23 @@ import org.bukkit.plugin.java.JavaPlugin;
 public final class Main extends JavaPlugin {
 
     private static Main instance;
+    private static PlatformScheduler scheduler;
+
     private MessageManager messageManager;
     private BucketRegistry bucketRegistry;
     private DebugLogger debugLogger;
     private HookManager hookManager;
 
+    public static PlatformScheduler scheduler() {
+      return scheduler;
+    }
+
     @Override
     public void onEnable() {
         instance = this;
+
+        FoliaLib foliaLib = new FoliaLib(this);
+        scheduler = foliaLib.getScheduler();
 
         // Save default config files
         this.saveDefaultConfig();

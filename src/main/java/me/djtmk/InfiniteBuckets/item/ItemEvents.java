@@ -3,6 +3,7 @@ package me.djtmk.InfiniteBuckets.item;
 import com.bgsoftware.superiorskyblock.api.SuperiorSkyblockAPI;
 import com.bgsoftware.superiorskyblock.api.island.Island;
 import com.bgsoftware.superiorskyblock.api.island.IslandPrivilege;
+import com.tcoded.folialib.impl.PlatformScheduler;
 import me.djtmk.InfiniteBuckets.Main;
 import me.djtmk.InfiniteBuckets.utils.DebugLogger;
 import me.djtmk.InfiniteBuckets.utils.MessageManager;
@@ -29,13 +30,13 @@ import java.util.Optional;
 
 public final class ItemEvents implements Listener {
 
-    private final Main plugin;
+    private final PlatformScheduler scheduler;
     private final BucketRegistry registry;
     private final MessageManager messages;
     private final DebugLogger debugLogger;
 
     public ItemEvents(@NotNull Main plugin) {
-        this.plugin = plugin;
+        this.scheduler = Main.scheduler();
         this.registry = plugin.getBucketRegistry();
         this.messages = plugin.getMessageManager();
         this.debugLogger = plugin.getDebugLogger();
@@ -117,13 +118,11 @@ public final class ItemEvents implements Listener {
     private void handleEffectBucket(@NotNull Player player, @NotNull InfiniteBucket bucket) {
         if ("CLEAR_EFFECTS".equalsIgnoreCase(bucket.action())) {
             if (player.getActivePotionEffects().isEmpty()) {
-                // Optional: send a message that they have no effects to clear
-                // messages.send(player, "no-effects-to-clear");
                 return;
             }
 
             // Clear all potion effects
-            player.getActivePotionEffects().forEach(effect -> player.removePotionEffect(effect.getType()));
+            scheduler.runAtEntity(player, task -> player.getActivePotionEffects().forEach(effect -> player.removePotionEffect(effect.getType())));
             player.playSound(player.getLocation(), Sound.ENTITY_GENERIC_DRINK, 1.0F, 1.0F);
             debugLogger.debug("Cleared potion effects for " + player.getName() + " using " + bucket.id());
         }

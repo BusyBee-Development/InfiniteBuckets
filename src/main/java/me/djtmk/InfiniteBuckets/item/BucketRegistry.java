@@ -9,17 +9,19 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class BucketRegistry {
 
     private final Main plugin;
     private final NamespacedKey bucketKey;
-    private final Map<String, InfiniteBucket> bucketMap = new HashMap<>();
+    private final Map<String, InfiniteBucket> bucketMap = new ConcurrentHashMap<>();
 
-    public BucketRegistry(Main plugin) {
+    public BucketRegistry(@NotNull Main plugin) {
         this.plugin = plugin;
         this.bucketKey = new NamespacedKey(plugin, "infinite_bucket");
         this.loadBuckets();
@@ -90,10 +92,11 @@ public final class BucketRegistry {
         return Optional.ofNullable(bucketMap.get(id));
     }
 
-    public Optional<InfiniteBucket> getBucket(ItemStack item) {
-        if (item == null || !item.hasItemMeta()) {
+    public Optional<InfiniteBucket> getBucket(@NotNull ItemStack item) {
+        if (!item.hasItemMeta()) {
             return Optional.empty();
         }
+
         ItemMeta meta = item.getItemMeta();
         PersistentDataContainer container = meta.getPersistentDataContainer();
 

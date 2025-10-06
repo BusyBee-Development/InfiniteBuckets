@@ -17,21 +17,6 @@
       <option name="url" value="https://jitpack.io" />
     </remote-repository>
     <remote-repository>
-      <option name="id" value="aikar" />
-      <option name="name" value="aikar" />
-      <option name="url" value="https://repo.aikar.co/content/groups/aikar/" />
-    </remote-repository>
-    <remote-repository>
-      <option name="id" value="spigot-repo" />
-      <option name="name" value="spigot-repo" />
-      <option name="url" value="https://hub.spigotmc.org/nexus/content/repositories/snapshots/" />
-    </remote-repository>
-    <remote-repository>
-      <option name="id" value="plotsquared-repo" />
-      <option name="name" value="plotsquared-repo" />
-      <option name="url" value="https://repo.intellectualsites.com/repository/plotsquared/" />
-    </remote-repository>
-    <remote-repository>
       <option name="id" value="bentobox-repo" />
       <option name="name" value="bentobox-repo" />
       <option name="url" value="https://repo.bentobox.world" />
@@ -47,6 +32,31 @@
       <option name="url" value="https://repo1.maven.org/maven2" />
     </remote-repository>
     <remote-repository>
+      <option name="id" value="bg-repo" />
+      <option name="name" value="bg-repo" />
+      <option name="url" value="https://repo.bg-software.com/repository/api/" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="aikar" />
+      <option name="name" value="aikar" />
+      <option name="url" value="https://repo.aikar.co/content/groups/aikar/" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="spigot-repo" />
+      <option name="name" value="spigot-repo" />
+      <option name="url" value="https://hub.spigotmc.org/nexus/content/repositories/snapshots/" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="plotsquared-repo" />
+      <option name="name" value="plotsquared-repo" />
+      <option name="url" value="https://repo.intellectualsites.com/repository/plotsquared/" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="tcoded-releases" />
+      <option name="name" value="tcoded-releases" />
+      <option name="url" value="https://repo.tcoded.com/releases" />
+    </remote-repository>
+    <remote-repository>
       <option name="id" value="angeschossen-repo" />
       <option name="name" value="angeschossen-repo" />
       <option name="url" value="https://repo.angeschossen.me/repository/maven-public/" />
@@ -55,11 +65,6 @@
       <option name="id" value="jboss.community" />
       <option name="name" value="JBoss Community repository" />
       <option name="url" value="https://repository.jboss.org/nexus/content/repositories/public/" />
-    </remote-repository>
-    <remote-repository>
-      <option name="id" value="bg-repo" />
-      <option name="name" value="bg-repo" />
-      <option name="url" value="https://repo.bg-software.com/repository/api/" />
     </remote-repository>
   </component>
 </project>

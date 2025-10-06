@@ -12,6 +12,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.InputStreamReader;
 import java.net.URL;
@@ -23,7 +24,7 @@ public final class VersionCheck implements Listener {
     private final Main plugin;
     private String latestVersion;
 
-    public VersionCheck(Main plugin) {
+    public VersionCheck(@NotNull Main plugin) {
         this.plugin = plugin;
         this.fetchLatestVersion();
     }
@@ -45,7 +46,7 @@ public final class VersionCheck implements Listener {
     }
 
     @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent event) {
+    public void onPlayerJoin(@NotNull PlayerJoinEvent event) {
         Player player = event.getPlayer();
         if (latestVersion == null || !player.hasPermission("infb.admin")) {
             return;
@@ -67,12 +68,13 @@ public final class VersionCheck implements Listener {
                 if (i == lines.size() - 1) {
                     component = component.clickEvent(ClickEvent.openUrl("https://modrinth.com/plugin/infinitebuckets"));
                 }
+
                 player.sendMessage(component);
             }
         }
     }
 
-    private boolean isNewerVersion(String version1, String version2) {
+    private boolean isNewerVersion(@NotNull String version1, @NotNull String version2) {
         String v1 = version1.replaceAll("[^\\d.]", "");
         String v2 = version2.replaceAll("[^\\d.]", "");
 
@@ -86,10 +88,12 @@ public final class VersionCheck implements Listener {
             if (num1 > num2) {
                 return true;
             }
+
             if (num1 < num2) {
                 return false;
             }
         }
+
         return false;
     }
 }

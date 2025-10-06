@@ -101,6 +101,7 @@ public final class BucketRegistry {
             String id = container.get(bucketKey, PersistentDataType.STRING);
             return getBucket(id);
         }
+
         return Optional.empty();
     }
 

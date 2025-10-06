@@ -66,12 +66,15 @@ public final class Main extends JavaPlugin {
     public MessageManager getMessageManager() {
         return messageManager;
     }
+
     public BucketRegistry getBucketRegistry() {
         return bucketRegistry;
     }
+
     public DebugLogger getDebugLogger() {
         return debugLogger;
     }
+
     public HookManager getHookManager() {
         return hookManager;
     }

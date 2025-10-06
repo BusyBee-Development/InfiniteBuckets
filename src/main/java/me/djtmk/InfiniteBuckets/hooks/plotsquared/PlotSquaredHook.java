@@ -8,6 +8,7 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
 public final class PlotSquaredHook implements ProtectionHook {
+
     @Override
     public boolean canBuild(Player player, Block block) {
         PlotAPI api = new PlotAPI();

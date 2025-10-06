@@ -23,33 +23,28 @@ public final class HookManager {
     public HookManager(Main plugin) {
         PluginManager pm = plugin.getServer().getPluginManager();
 
-        if (pm.isPluginEnabled("WorldGuard")) {
-            activeHooks.add(new WorldGuardHook());
-            plugin.getLogger().info("Hooked into WorldGuard.");
-        }
-        if (pm.isPluginEnabled("GriefPrevention")) {
-            activeHooks.add(new GriefPreventionHook());
-            plugin.getLogger().info("Hooked into GriefPrevention.");
-        }
-        if (pm.isPluginEnabled("Towny")) {
-            activeHooks.add(new TownyHook());
-            plugin.getLogger().info("Hooked into Towny.");
-        }
-        if (pm.isPluginEnabled("Lands")) {
-            activeHooks.add(new LandsHook());
-            plugin.getLogger().info("Hooked into Lands.");
-        }
-        if (pm.isPluginEnabled("PlotSquared")) {
-            activeHooks.add(new PlotSquaredHook());
-            plugin.getLogger().info("Hooked into PlotSquared.");
-        }
-        if (pm.isPluginEnabled("Residence")) {
-            activeHooks.add(new ResidenceHook());
-            plugin.getLogger().info("Hooked into Residence.");
-        }
-        if (pm.isPluginEnabled("SuperiorSkyblock2")) {
-            activeHooks.add(new SuperiorSkyblockHook());
-            plugin.getLogger().info("Hooked into SuperiorSkyblock2.");
+        for (String pluginName : List.of("WorldGuard", "GriefPrevention", "Towny", "Lands",
+                "PlotSquared", "Residence", "SuperiorSkyblock2")) {
+
+            if (!pm.isPluginEnabled(pluginName)) {
+                continue;
+            }
+
+            ProtectionHook hook = switch (pluginName) {
+                case "WorldGuard" -> new WorldGuardHook();
+                case "GriefPrevention" -> new GriefPreventionHook();
+                case "Towny" -> new TownyHook();
+                case "Lands" -> new LandsHook();
+                case "PlotSquared" -> new PlotSquaredHook();
+                case "Residence" -> new ResidenceHook();
+                case "SuperiorSkyblock2" -> new SuperiorSkyblockHook();
+                default -> null;
+            };
+
+            if (hook != null) {
+                activeHooks.add(hook);
+                plugin.getLogger().info("Hooked into " + pluginName + ".");
+            }
         }
     }
 
@@ -59,6 +54,7 @@ public final class HookManager {
                 return false;
             }
         }
+
         return true;
     }
 }

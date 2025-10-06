@@ -17,23 +17,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public record InfiniteBucket(
-        String id,
-        Material material,
-        Component displayName,
-        List<Component> lore,
-        String usePermission,
-        String craftPermission,
-        boolean worksInNether,
-        BucketMode mode,
-        String action, // New field for effect buckets
-        List<String> allowedFluids,
-        List<String> allowedFluidTags,
-        int capacity,
-        DrainBehavior drainBehavior,
-        boolean craftingEnabled,
-        String craftingRecipe
-) {
+public record InfiniteBucket(String id, Material material, Component displayName,
+                             List<Component> lore, String usePermission, String craftPermission,
+                             boolean worksInNether, BucketMode mode, String action,
+                             List<String> allowedFluids, List<String> allowedFluidTags,
+                             int capacity, DrainBehavior drainBehavior, boolean craftingEnabled,
+                             String craftingRecipe) {
 
     public enum BucketMode {
         VANILLA_LIKE,
@@ -41,15 +30,10 @@ public record InfiniteBucket(
         EFFECT // New mode for Milk Bucket
     }
 
-    public record DrainBehavior(
-            int radius,
-            int maxBlocksPerUse,
-            int cooldown,
-            boolean waterlogged,
-            List<String> drainFluids,
-            List<String> drainFluidTags,
-            boolean unsafe
-    ) {}
+    public record DrainBehavior(int radius, int maxBlocksPerUse, int cooldown,
+                                boolean waterlogged, List<String> drainFluids,
+                                List<String> drainFluidTags, boolean unsafe) {
+    }
 
     public ItemStack createItem(int amount) {
         ItemStack item = new ItemStack(material, amount);
@@ -131,6 +115,7 @@ public record InfiniteBucket(
                 plugin.getLogger().warning("Bucket '" + bucketId + "' with mode 'drain_area' is missing required 'behavior' section. Skipping.");
                 return Optional.empty();
             }
+
             int radius = behaviorSection.getInt("radius", 2);
             int maxBlocks = behaviorSection.getInt("maxBlocksPerUse", 200);
             int cooldown = behaviorSection.getInt("cooldown", 10);
@@ -142,6 +127,7 @@ public record InfiniteBucket(
                 radius = Math.min(radius, 6);
                 maxBlocks = Math.min(maxBlocks, 5000);
             }
+
             drainBehavior = new DrainBehavior(radius, maxBlocks, cooldown, waterlogged, drainFluids, drainFluidTags, unsafe);
         }
 
@@ -154,10 +140,12 @@ public record InfiniteBucket(
             plugin.getLogger().warning("Bucket '" + bucketId + "' with mode 'vanilla_like' must specify either 'fluids' or 'fluidTags'. Skipping.");
             return Optional.empty();
         }
-        if (mode == BucketMode.DRAIN_AREA && drainBehavior != null && drainBehavior.drainFluids().isEmpty() && drainBehavior.drainFluidTags().isEmpty()) {
+
+        if (mode == BucketMode.DRAIN_AREA && drainBehavior.drainFluids().isEmpty() && drainBehavior.drainFluidTags().isEmpty()) {
             plugin.getLogger().warning("Bucket '" + bucketId + "' with mode 'drain_area' must specify 'fluids' or 'fluidTags' in its 'behavior' section. Skipping.");
             return Optional.empty();
         }
+
         if (mode == BucketMode.EFFECT && action.isBlank()) {
             plugin.getLogger().warning("Bucket '" + bucketId + "' with mode 'EFFECT' must specify an 'action'. Skipping.");
             return Optional.empty();

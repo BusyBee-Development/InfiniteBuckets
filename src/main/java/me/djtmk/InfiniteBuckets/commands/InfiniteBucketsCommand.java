@@ -27,7 +27,7 @@ public final class InfiniteBucketsCommand implements CommandExecutor, TabComplet
     private final MessageManager messages;
     private final DebugLogger debugLogger;
 
-    public InfiniteBucketsCommand(Main plugin) {
+    public InfiniteBucketsCommand(@NotNull Main plugin) {
         this.plugin = plugin;
         this.messages = plugin.getMessageManager();
         this.debugLogger = plugin.getDebugLogger();
@@ -45,28 +45,28 @@ public final class InfiniteBucketsCommand implements CommandExecutor, TabComplet
         switch (subCommand) {
             case "reload" -> handleReload(sender);
             case "give" -> handleGive(sender, args);
-            case "help" -> handleHelp(sender);
             default -> handleHelp(sender);
         }
 
         return true;
     }
 
-    private void handleHelp(CommandSender sender) {
+    private void handleHelp(@NotNull CommandSender sender) {
         messages.sendRaw(sender, "help-menu");
     }
 
-    private void handleReload(CommandSender sender) {
+    private void handleReload(@NotNull CommandSender sender) {
         if (!sender.hasPermission("infb.admin")) {
             messages.send(sender, "no-permission-command");
             return;
         }
+
         plugin.reload();
         messages.send(sender, "reload-success");
         debugLogger.debug("Plugin reloaded by " + sender.getName());
     }
 
-    private void handleGive(CommandSender sender, String[] args) {
+    private void handleGive(@NotNull CommandSender sender, @NotNull String[] args) {
         if (!sender.hasPermission("infb.admin")) {
             messages.send(sender, "no-permission-command");
             return;
@@ -88,6 +88,7 @@ public final class InfiniteBucketsCommand implements CommandExecutor, TabComplet
             messages.send(sender, "give.invalid-bucket", Placeholder.unparsed("bucket", args[2]));
             return;
         }
+
         InfiniteBucket bucket = bucketOpt.get();
 
         int amount = 1;

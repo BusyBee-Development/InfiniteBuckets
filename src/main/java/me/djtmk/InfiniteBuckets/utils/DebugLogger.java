@@ -1,6 +1,8 @@
 package me.djtmk.InfiniteBuckets.utils;
 
 import me.djtmk.InfiniteBuckets.Main;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.logging.Level;
 
 public final class DebugLogger {
@@ -8,7 +10,7 @@ public final class DebugLogger {
     private final Main plugin;
     private boolean debugEnabled;
 
-    public DebugLogger(Main plugin) {
+    public DebugLogger(@NotNull Main plugin) {
         this.plugin = plugin;
         this.loadConfig();
     }
@@ -22,13 +24,13 @@ public final class DebugLogger {
         debug("Debug mode " + (debugEnabled ? "enabled" : "disabled"));
     }
 
-    public void debug(String message) {
+    public void debug(@NotNull String message) {
         if (debugEnabled) {
             plugin.getLogger().info("[DEBUG] " + message);
         }
     }
 
-    public void debug(String message, Throwable throwable) {
+    public void debug(@NotNull String message, @NotNull Throwable throwable) {
         if (debugEnabled) {
             plugin.getLogger().log(Level.INFO, "[DEBUG] " + message, throwable);
         }

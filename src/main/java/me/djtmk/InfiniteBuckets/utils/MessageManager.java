@@ -7,6 +7,7 @@ import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.List;
@@ -22,7 +23,7 @@ public final class MessageManager {
         return this.messagesConfig;
     }
 
-    public MessageManager(Main plugin) {
+    public MessageManager(@NotNull Main plugin) {
         this.plugin = plugin;
         this.miniMessage = MiniMessage.miniMessage();
         this.loadMessages();
@@ -37,13 +38,14 @@ public final class MessageManager {
         if (!messagesFile.exists()) {
             plugin.saveResource("messages.yml", false);
         }
+
         this.messagesConfig = YamlConfiguration.loadConfiguration(messagesFile);
 
         String prefixString = messagesConfig.getString("plugin-prefix", "<gray>[<aqua>InfiniteBuckets</aqua>]</gray>");
         this.prefix = miniMessage.deserialize(prefixString + " <gray>»</gray> ");
     }
 
-    public void send(CommandSender sender, String key, TagResolver... placeholders) {
+    public void send(@NotNull CommandSender sender, @NotNull String key, @NotNull TagResolver... placeholders) {
         boolean onlyUpdateMessages = plugin.getConfig().getBoolean("messages.only-update-messages", false);
         if (onlyUpdateMessages && !key.equals("update-notifier")) {
             return; // Skip non-update messages
@@ -54,7 +56,7 @@ public final class MessageManager {
         sender.sendMessage(prefix.append(message));
     }
 
-    public void sendRaw(CommandSender sender, String key) {
+    public void sendRaw(@NotNull CommandSender sender, @NotNull String key) {
         boolean onlyUpdateMessages = plugin.getConfig().getBoolean("messages.only-update-messages", false);
         if (onlyUpdateMessages && !key.equals("update-notifier")) {
             return; // Skip non-update messages

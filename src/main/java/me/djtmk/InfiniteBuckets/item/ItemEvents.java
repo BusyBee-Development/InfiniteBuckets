@@ -23,6 +23,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.PlayerInventory;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
@@ -32,20 +33,19 @@ public final class ItemEvents implements Listener {
     private final BucketRegistry registry;
     private final MessageManager messages;
     private final DebugLogger debugLogger;
-    private final boolean isSuperiorSkyblockEnabled;
 
-    public ItemEvents(Main plugin) {
+    public ItemEvents(@NotNull Main plugin) {
         this.plugin = plugin;
         this.registry = plugin.getBucketRegistry();
         this.messages = plugin.getMessageManager();
         this.debugLogger = plugin.getDebugLogger();
-        this.isSuperiorSkyblockEnabled = plugin.getServer().getPluginManager().isPluginEnabled("SuperiorSkyblock2");
+        boolean isSuperiorSkyblockEnabled = plugin.getServer().getPluginManager().isPluginEnabled("SuperiorSkyblock2");
         this.debugLogger.debug("ItemEvents initialized. SuperiorSkyblock2 enabled: " + isSuperiorSkyblockEnabled);
     }
 
     @EventHandler(priority = EventPriority.HIGH)
-    public void onPlayerSwapHandItems(PlayerSwapHandItemsEvent event) {
-        // Prevent infinite buckets from being moved to off-hand to avoid duplication exploits
+    public void onPlayerSwapHandItems(@NotNull PlayerSwapHandItemsEvent event) {
+        // Prevent infinite buckets from being moved to offhand so duping is improbable
         if (registry.getBucket(event.getMainHandItem()).isPresent() ||
             registry.getBucket(event.getOffHandItem()).isPresent()) {
             event.setCancelled(true);
@@ -54,7 +54,7 @@ public final class ItemEvents implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGH)
-    public void onInventoryClick(InventoryClickEvent event) {
+    public void onInventoryClick(@NotNull InventoryClickEvent event) {
         // Prevent dragging infinite buckets into off-hand slot
         if (!(event.getWhoClicked() instanceof Player player)) {
             return;
@@ -82,7 +82,7 @@ public final class ItemEvents implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGH)
-    public void onPlayerInteract(PlayerInteractEvent event) {
+    public void onPlayerInteract(@NotNull PlayerInteractEvent event) {
         if (event.getHand() != EquipmentSlot.HAND || (event.getAction() != Action.RIGHT_CLICK_BLOCK && event.getAction() != Action.RIGHT_CLICK_AIR)) {
             return;
         }
@@ -114,25 +114,22 @@ public final class ItemEvents implements Listener {
         }
     }
 
-    private void handleEffectBucket(Player player, InfiniteBucket bucket) {
+    private void handleEffectBucket(@NotNull Player player, @NotNull InfiniteBucket bucket) {
         if ("CLEAR_EFFECTS".equalsIgnoreCase(bucket.action())) {
             if (player.getActivePotionEffects().isEmpty()) {
                 // Optional: send a message that they have no effects to clear
                 // messages.send(player, "no-effects-to-clear");
                 return;
             }
+
             // Clear all potion effects
             player.getActivePotionEffects().forEach(effect -> player.removePotionEffect(effect.getType()));
             player.playSound(player.getLocation(), Sound.ENTITY_GENERIC_DRINK, 1.0F, 1.0F);
-            // Optional: send a success message
-            // messages.send(player, "effects-cleared", Placeholder.component("bucket_name", bucket.displayName()));
             debugLogger.debug("Cleared potion effects for " + player.getName() + " using " + bucket.id());
         }
     }
 
-    // ... (handleDrainAreaBucket and handleVanillaLikeBucket methods remain the same) ...
-
-    private void handleDrainAreaBucket(Player player, InfiniteBucket bucket, PlayerInteractEvent event) {
+    private void handleDrainAreaBucket(@NotNull Player player, @NotNull InfiniteBucket bucket, @NotNull PlayerInteractEvent event) {
         InfiniteBucket.DrainBehavior behavior = bucket.drainBehavior();
         if (behavior == null) {
             debugLogger.debug("Drain area bucket " + bucket.id() + " has no drain behavior configured.");
@@ -150,11 +147,6 @@ public final class ItemEvents implements Listener {
             }
         } else {
             targetBlock = player.getTargetBlock(null, 5);
-        }
-
-        if (targetBlock == null) {
-            debugLogger.debug("Could not determine a target block for the drain effect.");
-            return;
         }
 
         debugLogger.debug("Draining area centered at " + targetBlock.getLocation() + " with radius " + behavior.radius());
@@ -188,9 +180,15 @@ public final class ItemEvents implements Listener {
                         debugLogger.debug("Drained block at " + currentBlock.getLocation());
                     }
                 }
-                if (blocksRemoved >= maxBlocks) break;
+
+                if (blocksRemoved >= maxBlocks) {
+                    break;
+                }
             }
-            if (blocksRemoved >= maxBlocks) break;
+
+            if (blocksRemoved >= maxBlocks) {
+                break;
+            }
         }
 
         debugLogger.debug("Drained " + blocksRemoved + " blocks with " + bucket.id() + " bucket.");
@@ -202,7 +200,7 @@ public final class ItemEvents implements Listener {
         }
     }
 
-    private void handleVanillaLikeBucket(Player player, InfiniteBucket bucket, PlayerInteractEvent event) {
+    private void handleVanillaLikeBucket(@NotNull Player player, @NotNull InfiniteBucket bucket, @NotNull PlayerInteractEvent event) {
         Block clickedBlock = event.getClickedBlock();
         Material placeMaterial = (bucket.material() == Material.WATER_BUCKET) ? Material.WATER : Material.LAVA;
 
@@ -262,7 +260,7 @@ public final class ItemEvents implements Listener {
         }
     }
 
-    private boolean hasIslandPermission(Player player) {
+    private boolean hasIslandPermission(@NotNull Player player) {
         Island island = SuperiorSkyblockAPI.getIslandAt(player.getLocation());
         if (island == null) return true;
         return island.hasPermission(player, IslandPrivilege.getByName("BUILD"));

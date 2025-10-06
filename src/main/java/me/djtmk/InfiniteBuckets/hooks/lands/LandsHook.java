@@ -9,6 +9,7 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
 public final class LandsHook implements ProtectionHook {
+
     @Override
     public boolean canBuild(Player player, Block block) {
         Main plugin = Main.getInstance();
@@ -24,12 +25,12 @@ public final class LandsHook implements ProtectionHook {
             return true;
         }
 
-        if (!(flagObj instanceof RoleFlag)) {
+        if (!(flagObj instanceof RoleFlag roleFlag)) {
             plugin.getLogger().warning("BLOCK_PLACE flag is not a RoleFlag. Defaulting to allow.");
             return true;
         }
 
-        RoleFlag blockPlaceFlag = (RoleFlag) flagObj;
+        RoleFlag blockPlaceFlag = roleFlag;
         return area.hasFlag(player.getUniqueId(), blockPlaceFlag);
     }
 }

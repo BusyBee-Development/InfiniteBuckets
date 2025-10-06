@@ -12,6 +12,7 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
 public final class WorldGuardHook implements ProtectionHook {
+
     @Override
     public boolean canBuild(Player player, Block block) {
         LocalPlayer localPlayer = WorldGuardPlugin.inst().wrapPlayer(player);

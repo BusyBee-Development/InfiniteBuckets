@@ -19,11 +19,14 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockDispenseEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -85,6 +88,11 @@ public final class ItemEvents implements Listener {
     @EventHandler(priority = EventPriority.HIGH)
     public void onPlayerInteract(@NotNull PlayerInteractEvent event) {
         if (event.getHand() != EquipmentSlot.HAND || (event.getAction() != Action.RIGHT_CLICK_BLOCK && event.getAction() != Action.RIGHT_CLICK_AIR)) {
+            return;
+        }
+
+        // Check if player is holding an item
+        if (event.getItem() == null) {
             return;
         }
 
@@ -263,5 +271,86 @@ public final class ItemEvents implements Listener {
         Island island = SuperiorSkyblockAPI.getIslandAt(player.getLocation());
         if (island == null) return true;
         return island.hasPermission(player, IslandPrivilege.getByName("BUILD"));
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onBlockDispense(@NotNull BlockDispenseEvent event) {
+        ItemStack item = event.getItem();
+        Optional<InfiniteBucket> bucketOptional = registry.getBucket(item);
+
+        if (bucketOptional.isEmpty()) {
+            return;
+        }
+
+        InfiniteBucket bucket = bucketOptional.get();
+        debugLogger.debug("Dispenser attempting to dispense " + bucket.id() + " bucket");
+
+        // Only handle VANILLA_LIKE buckets (water/lava)
+        if (bucket.mode() != InfiniteBucket.BucketMode.VANILLA_LIKE) {
+            debugLogger.debug("Cannot dispense " + bucket.id() + " bucket - only VANILLA_LIKE mode is supported");
+            event.setCancelled(true);
+            return;
+        }
+
+        // Cancel the default dispense behavior to prevent bucket consumption
+        event.setCancelled(true);
+
+        // Get the dispenser inventory
+        org.bukkit.block.Dispenser dispenser = (org.bukkit.block.Dispenser) event.getBlock().getState();
+        org.bukkit.block.data.Directional directional = (org.bukkit.block.data.Directional) event.getBlock().getBlockData();
+        Block targetBlock = event.getBlock().getRelative(directional.getFacing());
+
+        // Determine the fluid type to place
+        Material placeMaterial = (bucket.material() == Material.WATER_BUCKET) ? Material.WATER : Material.LAVA;
+        debugLogger.debug("Attempting to place " + placeMaterial + " at " + targetBlock.getLocation());
+
+        boolean placed = false;
+
+        // Handle cauldron filling
+        if (targetBlock.getType() == Material.CAULDRON || targetBlock.getType() == Material.WATER_CAULDRON) {
+            if (placeMaterial == Material.WATER) {
+                BlockData blockData = targetBlock.getBlockData();
+                if (blockData instanceof Levelled levelled && targetBlock.getType() == Material.WATER_CAULDRON) {
+                    if (levelled.getLevel() < levelled.getMaximumLevel()) {
+                        levelled.setLevel(levelled.getLevel() + 1);
+                        targetBlock.setBlockData(levelled);
+                        debugLogger.debug("Dispenser increased water cauldron level at " + targetBlock.getLocation());
+                        placed = true;
+                    }
+                } else if (targetBlock.getType() == Material.CAULDRON) {
+                    targetBlock.setType(Material.WATER_CAULDRON);
+                    debugLogger.debug("Dispenser filled empty cauldron with water at " + targetBlock.getLocation());
+                    placed = true;
+                }
+            } else if (placeMaterial == Material.LAVA && targetBlock.getType() == Material.CAULDRON) {
+                targetBlock.setType(Material.LAVA_CAULDRON);
+                debugLogger.debug("Dispenser filled empty cauldron with lava at " + targetBlock.getLocation());
+                placed = true;
+            }
+        }
+
+        // Handle waterloggable blocks
+        if (!placed && placeMaterial == Material.WATER && targetBlock.getBlockData() instanceof Waterlogged waterlogged) {
+            if (!waterlogged.isWaterlogged()) {
+                waterlogged.setWaterlogged(true);
+                targetBlock.setBlockData(waterlogged);
+                debugLogger.debug("Dispenser waterlogged block at " + targetBlock.getLocation());
+                placed = true;
+            }
+        }
+
+        // Place fluid if the target block is passable or liquid
+        if (!placed && (targetBlock.isPassable() || targetBlock.isLiquid())) {
+            targetBlock.setType(placeMaterial);
+            debugLogger.debug("Dispenser placed " + placeMaterial + " at " + targetBlock.getLocation());
+            placed = true;
+        }
+
+        if (!placed) {
+            debugLogger.debug("Cannot place " + placeMaterial + " at " + targetBlock.getLocation() + " - block is not passable or liquid");
+        }
+
+        // The infinite bucket remains in the dispenser (not consumed)
+        // Since we cancelled the event, the bucket stays in its slot
     }
 }

@@ -23,6 +23,13 @@ reload-success: "<gray>Plugin configuration has been successfully reloaded.</gra
 # Message sent on successful bucket drain.
 drain-success: "<green>Successfully drained <aqua><blocks_drained></aqua> blocks with the <bucket_name><green>."
 
+# Messages for limited-use buckets
+bucket-no-uses: "<red>The <bucket_name><red> has no uses left.</red>"
+bucket-depleted: "<gray>Your <bucket_name><gray> has been depleted.</gray>"
+
+# Message for dispenser interactions
+dispenser-no-limited-uses: "<red>Limited-use buckets cannot be dispensed.</red>"
+
 # Messages for the /infb give command.
 give:
   sender: "<gray>You have given <#00E1FF><player></#00E1FF> <white><amount>x</white> <bucket_name><gray>.</gray>"

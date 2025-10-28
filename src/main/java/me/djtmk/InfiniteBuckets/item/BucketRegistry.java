@@ -1,7 +1,6 @@
 package me.djtmk.InfiniteBuckets.item;
 
 import me.djtmk.InfiniteBuckets.Main;
-import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.MemoryConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -18,12 +17,10 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class BucketRegistry {
 
     private final Main plugin;
-    private final NamespacedKey bucketKey;
     private final Map<String, InfiniteBucket> bucketMap = new ConcurrentHashMap<>();
 
     public BucketRegistry(@NotNull Main plugin) {
         this.plugin = plugin;
-        this.bucketKey = new NamespacedKey(plugin, "infinite_bucket");
         this.loadBuckets();
     }
 
@@ -100,8 +97,8 @@ public final class BucketRegistry {
         ItemMeta meta = item.getItemMeta();
         PersistentDataContainer container = meta.getPersistentDataContainer();
 
-        if (container.has(bucketKey, PersistentDataType.STRING)) {
-            String id = container.get(bucketKey, PersistentDataType.STRING);
+        if (container.has(InfiniteBucket.BUCKET_ID_KEY, PersistentDataType.STRING)) {
+            String id = container.get(InfiniteBucket.BUCKET_ID_KEY, PersistentDataType.STRING);
             return getBucket(id);
         }
 

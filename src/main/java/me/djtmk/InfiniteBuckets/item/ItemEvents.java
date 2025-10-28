@@ -26,9 +26,11 @@ import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
-import org.bukkit.util.Vector;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.Optional;
 
 public final class ItemEvents implements Listener {
@@ -91,12 +93,12 @@ public final class ItemEvents implements Listener {
             return;
         }
 
-        // Check if player is holding an item
-        if (event.getItem() == null) {
+        ItemStack itemInHand = event.getItem();
+        if (itemInHand == null) {
             return;
         }
 
-        Optional<InfiniteBucket> bucketOptional = registry.getBucket(event.getItem());
+        Optional<InfiniteBucket> bucketOptional = registry.getBucket(itemInHand);
         if (bucketOptional.isEmpty()) {
             return;
         }
@@ -113,34 +115,82 @@ public final class ItemEvents implements Listener {
             return;
         }
 
+        // Get current uses from PersistentDataContainer
+        ItemMeta meta = itemInHand.getItemMeta();
+        Integer currentUses = null;
+        if (bucket.uses() != -1) {
+            currentUses = meta.getPersistentDataContainer().get(InfiniteBucket.BUCKET_USES_KEY, PersistentDataType.INTEGER);
+            if (currentUses == null) {
+                currentUses = bucket.uses(); // Fallback to config value
+            }
+
+            // If bucket has limited uses and currentUses is 0, prevent usage
+            if (currentUses <= 0) {
+                messages.send(player, "bucket-no-uses", Placeholder.component("bucket_name", bucket.displayName()));
+                debugLogger.debug("Player " + player.getName() + " tried to use " + bucket.id() + " with 0 uses left.");
+                return;
+            }
+        }
+
+        boolean usedSuccessfully = false;
         // Handle different bucket modes
         if (bucket.mode() == InfiniteBucket.BucketMode.DRAIN_AREA) {
-            handleDrainAreaBucket(player, bucket, event);
+            usedSuccessfully = handleDrainAreaBucket(player, bucket, event);
         } else if (bucket.mode() == InfiniteBucket.BucketMode.EFFECT) {
-            handleEffectBucket(player, bucket);
+            usedSuccessfully = handleEffectBucket(player, bucket);
         } else {
-            handleVanillaLikeBucket(player, bucket, event);
+            usedSuccessfully = handleVanillaLikeBucket(player, bucket, event);
+        }
+
+        if (usedSuccessfully && bucket.uses() != -1 && currentUses != null) {
+            currentUses--;
+
+            if (currentUses <= 0) {
+                messages.send(player, "bucket-depleted", Placeholder.component("bucket_name", bucket.displayName()));
+                debugLogger.debug("Bucket " + bucket.id() + " depleted for " + player.getName());
+
+                if (itemInHand.getAmount() > 1) {
+                    itemInHand.setAmount(itemInHand.getAmount() - 1);
+
+                    // Since one bucket from the stack is consumed, we reset the uses for the remaining stack.
+                    ItemMeta newMeta = itemInHand.getItemMeta();
+                    newMeta.getPersistentDataContainer().set(InfiniteBucket.BUCKET_USES_KEY, PersistentDataType.INTEGER, bucket.uses());
+                    List<net.kyori.adventure.text.Component> newLore = InfiniteBucket.updateLoreWithUses(bucket.lore(), bucket.uses(), bucket.uses());
+                    newMeta.lore(newLore);
+                    itemInHand.setItemMeta(newMeta);
+                } else {
+                    player.getInventory().setItem(event.getHand(), null);
+                }
+            } else {
+                // Update the lore and NBT for the remaining uses
+                meta.getPersistentDataContainer().set(InfiniteBucket.BUCKET_USES_KEY, PersistentDataType.INTEGER, currentUses);
+                List<net.kyori.adventure.text.Component> updatedLore = InfiniteBucket.updateLoreWithUses(bucket.lore(), currentUses, bucket.uses());
+                meta.lore(updatedLore);
+                itemInHand.setItemMeta(meta);
+            }
         }
     }
 
-    private void handleEffectBucket(@NotNull Player player, @NotNull InfiniteBucket bucket) {
+    private boolean handleEffectBucket(@NotNull Player player, @NotNull InfiniteBucket bucket) {
         if ("CLEAR_EFFECTS".equalsIgnoreCase(bucket.action())) {
             if (player.getActivePotionEffects().isEmpty()) {
-                return;
+                return false;
             }
 
             // Clear all potion effects
             scheduler.runAtEntity(player, task -> player.getActivePotionEffects().forEach(effect -> player.removePotionEffect(effect.getType())));
             player.playSound(player.getLocation(), Sound.ENTITY_GENERIC_DRINK, 1.0F, 1.0F);
             debugLogger.debug("Cleared potion effects for " + player.getName() + " using " + bucket.id());
+            return true;
         }
+        return false;
     }
 
-    private void handleDrainAreaBucket(@NotNull Player player, @NotNull InfiniteBucket bucket, @NotNull PlayerInteractEvent event) {
+    private boolean handleDrainAreaBucket(@NotNull Player player, @NotNull InfiniteBucket bucket, @NotNull PlayerInteractEvent event) {
         InfiniteBucket.DrainBehavior behavior = bucket.drainBehavior();
         if (behavior == null) {
             debugLogger.debug("Drain area bucket " + bucket.id() + " has no drain behavior configured.");
-            return;
+            return false;
         }
 
         Block clickedBlock = event.getClickedBlock();
@@ -204,12 +254,15 @@ public final class ItemEvents implements Listener {
                     Placeholder.component("bucket_name", bucket.displayName()),
                     Placeholder.component("blocks_drained", net.kyori.adventure.text.Component.text(blocksRemoved))
             );
+            return true;
         }
+        return false;
     }
 
-    private void handleVanillaLikeBucket(@NotNull Player player, @NotNull InfiniteBucket bucket, @NotNull PlayerInteractEvent event) {
+    private boolean handleVanillaLikeBucket(@NotNull Player player, @NotNull InfiniteBucket bucket, @NotNull PlayerInteractEvent event) {
         Block clickedBlock = event.getClickedBlock();
         Material placeMaterial = (bucket.material() == Material.WATER_BUCKET) ? Material.WATER : Material.LAVA;
+        boolean placed = false;
 
         if (clickedBlock != null && event.getAction() == Action.RIGHT_CLICK_BLOCK) {
             Material clickedMaterial = clickedBlock.getType();
@@ -221,39 +274,37 @@ public final class ItemEvents implements Listener {
                         levelled.setLevel(levelled.getLevel() + 1);
                         clickedBlock.setBlockData(levelled);
                         debugLogger.debug("Increased water cauldron level at " + clickedBlock.getLocation());
-                        return;
+                        placed = true;
                     }
                 } else if (clickedMaterial == Material.CAULDRON) { // It's an empty cauldron
                     clickedBlock.setType(Material.WATER_CAULDRON);
                     debugLogger.debug("Filled empty cauldron with water at " + clickedBlock.getLocation());
-                    return;
+                    placed = true;
                 }
             }
 
             if (placeMaterial == Material.LAVA && clickedMaterial == Material.CAULDRON) {
                 clickedBlock.setType(Material.LAVA_CAULDRON);
                 debugLogger.debug("Filled empty cauldron with lava at " + clickedBlock.getLocation());
-                return;
+                placed = true;
             }
         }
 
-        debugLogger.debug("Player " + player.getName() + " using " + bucket.id() + " bucket with material " + placeMaterial);
-
-        if (clickedBlock != null && placeMaterial == Material.WATER && clickedBlock.getBlockData() instanceof Waterlogged waterlogged && !waterlogged.isWaterlogged()) {
+        if (!placed && clickedBlock != null && placeMaterial == Material.WATER && clickedBlock.getBlockData() instanceof Waterlogged waterlogged && !waterlogged.isWaterlogged()) {
             debugLogger.debug("Setting waterlogged block at " + clickedBlock.getLocation());
             waterlogged.setWaterlogged(true);
             clickedBlock.setBlockData(waterlogged);
-            return;
+            placed = true;
         }
 
         Block blockToPlaceIn = null;
-        if (clickedBlock != null && event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+        if (!placed && clickedBlock != null && event.getAction() == Action.RIGHT_CLICK_BLOCK) {
             blockToPlaceIn = clickedBlock.getRelative(event.getBlockFace());
-        } else if (event.getAction() == Action.RIGHT_CLICK_AIR) {
+        } else if (!placed && event.getAction() == Action.RIGHT_CLICK_AIR) {
             blockToPlaceIn = player.getTargetBlock(null, 5);
         }
 
-        if (blockToPlaceIn != null && (blockToPlaceIn.isPassable() || blockToPlaceIn.isLiquid())) {
+        if (!placed && blockToPlaceIn != null && (blockToPlaceIn.isPassable() || blockToPlaceIn.isLiquid())) {
             if (placeMaterial == Material.WATER && blockToPlaceIn.getBlockData() instanceof Waterlogged waterlogged) {
                 debugLogger.debug("Setting waterlogged block at " + blockToPlaceIn.getLocation());
                 waterlogged.setWaterlogged(true);
@@ -262,9 +313,11 @@ public final class ItemEvents implements Listener {
                 debugLogger.debug("Setting block type to " + placeMaterial + " at " + blockToPlaceIn.getLocation());
                 blockToPlaceIn.setType(placeMaterial);
             }
-        } else if (blockToPlaceIn != null) {
+            placed = true;
+        } else if (!placed && blockToPlaceIn != null) {
             debugLogger.debug("Cannot place " + placeMaterial + " at " + blockToPlaceIn.getLocation() + " - block is not passable or liquid");
         }
+        return placed;
     }
 
     private boolean hasIslandPermission(@NotNull Player player) {
@@ -286,6 +339,12 @@ public final class ItemEvents implements Listener {
         debugLogger.debug("Dispenser attempting to dispense " + bucket.id() + " bucket");
 
         // Only handle VANILLA_LIKE buckets (water/lava)
+        if (bucket.uses() != -1) {
+            debugLogger.debug("Cannot dispense limited-use bucket " + bucket.id() + " from dispenser.");
+            event.setCancelled(true);
+            return;
+        }
+
         if (bucket.mode() != InfiniteBucket.BucketMode.VANILLA_LIKE) {
             debugLogger.debug("Cannot dispense " + bucket.id() + " bucket - only VANILLA_LIKE mode is supported");
             event.setCancelled(true);
@@ -322,11 +381,11 @@ public final class ItemEvents implements Listener {
                     debugLogger.debug("Dispenser filled empty cauldron with water at " + targetBlock.getLocation());
                     placed = true;
                 }
-            } else if (placeMaterial == Material.LAVA && targetBlock.getType() == Material.CAULDRON) {
-                targetBlock.setType(Material.LAVA_CAULDRON);
-                debugLogger.debug("Dispenser filled empty cauldron with lava at " + targetBlock.getLocation());
-                placed = true;
             }
+        } else if (placeMaterial == Material.LAVA && targetBlock.getType() == Material.CAULDRON) {
+            targetBlock.setType(Material.LAVA_CAULDRON);
+            debugLogger.debug("Dispenser filled empty cauldron with lava at " + targetBlock.getLocation());
+            placed = true;
         }
 
         // Handle waterloggable blocks

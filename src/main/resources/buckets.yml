@@ -11,7 +11,6 @@
 #
 # Schema Version: 1
 #
-
 version: 1
 
 # =================================================================== #
@@ -21,7 +20,6 @@ version: 1
 # These are the default bucket types that come with the plugin.
 # You can disable any of them by setting enabled: false
 #
-
 presets:
   # Standard water bucket behavior
   water_bucket:
@@ -97,8 +95,25 @@ presets:
 # For vanilla_like buckets, specify fluids/fluidTags to control what can be collected
 # For drain_area buckets, use the behavior section to configure drain behavior
 #
-
 customBuckets:
+  - id: "limited_water_bucket"
+    displayName: "<aqua>Limited Water Bucket</aqua>"
+    lore:
+      - "<!i><blue>• Has a limited number of uses</blue>"
+      - "<!i><gray>• Right-click to place water</gray>"
+      - "<!i><gray>• Uses Remaining: <uses></gray>" # Placeholder for remaining uses
+    icon: "minecraft:water_bucket"
+    mode: "vanilla_like"
+    fluids: [ "minecraft:water" ]
+    capacity: 1
+    uses: 5
+    crafting:
+      enabled: false
+    permissions:
+      use: "buckets.use.limited_water"
+      craft: ""
+    enabled: true
+
 #  - id: "milk_bucket"
 #    displayName: "<white>Infinite Milk Bucket</white>"
 # lore:
@@ -169,6 +184,25 @@ customBuckets:
 #      craft: ""
 #    enabled: true
 
+# Example 4: Limited use water bucket
+#  - id: "custom:limited_water_bucket"
+#    displayName: "<aqua>Limited Water Bucket</aqua>"
+#    lore:
+#      - "<!i><blue>• Has a limited number of uses</blue>"
+#      - "<!i><gray>• Right-click to place water</gray>"
+#      - "<!i><gray>• Uses Remaining: <uses></gray>" # Placeholder for remaining uses
+#    icon: "minecraft:water_bucket"
+#    mode: "vanilla_like"
+#    fluids: ["minecraft:water"]
+#    capacity: 1
+#    uses: 5
+#    crafting:
+#      enabled: false
+#    permissions:
+#      use: "buckets.use.limited_water"
+#      craft: ""
+#    enabled: true
+
 # =================================================================== #
 #                        CONFIGURATION NOTES                         #
 # =================================================================== #
@@ -183,6 +217,7 @@ customBuckets:
 # fluids: Array of specific fluid IDs this bucket can handle (optional)
 # fluidTags: Array of fluid tags this bucket accepts (optional)
 # enabled: Whether this bucket is available (optional, default: true)
+# uses: For limited-use buckets, specifies the number of times it can be used (optional, default: infinite)
 #
 # For vanilla_like buckets:
 # - Must specify either fluids or fluidTags (or both)

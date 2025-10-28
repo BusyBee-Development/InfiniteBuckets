@@ -1,134 +1,109 @@
 # InfiniteBuckets
 
-Customizable infinite buckets for modern Paper servers. Give your players endless water or lava in a safe, configurable way — with beautiful names/lore using MiniMessage, per‑bucket permissions, optional Nether restrictions, and smart behavior like waterlogging support. Folia compatible.
+This plugin provides highly customizable "infinite" buckets for your Minecraft server. Go beyond simple infinite water and lava to create unique items with special behaviors.
 
-Modrinth: https://modrinth.com/plugin/infinitebuckets
+## Features
 
-## Why server owners like it
-- Player‑friendly: Right‑click to place flowing water or lava; automatically waterlogs blocks when appropriate.
-- Fully customizable: Define any number of infinite buckets in config (material, name, lore, permission, nether rules).
-- Permission‑driven: Gate access per bucket (e.g., water vs. lava vs. your custom buckets).
-- Modern & safe:
-  - Paper API 1.21
-  - Java 17
-  - Folia supported
-  - Async update notifier for admins
-- Integrations: Hooks included for popular protection ecosystems so usage can respect build rules on your server.
-
-> Note: Explicit build‑permission enforcement is implemented for SuperiorSkyblock2 island BUILD privilege. Hooks for WorldGuard, GriefPrevention, Towny, Lands, PlotSquared, and Residence are initialized and ready for extended protection handling.
-
----
-
-## Installation
-1. Requirements:
-   - Paper/Paper‑fork 1.21+ (Folia supported)
-   - Java 17+
-2. Download the latest jar from Modrinth and place it into your server's `plugins` folder.
-3. Start the server to generate the default configuration.
-4. (Optional) Edit `plugins/InfiniteBuckets/config.yml` and `messages.yml` to customize buckets and messages.
-5. Use permissions/commands below to manage access.
+*   **Multiple Bucket Modes:**
+    *   `VANILLA_LIKE`: Functions like a standard bucket but never runs out.
+    *   `DRAIN_AREA`: Drains a configurable area of specified fluids.
+    *   `EFFECT`: Applies a potion effect or other action when used.
+*   **Extensive Configuration:** Customize every aspect of your buckets, including:
+    *   Name, lore, and item appearance.
+    *   Custom permissions for using and crafting.
+    *   Limited or unlimited uses.
+    *   Custom crafting recipes.
+    *   Specify which fluids can be picked up or drained.
+    *   Configure area-draining behavior (radius, cooldown, etc.).
+*   **PlaceholderAPI Support:** Use placeholders in lore to display remaining uses.
+*   **Soft Dependencies:** Integrates with various land-protection plugins to prevent abuse.
 
 ## Commands
-- `/infinitebuckets` (aliases: `/infb`, `/ib`)
-  - `help` — Show help menu.
-  - `reload` — Reloads config, messages, buckets, and hooks.
-  - `give <player> <bucketId> [amount]` — Gives an infinite bucket item.
 
-Examples:
-- `/infb help`
-- `/infb reload`
-- `/infb give Steve water 1`
-- `/infb give Alex lava 16`
+*   `/infinitebuckets` (aliases: `/infb`, `/ib`): Main command for the plugin (currently placeholder).
 
 ## Permissions
-- `infb.admin`
-  - Default: OP
-  - Allows `/infb reload`, `/infb give`, and tab completion.
-- `infb.use.water`
-  - Default: true
-  - Use the Infinite Water Bucket.
-- `infb.use.lava`
-  - Default: true
-  - Use the Infinite Lava Bucket.
-- Custom buckets: `infb.use.<bucketId>`
-  - If you define a bucket with id `milk`, by default it uses `infb.use.milk` unless you set a custom permission in the bucket definition.
+
+*   `infb.admin`: Grants access to all admin commands.
+*   `infb.use.<bucket_id>`: Allows a player to use the specified infinite bucket.
+*   `infb.craft.<bucket_id>`: Allows a player to craft the specified infinite bucket.
 
 ## Configuration
-Config path: `plugins/InfiniteBuckets/config.yml`
 
-Key options:
-- `debug-mode` — Enable detailed debug messages in console (useful for troubleshooting).
-- `buckets` — Define each infinite bucket:
-  - `material` — Must be a bucket type (e.g., `WATER_BUCKET`, `LAVA_BUCKET`, `MILK_BUCKET`, ...)
-  - `display-name` — MiniMessage‑formatted name.
-  - `lore` — MiniMessage‑formatted list of lore lines.
-  - `permission` — Permission required to use this bucket (defaults to `infb.use.<bucketId>` if omitted).
-  - `works-in-nether` — Whether this bucket can be used in the Nether.
+You can create custom buckets in the `buckets.yml` file. Here is an example of a configuration for a few different buckets:
 
-Default snippet:
-```yml
+```yaml
 buckets:
-  water:
-    material: "WATER_BUCKET"
-    display-name: "<gradient:#00A6FF:#00E1FF>Infinite Water Bucket</gradient>"
+  - id: "infinite_water"
+    displayName: "<blue>Infinite Water Bucket</blue>"
     lore:
-      - "<gray>An endless supply of pure, refreshing water.</gray>"
-    permission: "infb.use.water"
-    works-in-nether: false
+      - "<gray>A bucket that never runs out of water.</gray>"
+      - "<gray>Uses: <white><uses></white></gray>"
+    icon: "minecraft:water_bucket"
+    mode: "VANILLA_LIKE"
+    fluids:
+      - "minecraft:water"
+    uses: -1 # Infinite uses
+    crafting:
+      enabled: true
+      recipe: "WWW,WUW,WWW" # Example recipe shape
+    permissions:
+      use: "infb.use.water"
+      craft: "infb.craft.water"
 
-  lava:
-    material: "LAVA_BUCKET"
-    display-name: "<gradient:#FF8C00:#FF4500>Infinite Lava Bucket</gradient>"
+  - id: "lava_drainer"
+    displayName: "<red>Lava Drainer</red>"
     lore:
-      - "<gray>A bucket filled with an endless supply of molten rock.</gray>"
-    permission: "infb.use.lava"
-    works-in-nether: true
+      - "<gray>Drains a large area of lava.</gray>"
+    icon: "minecraft:bucket"
+    mode: "DRAIN_AREA"
+    behavior:
+      radius: 3
+      maxBlocksPerUse: 100
+      cooldown: 30
+      fluids:
+        - "minecraft:lava"
+    permissions:
+      use: "infb.use.lavadrainer"
 
-# Example custom bucket (uncomment & adjust to use)
-#  milk:
-#    material: "MILK_BUCKET"
-#    display-name: "<white>Infinite Milk Bucket</white>"
-#    lore:
-#      - "<gray>Clears all potion effects upon use.</gray>"
-#    permission: "infb.use.milk"
-#    works-in-nether: true
+  - id: "cleansing_milk"
+    displayName: "<white>Cleansing Milk</white>"
+    lore:
+      - "<gray>Cures all negative effects.</gray>"
+    icon: "minecraft:milk_bucket"
+    mode: "EFFECT"
+    action: "CURE_EFFECTS"
+    permissions:
+      use: "infb.use.milk"
+
+customBuckets:
+  - id: "limited_water_bucket"
+    displayName: "<aqua>Limited Water Bucket</aqua>"
+    lore:
+      - "<!i><blue>• Has a limited number of uses</blue>"
+      - "<!i><gray>• Right-click to place water</gray>"
+      - "<!i><gray>• Uses Remaining: <uses></gray>" # Placeholder for remaining uses
+    icon: "minecraft:water_bucket"
+    mode: "vanilla_like"
+    fluids: [ "minecraft:water" ]
+    capacity: 1
+    uses: 5
+    crafting:
+      enabled: false
+    permissions:
+      use: "buckets.use.limited_water"
+      craft: ""
+    enabled: true
 ```
 
-MiniMessage formatting docs: https://docs.advntr.dev/minimessage/format.html
+## Soft Dependencies
 
-## How it behaves in‑game
-- Players right‑click with the infinite bucket in hand to place fluid.
-- Water buckets will waterlog compatible blocks when possible.
-- If a bucket is disabled in the Nether via config, it will refuse to place there.
-- Permissions are checked per bucket before use.
-- SuperiorSkyblock2: Player must have the island `BUILD` privilege where they are standing.
+InfiniteBuckets will respect the protection of the following plugins if they are installed:
 
-## Integrations
-Automatically detects and prepares hooks for:
-- WorldGuard
-- GriefPrevention
-- Towny
-- Lands
-- PlotSquared
-- Residence
-- SuperiorSkyblock2 (explicit build privilege check implemented)
-
-These integrations help ensure infinite bucket use can align with your server’s protection rules. Keep them installed and updated for best results.
-
-## Update notifications
-Admins with `infb.admin` will be notified in‑game on join if a new version is available (clickable link to Modrinth). Version checks are performed asynchronously.
-
-## Troubleshooting
-- Players can’t use a bucket:
-  - Ensure they have the correct `infb.use.<bucketId>` permission.
-  - Check `works-in-nether` if they are in the Nether.
-  - If using SuperiorSkyblock2, verify they have `BUILD` privilege at their location.
-- Debugging:
-  - Set `debug-mode: true` in `config.yml` and watch console for detailed logs.
-- Still stuck? Visit the Modrinth page for updates and issue reporting.
-
-## License
-This project includes a [LICENSE](https://github.com/BusyBee-Development/ClearLaggEnhanced/edit/main/LICENSE) file in the repository root. Please review it for usage terms.
-
-## Contributing
-We welcome contributions from the community. Please read [CONTRIBUTING.md](CONTRIBUTING.md) for setup instructions, coding standards, and the PR process.
+*   SuperiorSkyblock2
+*   WorldGuard
+*   GriefPrevention
+*   Towny
+*   Lands
+*   PlotSquared
+*   Residence

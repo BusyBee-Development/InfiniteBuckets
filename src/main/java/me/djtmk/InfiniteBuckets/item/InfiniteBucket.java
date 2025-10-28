@@ -2,6 +2,7 @@ package me.djtmk.InfiniteBuckets.item;
 
 import me.djtmk.InfiniteBuckets.Main;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Material;
@@ -14,6 +15,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -22,7 +24,7 @@ public record InfiniteBucket(String id, Material material, Component displayName
                              boolean worksInNether, BucketMode mode, String action,
                              List<String> allowedFluids, List<String> allowedFluidTags,
                              int capacity, DrainBehavior drainBehavior, boolean craftingEnabled,
-                             String craftingRecipe) {
+                             String craftingRecipe, Integer uses) { // Added 'uses' field
 
     public enum BucketMode {
         VANILLA_LIKE,
@@ -35,17 +37,27 @@ public record InfiniteBucket(String id, Material material, Component displayName
                                 List<String> drainFluidTags, boolean unsafe) {
     }
 
+    // NamespacedKey for storing bucket ID in PersistentDataContainer
+    public static final NamespacedKey BUCKET_ID_KEY = new NamespacedKey(Main.getInstance(), "infinite_bucket_id");
+    // NamespacedKey for storing remaining uses in PersistentDataContainer
+    public static final NamespacedKey BUCKET_USES_KEY = new NamespacedKey(Main.getInstance(), "infinite_bucket_uses");
+
     public ItemStack createItem(int amount) {
         ItemStack item = new ItemStack(material, amount);
         ItemMeta meta = item.getItemMeta();
 
-        NamespacedKey key = new NamespacedKey(Main.getInstance(), "infinite_bucket");
-        meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, this.id);
+        meta.getPersistentDataContainer().set(BUCKET_ID_KEY, PersistentDataType.STRING, this.id);
+        // Store initial uses, -1 for infinite
+        meta.getPersistentDataContainer().set(BUCKET_USES_KEY, PersistentDataType.INTEGER, this.uses);
 
         meta.displayName(this.displayName);
-        if (!this.lore.isEmpty()) {
-            meta.lore(this.lore);
+
+        // Update lore with initial uses
+        List<Component> updatedLore = updateLoreWithUses(this.lore, this.uses, this.uses); // Pass total uses
+        if (!updatedLore.isEmpty()) {
+            meta.lore(updatedLore);
         }
+
         meta.addEnchant(Enchantment.UNBREAKING, 1, true);
         meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
 
@@ -107,6 +119,7 @@ public record InfiniteBucket(String id, Material material, Component displayName
         List<String> allowedFluids = config.getStringList("fluids");
         List<String> allowedFluidTags = config.getStringList("fluidTags");
         int capacity = config.getInt("capacity", 1);
+        Integer uses = config.contains("uses") ? config.getInt("uses") : -1; // Read 'uses' from config, default to -1
 
         DrainBehavior drainBehavior = null;
         if (mode == BucketMode.DRAIN_AREA) {
@@ -153,7 +166,7 @@ public record InfiniteBucket(String id, Material material, Component displayName
 
         return Optional.of(new InfiniteBucket(
                 bucketId, material, displayNameComponent, lore, usePermission, craftPermission, true,
-                mode, action, allowedFluids, allowedFluidTags, capacity, drainBehavior, craftingEnabled, craftingRecipe
+                mode, action, allowedFluids, allowedFluidTags, capacity, drainBehavior, craftingEnabled, craftingRecipe, uses
         ));
     }
 
@@ -170,6 +183,38 @@ public record InfiniteBucket(String id, Material material, Component displayName
             case DRAIN_AREA -> Material.BUCKET;
             case EFFECT -> Material.MILK_BUCKET;
         };
+    }
+
+    /**
+     * Updates the lore of an ItemStack to reflect the current number of uses.
+     * Replaces the placeholder "<uses>" with the actual number.
+     * If uses is -1, it removes the uses line or replaces it with "Infinite Uses".
+     *
+     * @param originalLore The original lore list from the bucket configuration.
+     * @param currentUses The current number of uses remaining.
+     * @param totalUses The total number of uses for this bucket type.
+     * @return A new list of Components with the updated lore.
+     */
+    public static List<Component> updateLoreWithUses(List<Component> originalLore, int currentUses, int totalUses) {
+        MiniMessage mm = MiniMessage.miniMessage();
+        return originalLore.stream().map(component -> {
+            // We serialize to string just to check if the placeholder exists,
+            // because the Component API doesn't have a simple "contains" method.
+            String componentString = mm.serialize(component);
+            if (componentString.contains("<uses>")) {
+                if (totalUses == -1) {
+                    return null; // For infinite buckets, remove the line that contains "<uses>"
+                } else {
+                    // For limited-use buckets, replace the placeholder safely using TextReplacementConfig
+                    TextReplacementConfig replacementConfig = TextReplacementConfig.builder()
+                            .matchLiteral("<uses>")
+                            .replacement(currentUses + "/" + totalUses)
+                            .build();
+                    return component.replaceText(replacementConfig);
+                }
+            }
+            return component;
+        }).filter(Objects::nonNull).collect(Collectors.toList());
     }
 
     // Unused legacy method - can be removed if you no longer use old config formats

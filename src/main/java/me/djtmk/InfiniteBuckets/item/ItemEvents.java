@@ -1,10 +1,8 @@
 package me.djtmk.InfiniteBuckets.item;
 
-import com.bgsoftware.superiorskyblock.api.SuperiorSkyblockAPI;
-import com.bgsoftware.superiorskyblock.api.island.Island;
-import com.bgsoftware.superiorskyblock.api.island.IslandPrivilege;
 import com.tcoded.folialib.impl.PlatformScheduler;
 import me.djtmk.InfiniteBuckets.Main;
+import me.djtmk.InfiniteBuckets.hooks.HookManager;
 import me.djtmk.InfiniteBuckets.utils.DebugLogger;
 import me.djtmk.InfiniteBuckets.utils.MessageManager;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
@@ -39,21 +37,24 @@ public final class ItemEvents implements Listener {
     private final BucketRegistry registry;
     private final MessageManager messages;
     private final DebugLogger debugLogger;
+    private final HookManager hookManager;
 
     public ItemEvents(@NotNull Main plugin) {
         this.scheduler = Main.scheduler();
         this.registry = plugin.getBucketRegistry();
         this.messages = plugin.getMessageManager();
         this.debugLogger = plugin.getDebugLogger();
-        boolean isSuperiorSkyblockEnabled = plugin.getServer().getPluginManager().isPluginEnabled("SuperiorSkyblock2");
-        this.debugLogger.debug("ItemEvents initialized. SuperiorSkyblock2 enabled: " + isSuperiorSkyblockEnabled);
+        this.hookManager = plugin.getHookManager();
     }
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onPlayerSwapHandItems(@NotNull PlayerSwapHandItemsEvent event) {
+        final ItemStack mainHandItem = event.getMainHandItem();
+        final ItemStack offHandItem = event.getOffHandItem();
+
         // Prevent infinite buckets from being moved to offhand so duping is improbable
-        if (registry.getBucket(event.getMainHandItem()).isPresent() ||
-            registry.getBucket(event.getOffHandItem()).isPresent()) {
+        if ((mainHandItem != null && registry.getBucket(mainHandItem).isPresent()) ||
+            (offHandItem != null && registry.getBucket(offHandItem).isPresent())) {
             event.setCancelled(true);
             debugLogger.debug("Prevented " + event.getPlayer().getName() + " from swapping infinite bucket to off-hand");
         }
@@ -70,15 +71,17 @@ public final class ItemEvents implements Listener {
             return;
         }
 
+        final ItemStack cursor = event.getCursor();
         // Check if player is trying to move an infinite bucket to off-hand slot (slot 40)
-        if (event.getSlot() == 40 && registry.getBucket(event.getCursor()).isPresent()) {
+        if (event.getSlot() == 40 && cursor != null && registry.getBucket(cursor).isPresent()) {
             event.setCancelled(true);
             debugLogger.debug("Prevented " + player.getName() + " from placing infinite bucket in off-hand slot");
             return;
         }
 
+        final ItemStack currentItem = event.getCurrentItem();
         // Check if shift-clicking an infinite bucket that might go to off-hand
-        if (event.isShiftClick() && registry.getBucket(event.getCurrentItem()).isPresent()) {
+        if (event.isShiftClick() && currentItem != null && registry.getBucket(currentItem).isPresent()) {
             // Check if off-hand is empty - shift click might move it there
             if (player.getInventory().getItemInOffHand().getType() == Material.AIR) {
                 event.setCancelled(true);
@@ -111,6 +114,13 @@ public final class ItemEvents implements Listener {
 
         if (!player.hasPermission(bucket.getUsePermission())) {
             debugLogger.debug("Player " + player.getName() + " does not have permission: " + bucket.getUsePermission());
+            messages.send(player, "no-permission-use", Placeholder.component("bucket_name", bucket.displayName()));
+            return;
+        }
+
+        // Region protection check
+        if (event.getClickedBlock() != null && !hookManager.canBuild(player, event.getClickedBlock())) {
+            debugLogger.debug("Player " + player.getName() + " does not have permission to use the bucket in this region.");
             messages.send(player, "no-permission-use", Placeholder.component("bucket_name", bucket.displayName()));
             return;
         }
@@ -318,12 +328,6 @@ public final class ItemEvents implements Listener {
             debugLogger.debug("Cannot place " + placeMaterial + " at " + blockToPlaceIn.getLocation() + " - block is not passable or liquid");
         }
         return placed;
-    }
-
-    private boolean hasIslandPermission(@NotNull Player player) {
-        Island island = SuperiorSkyblockAPI.getIslandAt(player.getLocation());
-        if (island == null) return true;
-        return island.hasPermission(player, IslandPrivilege.getByName("BUILD"));
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)

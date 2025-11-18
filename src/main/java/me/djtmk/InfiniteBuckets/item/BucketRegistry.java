@@ -9,6 +9,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.*;
@@ -89,8 +90,8 @@ public final class BucketRegistry {
         return Optional.ofNullable(bucketMap.get(id));
     }
 
-    public Optional<InfiniteBucket> getBucket(@NotNull ItemStack item) {
-        if (!item.hasItemMeta()) {
+    public Optional<InfiniteBucket> getBucket(@Nullable ItemStack item) {
+        if (item == null || !item.hasItemMeta()) {
             return Optional.empty();
         }
 

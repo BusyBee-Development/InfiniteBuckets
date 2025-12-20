@@ -15,7 +15,7 @@ update-checker:
 # Message settings
 messages:
   # When true, only update notifications will be shown (all other messages from messages.yml will be disabled)
-  only-update-messages: false
+  only-update-messages: true
 
 # Performance and safety settings
 performance:
@@ -52,12 +52,3 @@ world-settings:
     # nether:
     #   allow-water-buckets: false
     #   allow-lava-buckets: true
-
-# =================================================================== #
-#                          BUCKET DEFINITIONS                         #
-# =================================================================== #
-#
-# Bucket definitions have been moved to buckets.yml for better organization
-# and more advanced configuration options. Please refer to buckets.yml to
-# configure all bucket types and behaviors.
-#

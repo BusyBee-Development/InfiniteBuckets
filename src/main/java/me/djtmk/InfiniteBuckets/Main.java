@@ -7,11 +7,14 @@ import me.djtmk.InfiniteBuckets.commands.InfiniteBucketsCommand;
 import me.djtmk.InfiniteBuckets.hooks.HookManager;
 import me.djtmk.InfiniteBuckets.item.BucketRegistry;
 import me.djtmk.InfiniteBuckets.item.ItemEvents;
+import me.djtmk.InfiniteBuckets.utils.ConfigUpdater;
 import me.djtmk.InfiniteBuckets.utils.DebugLogger;
 import me.djtmk.InfiniteBuckets.utils.MessageManager;
 import me.djtmk.InfiniteBuckets.utils.VersionCheck;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import java.io.IOException;
 
 public final class Main extends JavaPlugin {
 
@@ -34,10 +37,14 @@ public final class Main extends JavaPlugin {
         FoliaLib foliaLib = new FoliaLib(this);
         scheduler = foliaLib.getScheduler();
 
-        // Save default config files
-        this.saveDefaultConfig();
-        if (!new java.io.File(this.getDataFolder(), "buckets.yml").exists()) {
-            this.saveResource("buckets.yml", false);
+        // Update and load configurations
+        try {
+            ConfigUpdater.updateConfig(this, "config.yml");
+            ConfigUpdater.updateConfig(this, "buckets.yml");
+            ConfigUpdater.updateConfig(this, "messages.yml");
+        } catch (IOException e) {
+            getLogger().severe("Could not update configuration files!");
+            e.printStackTrace();
         }
         
         this.debugLogger = new DebugLogger(this);

@@ -233,6 +233,11 @@ public final class ItemEvents implements Listener {
                     }
 
                     Block currentBlock = targetBlock.getRelative(x, y, z);
+
+                    if (!hookManager.canBuild(player, currentBlock)) {
+                        continue;
+                    }
+
                     Material blockType = currentBlock.getType();
                     BlockData blockData = currentBlock.getBlockData();
 
@@ -301,6 +306,10 @@ public final class ItemEvents implements Listener {
         }
 
         if (!placed && clickedBlock != null && placeMaterial == Material.WATER && clickedBlock.getBlockData() instanceof Waterlogged waterlogged && !waterlogged.isWaterlogged()) {
+            if (!hookManager.canBuild(player, clickedBlock)) {
+                debugLogger.debug("Player " + player.getName() + " cannot waterlog block at " + clickedBlock.getLocation() + " due to region protection.");
+                return false;
+            }
             debugLogger.debug("Setting waterlogged block at " + clickedBlock.getLocation());
             waterlogged.setWaterlogged(true);
             clickedBlock.setBlockData(waterlogged);
@@ -315,6 +324,10 @@ public final class ItemEvents implements Listener {
         }
 
         if (!placed && blockToPlaceIn != null && (blockToPlaceIn.isPassable() || blockToPlaceIn.isLiquid())) {
+            if (!hookManager.canBuild(player, blockToPlaceIn)) {
+                debugLogger.debug("Player " + player.getName() + " cannot place fluid at " + blockToPlaceIn.getLocation() + " due to region protection.");
+                return false;
+            }
             if (placeMaterial == Material.WATER && blockToPlaceIn.getBlockData() instanceof Waterlogged waterlogged) {
                 debugLogger.debug("Setting waterlogged block at " + blockToPlaceIn.getLocation());
                 waterlogged.setWaterlogged(true);

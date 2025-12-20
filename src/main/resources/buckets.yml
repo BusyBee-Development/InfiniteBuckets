@@ -8,10 +8,7 @@
 # This configuration file defines all bucket types available on the server.
 # It includes built-in presets that can be toggled, plus custom buckets
 # defined by server administrators.
-#
-# Schema Version: 1
-#
-version: 1
+version: 2
 
 # =================================================================== #
 #                           BUILT-IN PRESETS                         #
@@ -22,8 +19,9 @@ version: 1
 #
 presets:
   # Standard water bucket behavior
+  # This is your default infb. Perms are auto by default
   water_bucket:
-    id: "water_bucket"
+    id: "water"
     displayName: "<aqua>Infinite Water Bucket</aqua>"
     lore:
       - "<!i><blue>• Never runs out of water</blue>"
@@ -36,13 +34,14 @@ presets:
     crafting:
       enabled: false
     permissions:
-      use: "buckets.use.water"
+      use: "infb.use.water"
       craft: ""
     enabled: true
 
   # Standard lava bucket behavior
+  # This is your default infb. Perms are auto by default
   lava_bucket:
-    id: "lava_bucket"
+    id: "lava"
     displayName: "<red>Infinite Lava Bucket</red>"
     lore:
       - "<!i><#FF8800>• Never runs out of lava</#FF8800>"
@@ -55,7 +54,7 @@ presets:
     crafting:
       enabled: false
     permissions:
-      use: "buckets.use.lava"
+      use: "infb.use.lava"
       craft: ""
     enabled: true
 

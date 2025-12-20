@@ -24,7 +24,7 @@ public record InfiniteBucket(String id, Material material, Component displayName
                              boolean worksInNether, BucketMode mode, String action,
                              List<String> allowedFluids, List<String> allowedFluidTags,
                              int capacity, DrainBehavior drainBehavior, boolean craftingEnabled,
-                             String craftingRecipe, Integer uses) { // Added 'uses' field
+                             String craftingRecipe, Integer uses, Integer customModelData) {
 
     public enum BucketMode {
         VANILLA_LIKE,
@@ -52,6 +52,10 @@ public record InfiniteBucket(String id, Material material, Component displayName
         List<Component> updatedLore = updateLoreWithUses(this.lore, this.uses, this.uses); // Pass total uses
         if (!updatedLore.isEmpty()) {
             meta.lore(updatedLore);
+        }
+
+        if (this.customModelData != null) {
+            meta.setCustomModelData(this.customModelData);
         }
 
         try {
@@ -124,6 +128,7 @@ public record InfiniteBucket(String id, Material material, Component displayName
         List<String> allowedFluidTags = config.getStringList("fluidTags");
         int capacity = config.getInt("capacity", 1);
         Integer uses = config.contains("uses") ? config.getInt("uses") : -1;
+        Integer customModelData = config.contains("customModelData") ? config.getInt("customModelData") : null;
 
         DrainBehavior drainBehavior = null;
         if (mode == BucketMode.DRAIN_AREA) {
@@ -169,7 +174,7 @@ public record InfiniteBucket(String id, Material material, Component displayName
 
         return Optional.of(new InfiniteBucket(
                 bucketId, material, displayNameComponent, lore, usePermission, craftPermission, true,
-                mode, action, allowedFluids, allowedFluidTags, capacity, drainBehavior, craftingEnabled, craftingRecipe, uses
+                mode, action, allowedFluids, allowedFluidTags, capacity, drainBehavior, craftingEnabled, craftingRecipe, uses, customModelData
         ));
     }
 

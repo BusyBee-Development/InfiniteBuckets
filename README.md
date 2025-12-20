@@ -98,12 +98,19 @@ customBuckets:
 
 ## Soft Dependencies
 
-InfiniteBuckets will respect the protection of the following plugins if they are installed:
+InfiniteBuckets integrates with land protection plugins to prevent unauthorized bucket usage in protected regions. Players must have build permissions in a region to use infinite buckets there. Land owners automatically have permission to use buckets on their own land.
+
+Supported protection plugins:
 
 *   SuperiorSkyblock2
-*   WorldGuard
+*   WorldGuard (v6 & v7)
 *   GriefPrevention
 *   Towny
-*   Lands
+*   Lands (v6.37+ & v7+)
 *   PlotSquared
 *   Residence
+
+**Note:** Protection checks apply to all bucket placement locations, including:
+- Direct block placement (water/lava)
+- Waterlogging blocks
+- Area draining operations (DRAIN_AREA mode)

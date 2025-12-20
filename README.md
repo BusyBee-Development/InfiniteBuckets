@@ -1,116 +1,56 @@
 # InfiniteBuckets
 
-This plugin provides highly customizable "infinite" buckets for your Minecraft server. Go beyond simple infinite water and lava to create unique items with special behaviors.
+## Overview
+
+InfiniteBuckets is a Spigot plugin that introduces a variety of configurable, permission-based infinite buckets. These buckets can have limited uses, custom names, and unique abilities, providing a flexible and engaging experience for server administrators and players.
 
 ## Features
 
-*   **Multiple Bucket Modes:**
-    *   `VANILLA_LIKE`: Functions like a standard bucket but never runs out.
-    *   `DRAIN_AREA`: Drains a configurable area of specified fluids.
-    *   `EFFECT`: Applies a potion effect or other action when used.
-*   **Extensive Configuration:** Customize every aspect of your buckets, including:
-    *   Name, lore, and item appearance.
-    *   Custom permissions for using and crafting.
-    *   Limited or unlimited uses.
-    *   Custom crafting recipes.
-    *   Specify which fluids can be picked up or drained.
-    *   Configure area-draining behavior (radius, cooldown, etc.).
-*   **PlaceholderAPI Support:** Use placeholders in lore to display remaining uses.
-*   **Soft Dependencies:** Integrates with various land-protection plugins to prevent abuse.
+- **Multiple Bucket Types**: Create and customize different types of infinite buckets, including:
+  - **Vanilla-like**: Infinite water and lava buckets that behave like their vanilla counterparts.
+  - **Drain Area**: Buckets that can drain a specified radius of fluids, with configurable settings for radius, max blocks per use, and fluid types.
+  - **Effect**: Buckets that can apply effects to players, such as clearing all active potion effects.
+- **Limited Uses**: Configure buckets to have a limited number of uses. When a bucket is depleted, it can be configured to disappear or be replaced with a regular bucket.
+- **Permissions**: Each bucket has its own set of permissions for crafting, usage, and administration, allowing for fine-grained control over who can use which buckets.
+- **Protection Hooks**: The plugin integrates with various land protection plugins to ensure that buckets cannot be used to bypass build restrictions. Supported plugins include:
+  - WorldGuard
+  - Lands
+  - SuperiorSkyblock
+- **Customization**: Customize bucket names, lore, and other attributes to create unique and thematic items for your server.
+- **Dispenser Support**: Vanilla-like infinite buckets can be used in dispensers, allowing for automated fluid placement without consuming the bucket.
 
 ## Commands
 
-*   `/infinitebuckets` (aliases: `/infb`, `/ib`): Main command for the plugin (currently placeholder).
+The plugin provides a single command, `/infinitebuckets`, with the following subcommands:
 
-## Permissions
-
-*   `infb.admin`: Grants access to all admin commands.
-*   `infb.use.<bucket_id>`: Allows a player to use the specified infinite bucket.
-*   `infb.craft.<bucket_id>`: Allows a player to craft the specified infinite bucket.
+- `/infinitebuckets reload`: Reloads the plugin's configuration files.
+- `/infinitebuckets give <player> <bucket> [amount]`: Gives a specified amount of a custom bucket to a player.
+- `/infinitebuckets list`: Lists all available bucket types.
 
 ## Configuration
 
-You can create custom buckets in the `buckets.yml` file. Here is an example of a configuration for a few different buckets:
+The plugin's configuration is split into three files:
 
-```yaml
-buckets:
-  - id: "infinite_water"
-    displayName: "<blue>Infinite Water Bucket</blue>"
-    lore:
-      - "<gray>A bucket that never runs out of water.</gray>"
-      - "<gray>Uses: <white><uses></white></gray>"
-    icon: "minecraft:water_bucket"
-    mode: "VANILLA_LIKE"
-    fluids:
-      - "minecraft:water"
-    uses: -1 # Infinite uses
-    crafting:
-      enabled: true
-      recipe: "WWW,WUW,WWW" # Example recipe shape
-    permissions:
-      use: "infb.use.water"
-      craft: "infb.craft.water"
+- `config.yml`: The main configuration file, where you can enable or disable features, configure debug logging, and manage other general settings.
+- `buckets.yml`: This file contains the definitions for all custom buckets. You can create new buckets, modify existing ones, and configure their properties, such as name, lore, uses, and special abilities.
+- `messages.yml`: All player-facing messages can be customized in this file, allowing you to translate or rephrase any message to fit your server's theme.
 
-  - id: "lava_drainer"
-    displayName: "<red>Lava Drainer</red>"
-    lore:
-      - "<gray>Drains a large area of lava.</gray>"
-    icon: "minecraft:bucket"
-    mode: "DRAIN_AREA"
-    behavior:
-      radius: 3
-      maxBlocksPerUse: 100
-      cooldown: 30
-      fluids:
-        - "minecraft:lava"
-    permissions:
-      use: "infb.use.lavadrainer"
+## Technical Details
 
-  - id: "cleansing_milk"
-    displayName: "<white>Cleansing Milk</white>"
-    lore:
-      - "<gray>Cures all negative effects.</gray>"
-    icon: "minecraft:milk_bucket"
-    mode: "EFFECT"
-    action: "CURE_EFFECTS"
-    permissions:
-      use: "infb.use.milk"
+- **Java Version**: 17
+- **API**: Paper 1.21
+- **Dependencies**:
+  - FoliaLib
+  - WorldGuard
+  - WorldEdit
+  - Lands
+  - SuperiorSkyblock
+## Building from Source
 
-customBuckets:
-  - id: "limited_water_bucket"
-    displayName: "<aqua>Limited Water Bucket</aqua>"
-    lore:
-      - "<!i><blue>• Has a limited number of uses</blue>"
-      - "<!i><gray>• Right-click to place water</gray>"
-      - "<!i><gray>• Uses Remaining: <uses></gray>" # Placeholder for remaining uses
-    icon: "minecraft:water_bucket"
-    mode: "vanilla_like"
-    fluids: [ "minecraft:water" ]
-    capacity: 1
-    uses: 5
-    crafting:
-      enabled: false
-    permissions:
-      use: "buckets.use.limited_water"
-      craft: ""
-    enabled: true
-```
+To build the plugin from source, you will need to have Maven and JDK 17 installed.
 
-## Soft Dependencies
+1. Clone the repository: `git clone https://github.com/djtmk/InfiniteBuckets.git`
+2. Navigate to the project directory: `cd InfiniteBuckets`
+3. Run the Maven build command: `mvn clean package`
 
-InfiniteBuckets integrates with land protection plugins to prevent unauthorized bucket usage in protected regions. Players must have build permissions in a region to use infinite buckets there. Land owners automatically have permission to use buckets on their own land.
-
-Supported protection plugins:
-
-*   SuperiorSkyblock2
-*   WorldGuard (v6 & v7)
-*   GriefPrevention
-*   Towny
-*   Lands (v6.37+ & v7+)
-*   PlotSquared
-*   Residence
-
-**Note:** Protection checks apply to all bucket placement locations, including:
-- Direct block placement (water/lava)
-- Waterlogging blocks
-- Area draining operations (DRAIN_AREA mode)
+The compiled JAR file will be located in the `target` directory.

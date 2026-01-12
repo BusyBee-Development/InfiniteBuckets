@@ -10,11 +10,8 @@ website: https://modrinth.com/plugin/infinitebuckets
 softdepend:
   - SuperiorSkyblock2
   - WorldGuard
-  - GriefPrevention
-  - Towny
   - Lands
-  - PlotSquared
-  - Residence
+  - BentoBox
 
 commands:
   infinitebuckets:

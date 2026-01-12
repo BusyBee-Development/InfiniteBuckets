@@ -59,5 +59,5 @@ update-notifier:
   - " <gradient:#00A6FF:#00E1FF><b>InfiniteBuckets Update</b></gradient>"
   - " <gray>A new version is available! <dark_gray>(You are on v<current_version>)</dark_gray>"
   - " <green>»</green> <white>Latest Version: <gold><b>v<new_version></b></gold>"
-  - " <aqua><i><hover:show_text:'<gray>Click to open the download page.'>Click here to download the update.</hover></i></aqua>"
+  - " <aqua><i><click:open_url:'https://modrinth.com/plugin/infinitebuckets/versions'><hover:show_text:'<gray>Click to open the download page.'>Click here to download the update.</hover></click></i></aqua>"
   - ""

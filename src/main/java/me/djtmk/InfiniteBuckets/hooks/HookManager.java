@@ -1,6 +1,7 @@
 package me.djtmk.InfiniteBuckets.hooks;
 
 import me.djtmk.InfiniteBuckets.Main;
+import me.djtmk.InfiniteBuckets.hooks.bentobox.BentoBoxHook;
 import me.djtmk.InfiniteBuckets.hooks.lands.LandsHook;
 import me.djtmk.InfiniteBuckets.hooks.protectionhook.ProtectionHook;
 import me.djtmk.InfiniteBuckets.hooks.superiorskyblock.SuperiorSkyblockHook;
@@ -20,7 +21,7 @@ public final class HookManager {
     public HookManager(Main plugin) {
         PluginManager pm = plugin.getServer().getPluginManager();
 
-        for (String pluginName : List.of("WorldGuard", "Lands", "SuperiorSkyblock2")) {
+        for (String pluginName : List.of("WorldGuard", "Lands", "SuperiorSkyblock2", "BentoBox")) {
 
             if (!pm.isPluginEnabled(pluginName)) {
                 continue;
@@ -38,6 +39,7 @@ public final class HookManager {
                 hook = switch (pluginName) {
                     case "Lands" -> new LandsHook();
                     case "SuperiorSkyblock2" -> new SuperiorSkyblockHook();
+                    case "BentoBox" -> new BentoBoxHook();
                     default -> null;
                 };
             }

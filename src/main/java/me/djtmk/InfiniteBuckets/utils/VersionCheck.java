@@ -57,17 +57,11 @@ public final class VersionCheck implements Listener {
             List<String> lines = plugin.getMessageManager().getMessagesConfig().getStringList("update-notifier");
             MiniMessage mm = MiniMessage.miniMessage();
 
-            for (int i = 0; i < lines.size(); i++) {
-                String line = lines.get(i);
-
+            for (String line : lines) {
                 Component component = mm.deserialize(line,
                         Placeholder.unparsed("current_version", currentVersion),
                         Placeholder.unparsed("new_version", latestVersion)
                 );
-
-                if (i == lines.size() - 1) {
-                    component = component.clickEvent(ClickEvent.openUrl("https://modrinth.com/plugin/infinitebuckets"));
-                }
 
                 player.sendMessage(component);
             }

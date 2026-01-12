@@ -24,22 +24,20 @@ public class ConfigUpdater {
         FileConfiguration userConfig = YamlConfiguration.loadConfiguration(configFile);
         InputStream defaultConfigStream = plugin.getResource(fileName);
         if (defaultConfigStream == null) {
-            return; // No default config in JAR
+            return;
         }
         YamlConfiguration defaultConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(defaultConfigStream));
 
         boolean updated = merge(defaultConfig, userConfig);
 
         if (updated) {
-            // Preserve comments by writing to a new file and renaming, though this is a simplified approach.
-            // A more robust solution would parse and merge comments line-by-line.
             File backupFile = new File(plugin.getDataFolder(), fileName + ".old");
             configFile.renameTo(backupFile);
             plugin.getLogger().info("'" + fileName + "' has been updated. Your old config was saved to '" + fileName + ".old'");
-            plugin.saveResource(fileName, true); // Save the new default
+            plugin.saveResource(fileName, true);
             
             FileConfiguration newSavedConfig = YamlConfiguration.loadConfiguration(configFile);
-            merge(userConfig, newSavedConfig); // Merge user's old values into the new file
+            merge(userConfig, newSavedConfig);
             newSavedConfig.save(configFile);
         }
     }

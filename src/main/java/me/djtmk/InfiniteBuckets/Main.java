@@ -37,7 +37,6 @@ public final class Main extends JavaPlugin {
         FoliaLib foliaLib = new FoliaLib(this);
         scheduler = foliaLib.getScheduler();
 
-        // Update and load configurations
         try {
             ConfigUpdater.updateConfig(this, "config.yml");
             ConfigUpdater.updateConfig(this, "buckets.yml");
@@ -84,15 +83,12 @@ public final class Main extends JavaPlugin {
     public MessageManager getMessageManager() {
         return messageManager;
     }
-
     public BucketRegistry getBucketRegistry() {
         return bucketRegistry;
     }
-
     public DebugLogger getDebugLogger() {
         return debugLogger;
     }
-
     public HookManager getHookManager() {
         return hookManager;
     }

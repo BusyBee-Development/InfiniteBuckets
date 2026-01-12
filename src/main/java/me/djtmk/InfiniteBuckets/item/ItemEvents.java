@@ -8,10 +8,13 @@ import me.djtmk.InfiniteBuckets.utils.MessageManager;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.Material;
 import org.bukkit.Sound;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Levelled;
 import org.bukkit.block.data.Waterlogged;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -33,6 +36,7 @@ import java.util.Optional;
 
 public final class ItemEvents implements Listener {
 
+    private final Main plugin;
     private final PlatformScheduler scheduler;
     private final BucketRegistry registry;
     private final MessageManager messages;
@@ -40,6 +44,7 @@ public final class ItemEvents implements Listener {
     private final HookManager hookManager;
 
     public ItemEvents(@NotNull Main plugin) {
+        this.plugin = plugin;
         this.scheduler = Main.scheduler();
         this.registry = plugin.getBucketRegistry();
         this.messages = plugin.getMessageManager();
@@ -52,7 +57,6 @@ public final class ItemEvents implements Listener {
         final ItemStack mainHandItem = event.getMainHandItem();
         final ItemStack offHandItem = event.getOffHandItem();
 
-        // Prevent infinite buckets from being moved to offhand so duping is improbable
         if ((mainHandItem != null && registry.getBucket(mainHandItem).isPresent()) ||
             (offHandItem != null && registry.getBucket(offHandItem).isPresent())) {
             event.setCancelled(true);
@@ -62,7 +66,6 @@ public final class ItemEvents implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onInventoryClick(@NotNull InventoryClickEvent event) {
-        // Prevent dragging infinite buckets into off-hand slot
         if (!(event.getWhoClicked() instanceof Player player)) {
             return;
         }
@@ -72,7 +75,6 @@ public final class ItemEvents implements Listener {
         }
 
         final ItemStack cursor = event.getCursor();
-        // Check if player is trying to move an infinite bucket to off-hand slot (slot 40)
         if (event.getSlot() == 40 && cursor != null && registry.getBucket(cursor).isPresent()) {
             event.setCancelled(true);
             debugLogger.debug("Prevented " + player.getName() + " from placing infinite bucket in off-hand slot");
@@ -80,9 +82,7 @@ public final class ItemEvents implements Listener {
         }
 
         final ItemStack currentItem = event.getCurrentItem();
-        // Check if shift-clicking an infinite bucket that might go to off-hand
         if (event.isShiftClick() && currentItem != null && registry.getBucket(currentItem).isPresent()) {
-            // Check if off-hand is empty - shift click might move it there
             if (player.getInventory().getItemInOffHand().getType() == Material.AIR) {
                 event.setCancelled(true);
                 debugLogger.debug("Prevented " + player.getName() + " from shift-clicking infinite bucket to off-hand");
@@ -112,29 +112,51 @@ public final class ItemEvents implements Listener {
 
         debugLogger.debug("Player " + player.getName() + " attempting to use " + bucket.id() + " bucket with mode " + bucket.mode());
 
+        FileConfiguration config = plugin.getConfig();
+        List<String> disabledWorlds = config.getStringList("world-settings.disabled-worlds");
+        if (disabledWorlds.contains(player.getWorld().getName())) {
+            debugLogger.debug("Player " + player.getName() + " tried to use bucket in disabled world: " + player.getWorld().getName());
+            messages.send(player, "bucket-disabled-world");
+            return;
+        }
+
+        String worldName = player.getWorld().getName();
+        ConfigurationSection worldRules = config.getConfigurationSection("world-settings.world-rules." + worldName);
+        if (worldRules != null) {
+            String ruleKey = "allow-" + bucket.id() + "-buckets";
+            if (worldRules.contains(ruleKey) && !worldRules.getBoolean(ruleKey)) {
+                debugLogger.debug("Bucket " + bucket.id() + " is disabled in world " + worldName + " by world-rules.");
+                messages.send(player, "bucket-disabled-world");
+                return;
+            }
+        }
+
+        if (player.getWorld().getEnvironment() == World.Environment.NETHER && !bucket.worksInNether()) {
+            debugLogger.debug("Player " + player.getName() + " tried to use bucket in Nether, but it is disabled.");
+            messages.send(player, "nether-disabled");
+            return;
+        }
+
         if (!player.hasPermission(bucket.getUsePermission())) {
             debugLogger.debug("Player " + player.getName() + " does not have permission: " + bucket.getUsePermission());
             messages.send(player, "no-permission-use", Placeholder.component("bucket_name", bucket.displayName()));
             return;
         }
 
-        // Region protection check
         if (event.getClickedBlock() != null && !hookManager.canBuild(player, event.getClickedBlock())) {
             debugLogger.debug("Player " + player.getName() + " does not have permission to use the bucket in this region.");
             messages.send(player, "no-permission-use", Placeholder.component("bucket_name", bucket.displayName()));
             return;
         }
 
-        // Get current uses from PersistentDataContainer
         ItemMeta meta = itemInHand.getItemMeta();
         Integer currentUses = null;
         if (bucket.uses() != -1) {
             currentUses = meta.getPersistentDataContainer().get(InfiniteBucket.BUCKET_USES_KEY, PersistentDataType.INTEGER);
             if (currentUses == null) {
-                currentUses = bucket.uses(); // Fallback to config value
+                currentUses = bucket.uses();
             }
 
-            // If bucket has limited uses and currentUses is 0, prevent usage
             if (currentUses <= 0) {
                 messages.send(player, "bucket-no-uses", Placeholder.component("bucket_name", bucket.displayName()));
                 debugLogger.debug("Player " + player.getName() + " tried to use " + bucket.id() + " with 0 uses left.");
@@ -143,7 +165,6 @@ public final class ItemEvents implements Listener {
         }
 
         boolean usedSuccessfully = false;
-        // Handle different bucket modes
         if (bucket.mode() == InfiniteBucket.BucketMode.DRAIN_AREA) {
             usedSuccessfully = handleDrainAreaBucket(player, bucket, event);
         } else if (bucket.mode() == InfiniteBucket.BucketMode.EFFECT) {
@@ -172,7 +193,6 @@ public final class ItemEvents implements Listener {
                     player.getInventory().setItem(event.getHand(), null);
                 }
             } else {
-                // Update the lore and NBT for the remaining uses
                 meta.getPersistentDataContainer().set(InfiniteBucket.BUCKET_USES_KEY, PersistentDataType.INTEGER, currentUses);
                 List<net.kyori.adventure.text.Component> updatedLore = InfiniteBucket.updateLoreWithUses(bucket.lore(), currentUses, bucket.uses());
                 meta.lore(updatedLore);
@@ -355,7 +375,6 @@ public final class ItemEvents implements Listener {
         InfiniteBucket bucket = bucketOptional.get();
         debugLogger.debug("Dispenser attempting to dispense " + bucket.id() + " bucket");
 
-        // Only handle VANILLA_LIKE buckets (water/lava)
         if (bucket.uses() != -1) {
             debugLogger.debug("Cannot dispense limited-use bucket " + bucket.id() + " from dispenser.");
             event.setCancelled(true);
@@ -368,21 +387,15 @@ public final class ItemEvents implements Listener {
             return;
         }
 
-        // Cancel the default dispense behavior to prevent bucket consumption
         event.setCancelled(true);
-
-        // Get the dispenser inventory
         org.bukkit.block.Dispenser dispenser = (org.bukkit.block.Dispenser) event.getBlock().getState();
         org.bukkit.block.data.Directional directional = (org.bukkit.block.data.Directional) event.getBlock().getBlockData();
         Block targetBlock = event.getBlock().getRelative(directional.getFacing());
-
-        // Determine the fluid type to place
         Material placeMaterial = (bucket.material() == Material.WATER_BUCKET) ? Material.WATER : Material.LAVA;
         debugLogger.debug("Attempting to place " + placeMaterial + " at " + targetBlock.getLocation());
 
         boolean placed = false;
 
-        // Handle cauldron filling
         if (targetBlock.getType() == Material.CAULDRON || targetBlock.getType() == Material.WATER_CAULDRON) {
             if (placeMaterial == Material.WATER) {
                 BlockData blockData = targetBlock.getBlockData();
@@ -405,7 +418,6 @@ public final class ItemEvents implements Listener {
             placed = true;
         }
 
-        // Handle waterloggable blocks
         if (!placed && placeMaterial == Material.WATER && targetBlock.getBlockData() instanceof Waterlogged waterlogged) {
             if (!waterlogged.isWaterlogged()) {
                 waterlogged.setWaterlogged(true);
@@ -415,7 +427,6 @@ public final class ItemEvents implements Listener {
             }
         }
 
-        // Place fluid if the target block is passable or liquid
         if (!placed && (targetBlock.isPassable() || targetBlock.isLiquid())) {
             targetBlock.setType(placeMaterial);
             debugLogger.debug("Dispenser placed " + placeMaterial + " at " + targetBlock.getLocation());
@@ -425,8 +436,5 @@ public final class ItemEvents implements Listener {
         if (!placed) {
             debugLogger.debug("Cannot place " + placeMaterial + " at " + targetBlock.getLocation() + " - block is not passable or liquid");
         }
-
-        // The infinite bucket remains in the dispenser (not consumed)
-        // Since we cancelled the event, the bucket stays in its slot
     }
 }

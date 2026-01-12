@@ -48,7 +48,7 @@ public final class MessageManager {
     public void send(@NotNull CommandSender sender, @NotNull String key, @NotNull TagResolver... placeholders) {
         boolean onlyUpdateMessages = plugin.getConfig().getBoolean("messages.only-update-messages", false);
         if (onlyUpdateMessages && !key.equals("update-notifier")) {
-            return; // Skip non-update messages
+            return;
         }
 
         String messageStr = messagesConfig.getString(key, "<red>Unknown message key: " + key + "</red>");
@@ -59,7 +59,7 @@ public final class MessageManager {
     public void sendRaw(@NotNull CommandSender sender, @NotNull String key) {
         boolean onlyUpdateMessages = plugin.getConfig().getBoolean("messages.only-update-messages", false);
         if (onlyUpdateMessages && !key.equals("update-notifier")) {
-            return; // Skip non-update messages
+            return;
         }
 
         List<String> messageLines = messagesConfig.getStringList(key);

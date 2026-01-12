@@ -124,6 +124,9 @@ public record InfiniteBucket(String id, Material material, Component displayName
         String craftPermission = permissionsSection != null ? permissionsSection.getString("craft", "") : "";
         String action = config.getString("action", "");
 
+        boolean defaultNether = !plugin.getConfig().getBoolean("world-settings.default-nether-restriction", false);
+        boolean worksInNether = config.getBoolean("works-in-nether", defaultNether);
+
         List<String> allowedFluids = config.getStringList("fluids");
         List<String> allowedFluidTags = config.getStringList("fluidTags");
         int capacity = config.getInt("capacity", 1);
@@ -173,7 +176,7 @@ public record InfiniteBucket(String id, Material material, Component displayName
         }
 
         return Optional.of(new InfiniteBucket(
-                bucketId, material, displayNameComponent, lore, usePermission, craftPermission, true,
+                bucketId, material, displayNameComponent, lore, usePermission, craftPermission, worksInNether,
                 mode, action, allowedFluids, allowedFluidTags, capacity, drainBehavior, craftingEnabled, craftingRecipe, uses, customModelData
         ));
     }

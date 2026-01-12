@@ -31,15 +31,13 @@ public final class BucketRegistry {
     }
 
     private void loadBuckets() {
-        // Load buckets.yml configuration file
         File bucketsFile = new File(plugin.getDataFolder(), "buckets.yml");
         if (!bucketsFile.exists()) {
             plugin.saveResource("buckets.yml", false);
         }
         
         YamlConfiguration bucketsConfig = YamlConfiguration.loadConfiguration(bucketsFile);
-        
-        // Load preset buckets
+
         ConfigurationSection presetsSection = bucketsConfig.getConfigurationSection("presets");
         if (presetsSection != null) {
             for (String key : presetsSection.getKeys(false)) {
@@ -53,16 +51,14 @@ public final class BucketRegistry {
                 }
             }
         }
-        
-        // Load custom buckets
+
         List<?> customBucketsList = bucketsConfig.getList("customBuckets");
         if (customBucketsList != null) {
             for (Object bucketObj : customBucketsList) {
                 if (bucketObj instanceof Map<?, ?> bucketMap) {
                     @SuppressWarnings("unchecked")
                     Map<String, Object> bucketData = (Map<String, Object>) bucketMap;
-                    
-                    // Convert map to ConfigurationSection for easier handling
+
                     MemoryConfiguration memConfig = new MemoryConfiguration();
                     for (Map.Entry<String, Object> entry : bucketData.entrySet()) {
                         memConfig.set(entry.getKey(), entry.getValue());
@@ -71,7 +67,6 @@ public final class BucketRegistry {
                     if (memConfig.getBoolean("enabled", true)) {
                         InfiniteBucket.fromBucketsConfig(plugin, memConfig)
                                 .ifPresent(bucket -> {
-                                    // Check for ID conflicts with presets
                                     if (this.bucketMap.containsKey(bucket.id())) {
                                         plugin.getLogger().warning("Custom bucket overrides preset: " + bucket.id());
                                     }

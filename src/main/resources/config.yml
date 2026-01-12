@@ -15,7 +15,7 @@ update-checker:
 # Message settings
 messages:
   # When true, only update notifications will be shown (all other messages from messages.yml will be disabled)
-  only-update-messages: true
+  only-update-messages: false
 
 # Performance and safety settings
 performance:
@@ -33,19 +33,16 @@ integrations:
   # List of protection plugins to explicitly enable/disable
   hooks:
     worldguard: true
-    griefprevention: true
-    towny: true
     lands: true
-    plotsquared: true
-    residence: true
     superiorskyblock: true
 
 # World restrictions
 world-settings:
   # Worlds where infinite buckets are completely disabled
-  disabled-worlds: []
+  disabled-worlds:
+    - "test"
   # Default nether restrictions (can be overridden per bucket)
-  default-nether-restriction: false
+  default-nether-restriction: true
   # Worlds with special rules
   world-rules:
     # Example:

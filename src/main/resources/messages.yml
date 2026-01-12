@@ -17,6 +17,10 @@ no-island-permission: "<red>You do not have permission to build here.</red>"
 # The message sent when a bucket is disabled in the Nether.
 nether-disabled: "<red>This bucket is disabled in the Nether.</red>"
 
+# The message sent when a bucket is disabled in the current world.
+world-disabled: "<red>Infinite buckets are disabled in this world.</red>"
+bucket-disabled-world: "<red>This bucket is disabled in this world.</red>"
+
 # Message sent on successful plugin reload.
 reload-success: "<gray>Plugin configuration has been successfully reloaded.</gray>"
 

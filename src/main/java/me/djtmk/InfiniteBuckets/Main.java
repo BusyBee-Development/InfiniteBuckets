@@ -12,10 +12,13 @@ import me.djtmk.InfiniteBuckets.utils.DebugLogger;
 import me.djtmk.InfiniteBuckets.utils.MessageManager;
 import me.djtmk.InfiniteBuckets.utils.VersionCheck;
 import org.bstats.bukkit.Metrics;
+import org.bukkit.Bukkit;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 public final class Main extends JavaPlugin {
 

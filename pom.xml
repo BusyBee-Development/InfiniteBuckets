@@ -44,6 +44,10 @@
                                     <pattern>com.tcoded.folialib</pattern>
                                     <shadedPattern>me.djtmk.infinitebuckets.libs.folialib</shadedPattern>
                                 </relocation>
+                                <relocation>
+                                    <pattern>org.bstats</pattern>
+                                    <shadedPattern>me.djtmk.infinitebuckets.libs.bstats</shadedPattern>
+                                </relocation>
                             </relocations>
                         </configuration>
                     </execution>
@@ -176,6 +180,13 @@
             <groupId>com.tcoded</groupId>
             <artifactId>FoliaLib</artifactId>
             <version>0.5.1</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.bstats</groupId>
+            <artifactId>bstats-bukkit</artifactId>
+            <version>3.1.0</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>

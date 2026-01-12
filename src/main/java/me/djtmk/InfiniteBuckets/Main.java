@@ -11,6 +11,7 @@ import me.djtmk.InfiniteBuckets.utils.ConfigUpdater;
 import me.djtmk.InfiniteBuckets.utils.DebugLogger;
 import me.djtmk.InfiniteBuckets.utils.MessageManager;
 import me.djtmk.InfiniteBuckets.utils.VersionCheck;
+import org.bstats.bukkit.Metrics;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -63,6 +64,9 @@ public final class Main extends JavaPlugin {
 
         this.getServer().getPluginManager().registerEvents(new ItemEvents(this), this);
         this.getServer().getPluginManager().registerEvents(new VersionCheck(this), this);
+
+        // Initialize bStats metrics
+        new Metrics(this, 28821);
 
         this.getLogger().info("InfiniteBuckets v" + this.getDescription().getVersion() + " has been enabled.");
     }

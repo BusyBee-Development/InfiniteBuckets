@@ -1,0 +1,21 @@
+{
+  "messages": {
+    "receive_water": "You have received an infinite water bucket!",
+    "receive_lava": "You have received an infinite lava bucket!",
+    "inventory_full": "Your inventory is full!",
+    "already_have": "You already have an infinite bucket!",
+    "creative_error": "You can't get an infinite bucket in creative mode!"
+  },
+  "settings": {
+    "disabled_worlds": [
+      "example_world_1"
+    ],
+    "blacklisted_blocks": [
+      "hytale:chest",
+      "hytale:furnace"
+    ],
+    "blacklisted_regions": [
+      "spawn_protection"
+    ]
+  }
+}

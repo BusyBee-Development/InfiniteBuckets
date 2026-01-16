@@ -1,0 +1,7 @@
+{
+  "name": "InfiniteBuckets",
+  "version": "1.0.0",
+  "author": "djtmk",
+  "main": "me.djtmk.InfiniteBuckets.InfiniteBuckets",
+  "description": "A Hytale plugin providing infinite water and lava buckets"
+}

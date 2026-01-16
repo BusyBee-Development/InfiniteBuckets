@@ -343,7 +343,7 @@ public final class ItemEvents implements Listener {
             blockToPlaceIn = player.getTargetBlock(null, 5);
         }
 
-        if (!placed && blockToPlaceIn != null && (blockToPlaceIn.isPassable() || blockToPlaceIn.isLiquid())) {
+        if (!placed && blockToPlaceIn != null && (blockToPlaceIn.isPassable() || blockToPlaceIn.isLiquid()) && blockToPlaceIn.getType() != Material.AIR) {
             if (!hookManager.canBuild(player, blockToPlaceIn)) {
                 debugLogger.debug("Player " + player.getName() + " cannot place fluid at " + blockToPlaceIn.getLocation() + " due to region protection.");
                 return false;

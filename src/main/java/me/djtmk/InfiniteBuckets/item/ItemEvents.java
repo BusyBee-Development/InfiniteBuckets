@@ -340,10 +340,12 @@ public final class ItemEvents implements Listener {
         if (!placed && clickedBlock != null && event.getAction() == Action.RIGHT_CLICK_BLOCK) {
             blockToPlaceIn = clickedBlock.getRelative(event.getBlockFace());
         } else if (!placed && event.getAction() == Action.RIGHT_CLICK_AIR) {
-            blockToPlaceIn = player.getTargetBlock(null, 5);
+            // Prevent placement in mid-air when right-clicking air
+            debugLogger.debug("Cannot place fluid in mid-air when right-clicking air");
+            return false;
         }
 
-        if (!placed && blockToPlaceIn != null && (blockToPlaceIn.isPassable() || blockToPlaceIn.isLiquid()) && blockToPlaceIn.getType() != Material.AIR) {
+        if (!placed && blockToPlaceIn != null && (blockToPlaceIn.isPassable() || blockToPlaceIn.isLiquid())) {
             if (!hookManager.canBuild(player, blockToPlaceIn)) {
                 debugLogger.debug("Player " + player.getName() + " cannot place fluid at " + blockToPlaceIn.getLocation() + " due to region protection.");
                 return false;

@@ -52,6 +52,9 @@ public final class MessageManager {
         }
 
         String messageStr = messagesConfig.getString(key, "<red>Unknown message key: " + key + "</red>");
+        if (messageStr == null || messageStr.trim().isEmpty()) {
+            return;
+        }
         Component message = miniMessage.deserialize(messageStr, placeholders);
         sender.sendMessage(prefix.append(message));
     }

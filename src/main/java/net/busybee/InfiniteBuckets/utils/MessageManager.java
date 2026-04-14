@@ -1,6 +1,6 @@
-package me.djtmk.InfiniteBuckets.utils;
+package net.busybee.InfiniteBuckets.utils;
 
-import me.djtmk.InfiniteBuckets.Main;
+import net.busybee.InfiniteBuckets.Main;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;

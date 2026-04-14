@@ -1,9 +1,9 @@
-package me.djtmk.InfiniteBuckets.hooks.lands;
+package net.busybee.InfiniteBuckets.hooks.lands;
 
 import me.angeschossen.lands.api.LandsIntegration;
 import me.angeschossen.lands.api.land.Area;
-import me.djtmk.InfiniteBuckets.Main;
-import me.djtmk.InfiniteBuckets.hooks.protectionhook.ProtectionHook;
+import net.busybee.InfiniteBuckets.Main;
+import net.busybee.InfiniteBuckets.hooks.protectionhook.ProtectionHook;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 

@@ -1,6 +1,6 @@
-package me.djtmk.InfiniteBuckets.item;
+package net.busybee.InfiniteBuckets.item;
 
-import me.djtmk.InfiniteBuckets.Main;
+import net.busybee.InfiniteBuckets.Main;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.format.TextDecoration;

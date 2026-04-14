@@ -1,4 +1,4 @@
-package me.djtmk.InfiniteBuckets.hooks.worldguard.v7;
+package net.busybee.InfiniteBuckets.hooks.worldguard.v7;
 
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldguard.LocalPlayer;
@@ -7,7 +7,7 @@ import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.flags.Flags;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
 import com.sk89q.worldguard.protection.regions.RegionQuery;
-import me.djtmk.InfiniteBuckets.hooks.protectionhook.ProtectionHook;
+import net.busybee.InfiniteBuckets.hooks.protectionhook.ProtectionHook;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 

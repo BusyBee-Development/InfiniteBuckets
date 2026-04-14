@@ -1,49 +1,38 @@
-# Java compiled classes
-*.class
-*.log
-hs_err_pid*
-replay_pid*
-*.tmp
-*.swp
-
-# Maven build output
-target/
-build/
+# IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
 out/
+libs/
 
-# Maven specific files
+# Maven
+target/
 pom.xml.tag
 pom.xml.releaseBackup
 pom.xml.versionsBackup
 pom.xml.next
 release.properties
 dependency-reduced-pom.xml
-buildNumber.properties
-.m2/
 
-# IntelliJ IDEA
-.idea/
-*.iml
-*.ipr
-*.iws
-.idea/**/workspace.xml
-.idea/**/tasks.xml
-.idea/**/dictionaries
-.idea/**/shelf/
+# Gradle
+.gradle/
+build/
+gradle-app.setting
+!gradle-wrapper.jar
 
-# Eclipse
-.project
-.classpath
-.settings/
-
-# NetBeans
-nbproject/private/
-
-# VS Code
-.vscode/
-
-# OS-specific files
+# OS files
 .DS_Store
 Thumbs.db
-ehthumbs.db
-Desktop.ini
+
+# Logs
+*.log
+logs/
+
+# Runtime
+run/
+
+# Markdown files (except README)
+*.md
+!README.md
+test/

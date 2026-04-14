@@ -1,10 +1,11 @@
-package me.djtmk.InfiniteBuckets.item;
+package net.busybee.InfiniteBuckets.item;
 
 import com.tcoded.folialib.impl.PlatformScheduler;
-import me.djtmk.InfiniteBuckets.Main;
-import me.djtmk.InfiniteBuckets.hooks.HookManager;
-import me.djtmk.InfiniteBuckets.utils.DebugLogger;
-import me.djtmk.InfiniteBuckets.utils.MessageManager;
+import net.busybee.InfiniteBuckets.Main;
+import net.busybee.InfiniteBuckets.core.ConfigManager;
+import net.busybee.InfiniteBuckets.hooks.HookManager;
+import net.busybee.InfiniteBuckets.utils.DebugLogger;
+import net.busybee.InfiniteBuckets.utils.MessageManager;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -14,7 +15,6 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Levelled;
 import org.bukkit.block.data.Waterlogged;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -97,7 +97,7 @@ public final class ItemEvents implements Listener {
         }
 
         ItemStack itemInHand = event.getItem();
-        if (itemInHand == null) {
+        if (itemInHand == null || !registry.getBucketMaterials().contains(itemInHand.getType())) {
             return;
         }
 
@@ -112,16 +112,15 @@ public final class ItemEvents implements Listener {
 
         debugLogger.debug("Player " + player.getName() + " attempting to use " + bucket.id() + " bucket with mode " + bucket.mode());
 
-        FileConfiguration config = plugin.getConfig();
-        List<String> disabledWorlds = config.getStringList("world-settings.disabled-worlds");
-        if (disabledWorlds.contains(player.getWorld().getName())) {
+        ConfigManager config = plugin.getConfigManager();
+        if (config.getDisabledWorlds().contains(player.getWorld().getName())) {
             debugLogger.debug("Player " + player.getName() + " tried to use bucket in disabled world: " + player.getWorld().getName());
             messages.send(player, "bucket-disabled-world");
             return;
         }
 
         String worldName = player.getWorld().getName();
-        ConfigurationSection worldRules = config.getConfigurationSection("world-settings.world-rules." + worldName);
+        ConfigurationSection worldRules = config.getWorldRule(worldName);
         if (worldRules != null) {
             String ruleKey = "allow-" + bucket.id() + "-buckets";
             if (worldRules.contains(ruleKey) && !worldRules.getBoolean(ruleKey)) {

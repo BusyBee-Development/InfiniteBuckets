@@ -1,11 +1,10 @@
-package me.djtmk.InfiniteBuckets.utils;
+package net.busybee.InfiniteBuckets.utils;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import me.djtmk.InfiniteBuckets.Main;
+import net.busybee.InfiniteBuckets.Main;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.entity.Player;

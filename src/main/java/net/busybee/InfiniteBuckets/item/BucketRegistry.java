@@ -1,9 +1,10 @@
-package me.djtmk.InfiniteBuckets.item;
+package net.busybee.InfiniteBuckets.item;
 
-import me.djtmk.InfiniteBuckets.Main;
+import net.busybee.InfiniteBuckets.Main;
+import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.MemoryConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -11,7 +12,6 @@ import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -19,6 +19,7 @@ public final class BucketRegistry {
 
     private final Main plugin;
     private final Map<String, InfiniteBucket> bucketMap = new ConcurrentHashMap<>();
+    private final Set<Material> bucketMaterials = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     public BucketRegistry(@NotNull Main plugin) {
         this.plugin = plugin;
@@ -27,16 +28,12 @@ public final class BucketRegistry {
 
     public void reload() {
         this.bucketMap.clear();
+        this.bucketMaterials.clear();
         this.loadBuckets();
     }
 
     private void loadBuckets() {
-        File bucketsFile = new File(plugin.getDataFolder(), "buckets.yml");
-        if (!bucketsFile.exists()) {
-            plugin.saveResource("buckets.yml", false);
-        }
-        
-        YamlConfiguration bucketsConfig = YamlConfiguration.loadConfiguration(bucketsFile);
+        FileConfiguration bucketsConfig = plugin.getConfigManager().getBucketsConfig();
 
         ConfigurationSection presetsSection = bucketsConfig.getConfigurationSection("presets");
         if (presetsSection != null) {
@@ -44,10 +41,7 @@ public final class BucketRegistry {
                 ConfigurationSection presetSection = presetsSection.getConfigurationSection(key);
                 if (presetSection != null && presetSection.getBoolean("enabled", true)) {
                     InfiniteBucket.fromBucketsConfig(plugin, presetSection)
-                            .ifPresent(bucket -> {
-                                bucketMap.put(bucket.id(), bucket);
-                                plugin.getDebugLogger().debug("Loaded preset bucket: " + bucket.id());
-                            });
+                            .ifPresent(this::registerBucket);
                 }
             }
         }
@@ -70,8 +64,7 @@ public final class BucketRegistry {
                                     if (this.bucketMap.containsKey(bucket.id())) {
                                         plugin.getLogger().warning("Custom bucket overrides preset: " + bucket.id());
                                     }
-                                    this.bucketMap.put(bucket.id(), bucket);
-                                    plugin.getDebugLogger().debug("Loaded custom bucket: " + bucket.id());
+                                    this.registerBucket(bucket);
                                 });
                     }
                 }
@@ -81,12 +74,22 @@ public final class BucketRegistry {
         plugin.getLogger().info("Loaded " + bucketMap.size() + " valid infinite buckets from buckets.yml");
     }
 
+    private void registerBucket(InfiniteBucket bucket) {
+        bucketMap.put(bucket.id(), bucket);
+        bucketMaterials.add(bucket.material());
+        plugin.getDebugLogger().debug("Registered bucket: " + bucket.id() + " (Material: " + bucket.material() + ")");
+    }
+
     public Optional<InfiniteBucket> getBucket(String id) {
         return Optional.ofNullable(bucketMap.get(id));
     }
 
     public Optional<InfiniteBucket> getBucket(@Nullable ItemStack item) {
-        if (item == null || !item.hasItemMeta()) {
+        if (item == null || !bucketMaterials.contains(item.getType())) {
+            return Optional.empty();
+        }
+
+        if (!item.hasItemMeta()) {
             return Optional.empty();
         }
 
@@ -99,6 +102,10 @@ public final class BucketRegistry {
         }
 
         return Optional.empty();
+    }
+
+    public Set<Material> getBucketMaterials() {
+        return Collections.unmodifiableSet(bucketMaterials);
     }
 
     public Collection<InfiniteBucket> getRegisteredBuckets() {

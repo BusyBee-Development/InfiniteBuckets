@@ -1,6 +1,6 @@
-package me.djtmk.InfiniteBuckets.hooks.bentobox;
+package net.busybee.InfiniteBuckets.hooks.bentobox;
 
-import me.djtmk.InfiniteBuckets.hooks.protectionhook.ProtectionHook;
+import net.busybee.InfiniteBuckets.hooks.protectionhook.ProtectionHook;
 import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;

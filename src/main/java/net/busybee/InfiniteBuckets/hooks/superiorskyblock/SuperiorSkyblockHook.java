@@ -1,9 +1,9 @@
-package me.djtmk.InfiniteBuckets.hooks.superiorskyblock;
+package net.busybee.InfiniteBuckets.hooks.superiorskyblock;
 
 import com.bgsoftware.superiorskyblock.api.SuperiorSkyblockAPI;
 import com.bgsoftware.superiorskyblock.api.island.Island;
 import com.bgsoftware.superiorskyblock.api.island.IslandPrivilege;
-import me.djtmk.InfiniteBuckets.hooks.protectionhook.ProtectionHook;
+import net.busybee.InfiniteBuckets.hooks.protectionhook.ProtectionHook;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 

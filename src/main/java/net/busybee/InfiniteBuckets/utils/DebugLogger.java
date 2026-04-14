@@ -1,6 +1,6 @@
-package me.djtmk.InfiniteBuckets.utils;
+package net.busybee.InfiniteBuckets.utils;
 
-import me.djtmk.InfiniteBuckets.Main;
+import net.busybee.InfiniteBuckets.Main;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.logging.Level;

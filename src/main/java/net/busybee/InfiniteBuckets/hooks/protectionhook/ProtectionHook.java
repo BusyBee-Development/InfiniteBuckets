@@ -1,4 +1,4 @@
-package me.djtmk.InfiniteBuckets.hooks.protectionhook;
+package net.busybee.InfiniteBuckets.hooks.protectionhook;
 
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;

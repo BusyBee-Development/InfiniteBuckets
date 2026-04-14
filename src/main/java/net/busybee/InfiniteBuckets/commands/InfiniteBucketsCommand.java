@@ -1,9 +1,9 @@
-package me.djtmk.InfiniteBuckets.commands;
+package net.busybee.InfiniteBuckets.commands;
 
-import me.djtmk.InfiniteBuckets.Main;
-import me.djtmk.InfiniteBuckets.item.InfiniteBucket;
-import me.djtmk.InfiniteBuckets.utils.DebugLogger;
-import me.djtmk.InfiniteBuckets.utils.MessageManager;
+import net.busybee.InfiniteBuckets.Main;
+import net.busybee.InfiniteBuckets.item.InfiniteBucket;
+import net.busybee.InfiniteBuckets.utils.DebugLogger;
+import net.busybee.InfiniteBuckets.utils.MessageManager;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;

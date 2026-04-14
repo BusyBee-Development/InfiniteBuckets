@@ -22,6 +22,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockDispenseEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.PlayerBucketEmptyEvent;
+import org.bukkit.event.player.PlayerBucketFillEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.EquipmentSlot;
@@ -362,6 +364,24 @@ public final class ItemEvents implements Listener {
             debugLogger.debug("Cannot place " + placeMaterial + " at " + blockToPlaceIn.getLocation() + " - block is not passable or liquid");
         }
         return placed;
+    }
+
+    @EventHandler(priority = EventPriority.LOW)
+    public void onPlayerBucketFill(@NotNull PlayerBucketFillEvent event) {
+        ItemStack item = event.getPlayer().getInventory().getItem(event.getHand());
+        if (item != null && registry.getBucket(item).isPresent()) {
+            event.setCancelled(true);
+            debugLogger.debug("Cancelled PlayerBucketFillEvent for " + event.getPlayer().getName() + " using an infinite bucket");
+        }
+    }
+
+    @EventHandler(priority = EventPriority.LOW)
+    public void onPlayerBucketEmpty(@NotNull PlayerBucketEmptyEvent event) {
+        ItemStack item = event.getPlayer().getInventory().getItem(event.getHand());
+        if (item != null && registry.getBucket(item).isPresent()) {
+            event.setCancelled(true);
+            debugLogger.debug("Cancelled PlayerBucketEmptyEvent for " + event.getPlayer().getName() + " using an infinite bucket");
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)

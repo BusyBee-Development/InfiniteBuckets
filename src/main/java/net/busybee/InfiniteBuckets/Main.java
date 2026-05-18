@@ -3,10 +3,13 @@ package net.busybee.InfiniteBuckets;
 import com.google.common.base.Preconditions;
 import com.tcoded.folialib.FoliaLib;
 import com.tcoded.folialib.impl.PlatformScheduler;
+import fr.mrmicky.fastinv.FastInvManager;
 import net.busybee.InfiniteBuckets.commands.InfiniteBucketsCommand;
 import net.busybee.InfiniteBuckets.core.ConfigManager;
 import net.busybee.InfiniteBuckets.core.PluginLifecycle;
+import net.busybee.InfiniteBuckets.database.DatabaseManager;
 import net.busybee.InfiniteBuckets.hooks.HookManager;
+import net.busybee.InfiniteBuckets.inventory.impl.ChatPromptListener;
 import net.busybee.InfiniteBuckets.item.BucketRegistry;
 import net.busybee.InfiniteBuckets.item.ItemEvents;
 import net.busybee.InfiniteBuckets.utils.DebugLogger;
@@ -31,6 +34,7 @@ public final class Main extends JavaPlugin {
     private ConfigManager configManager;
     private MessageManager messageManager;
     private BucketRegistry bucketRegistry;
+    private DatabaseManager databaseManager;
     private DebugLogger debugLogger;
     private HookManager hookManager;
     private ExecutorService asyncExecutor;
@@ -44,6 +48,8 @@ public final class Main extends JavaPlugin {
         instance = this;
         lifecycle.beginStartup();
 
+        FastInvManager.register(this);
+
         FoliaLib foliaLib = new FoliaLib(this);
         scheduler = foliaLib.getScheduler();
         asyncExecutor = Executors.newFixedThreadPool(4, new NamedThreadFactory());
@@ -53,6 +59,10 @@ public final class Main extends JavaPlugin {
 
         this.debugLogger = new DebugLogger(this);
         this.messageManager = new MessageManager(this);
+
+        this.databaseManager = new DatabaseManager(this);
+        this.databaseManager.initialize();
+
         this.bucketRegistry = new BucketRegistry(this);
         this.hookManager = new HookManager(this);
 
@@ -68,6 +78,7 @@ public final class Main extends JavaPlugin {
 
         this.getServer().getPluginManager().registerEvents(new ItemEvents(this), this);
         this.getServer().getPluginManager().registerEvents(new VersionCheck(this), this);
+        this.getServer().getPluginManager().registerEvents(new ChatPromptListener(), this);
 
         // Initialize bStats metrics
         new Metrics(this, 28821);
@@ -79,6 +90,10 @@ public final class Main extends JavaPlugin {
     @Override
     public void onDisable() {
         lifecycle.beginShutdown();
+
+        if (databaseManager != null) {
+            databaseManager.close();
+        }
 
         if (asyncExecutor != null) {
             asyncExecutor.shutdown();
@@ -99,6 +114,13 @@ public final class Main extends JavaPlugin {
         this.configManager.reload();
         this.debugLogger.reload();
         this.messageManager.reload();
+
+        if (this.databaseManager != null) {
+            this.databaseManager.close();
+        }
+        this.databaseManager = new DatabaseManager(this);
+        this.databaseManager.initialize();
+
         this.bucketRegistry.reload();
         this.hookManager = new HookManager(this);
     }
@@ -111,6 +133,9 @@ public final class Main extends JavaPlugin {
     }
     public BucketRegistry getBucketRegistry() {
         return bucketRegistry;
+    }
+    public DatabaseManager getDatabaseManager() {
+        return databaseManager;
     }
     public DebugLogger getDebugLogger() {
         return debugLogger;

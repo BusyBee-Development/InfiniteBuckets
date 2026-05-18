@@ -1,7 +1,9 @@
 package net.busybee.InfiniteBuckets.commands;
 
 import net.busybee.InfiniteBuckets.Main;
-import net.busybee.InfiniteBuckets.item.InfiniteBucket;
+import net.busybee.InfiniteBuckets.bucket.BucketFactory;
+import net.busybee.InfiniteBuckets.bucket.BucketTemplate;
+import net.busybee.InfiniteBuckets.inventory.impl.BucketListGUI;
 import net.busybee.InfiniteBuckets.utils.DebugLogger;
 import net.busybee.InfiniteBuckets.utils.MessageManager;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
@@ -45,6 +47,7 @@ public final class InfiniteBucketsCommand implements CommandExecutor, TabComplet
         switch (subCommand) {
             case "reload" -> handleReload(sender);
             case "give" -> handleGive(sender, args);
+            case "list", "builder" -> handleList(sender);
             default -> handleHelp(sender);
         }
 
@@ -56,7 +59,7 @@ public final class InfiniteBucketsCommand implements CommandExecutor, TabComplet
     }
 
     private void handleReload(@NotNull CommandSender sender) {
-        if (!sender.hasPermission("infb.admin")) {
+        if (!sender.hasPermission("infinitebuckets.admin")) {
             messages.send(sender, "no-permission-command");
             return;
         }
@@ -66,8 +69,22 @@ public final class InfiniteBucketsCommand implements CommandExecutor, TabComplet
         debugLogger.debug("Plugin reloaded by " + sender.getName());
     }
 
+    private void handleList(@NotNull CommandSender sender) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage("This command can only be used by players.");
+            return;
+        }
+
+        if (!player.hasPermission("infinitebuckets.admin")) {
+            messages.send(sender, "no-permission-command");
+            return;
+        }
+
+        new BucketListGUI().open(player);
+    }
+
     private void handleGive(@NotNull CommandSender sender, @NotNull String[] args) {
-        if (!sender.hasPermission("infb.admin")) {
+        if (!sender.hasPermission("infinitebuckets.admin")) {
             messages.send(sender, "no-permission-command");
             return;
         }
@@ -83,13 +100,13 @@ public final class InfiniteBucketsCommand implements CommandExecutor, TabComplet
             return;
         }
 
-        Optional<InfiniteBucket> bucketOpt = plugin.getBucketRegistry().getBucket(args[2]);
-        if (bucketOpt.isEmpty()) {
+        Optional<BucketTemplate> templateOpt = plugin.getBucketRegistry().getTemplate(args[2]);
+        if (templateOpt.isEmpty()) {
             messages.send(sender, "give.invalid-bucket", Placeholder.unparsed("bucket", args[2]));
             return;
         }
 
-        InfiniteBucket bucket = bucketOpt.get();
+        BucketTemplate template = templateOpt.get();
 
         int amount = 1;
         if (args.length >= 4) {
@@ -105,38 +122,41 @@ public final class InfiniteBucketsCommand implements CommandExecutor, TabComplet
             }
         }
 
-        ItemStack item = bucket.createItem(amount);
-        target.getInventory().addItem(item);
-        debugLogger.debug("Gave " + amount + "x " + bucket.id() + " to " + target.getName() + " by " + sender.getName());
+        ItemStack item = BucketFactory.createBucket(template);
+        if (item != null) {
+            item.setAmount(amount);
+            target.getInventory().addItem(item);
+            debugLogger.debug("Gave " + amount + "x " + template.getId() + " to " + target.getName() + " by " + sender.getName());
 
-        messages.send(sender, "give.sender",
-                Placeholder.unparsed("player", target.getName()),
-                Placeholder.unparsed("amount", String.valueOf(amount)),
-                Placeholder.component("bucket_name", bucket.displayName())
-        );
-        messages.send(target, "give.receiver",
-                Placeholder.unparsed("amount", String.valueOf(amount)),
-                Placeholder.component("bucket_name", bucket.displayName())
-        );
+            messages.send(sender, "give.sender",
+                    Placeholder.unparsed("player", target.getName()),
+                    Placeholder.unparsed("amount", String.valueOf(amount)),
+                    Placeholder.parsed("bucket_name", template.getDisplayName())
+            );
+            messages.send(target, "give.receiver",
+                    Placeholder.unparsed("amount", String.valueOf(amount)),
+                    Placeholder.parsed("bucket_name", template.getDisplayName())
+            );
+        }
     }
 
     @Override
     public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (!sender.hasPermission("infb.admin")) {
+        if (!sender.hasPermission("infinitebuckets.admin")) {
             return Collections.emptyList();
         }
 
         if (args.length == 1) {
-            return StringUtil.copyPartialMatches(args[0], List.of("give", "reload", "help"), new ArrayList<>());
+            return StringUtil.copyPartialMatches(args[0], List.of("give", "reload", "help", "list", "builder"), new ArrayList<>());
         }
 
         if (args.length == 2 && args[0].equalsIgnoreCase("give")) {
-            return null; // Let Bukkit handle player name completion
+            return null;
         }
 
         if (args.length == 3 && args[0].equalsIgnoreCase("give")) {
-            List<String> bucketIds = plugin.getBucketRegistry().getRegisteredBuckets().stream()
-                    .map(InfiniteBucket::id)
+            List<String> bucketIds = plugin.getBucketRegistry().getRegisteredTemplates().stream()
+                    .map(BucketTemplate::getId)
                     .collect(Collectors.toList());
             return StringUtil.copyPartialMatches(args[2], bucketIds, new ArrayList<>());
         }

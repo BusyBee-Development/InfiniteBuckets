@@ -47,7 +47,7 @@ public final class VersionCheck implements Listener {
     @EventHandler
     public void onPlayerJoin(@NotNull PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        if (latestVersion == null || !player.hasPermission("infb.admin")) {
+        if (latestVersion == null || !player.hasPermission("infinitebuckets.admin")) {
             return;
         }
 

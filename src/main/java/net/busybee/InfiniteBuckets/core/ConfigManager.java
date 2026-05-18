@@ -1,7 +1,7 @@
 package net.busybee.InfiniteBuckets.core;
 
 import net.busybee.InfiniteBuckets.Main;
-import net.busybee.InfiniteBuckets.utils.ConfigUpdater;
+import net.busybee.InfiniteBuckets.utils.ConfigMigrator;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -16,10 +16,6 @@ public class ConfigManager {
 
     private final Main plugin;
     private boolean debugMode;
-    private boolean updateCheckerEnabled;
-    private boolean updateCheckerNotifyAdmins;
-    private int updateCheckerInterval;
-    private boolean onlyUpdateMessages;
     private int maxDrainBlocks;
     private int globalCooldown;
     private boolean asyncProcessing;
@@ -28,22 +24,35 @@ public class ConfigManager {
     private List<String> disabledWorlds;
     private boolean defaultNetherRestriction;
     private Map<String, ConfigurationSection> worldRules;
+    private FileConfiguration bucketsConfig;
+    private File bucketsFile;
+    private FileConfiguration messagesConfig;
+    private File messagesFile;
+    private FileConfiguration guisConfig;
+    private File guisFile;
 
     public ConfigManager(Main plugin) {
         this.plugin = plugin;
     }
 
     public void loadConfigs() {
-        try {
-            ConfigUpdater.updateConfig(plugin, "config.yml");
-            ConfigUpdater.updateConfig(plugin, "buckets.yml");
-            ConfigUpdater.updateConfig(plugin, "messages.yml");
-        } catch (IOException e) {
-            plugin.getLogger().severe("Could not update configuration files!");
-            e.printStackTrace();
-        }
-
+        ConfigMigrator migrator = new ConfigMigrator(plugin);
+        
+        migrator.migrate("config.yml");
         plugin.reloadConfig();
+
+        this.bucketsFile = new File(plugin.getDataFolder(), "buckets.yml");
+        this.bucketsConfig = migrator.migrate("buckets.yml", bucketsFile);
+        if (this.bucketsConfig == null) this.bucketsConfig = YamlConfiguration.loadConfiguration(bucketsFile);
+
+        this.messagesFile = new File(plugin.getDataFolder(), "messages.yml");
+        this.messagesConfig = migrator.migrate("messages.yml", messagesFile);
+        if (this.messagesConfig == null) this.messagesConfig = YamlConfiguration.loadConfiguration(messagesFile);
+
+        this.guisFile = new File(plugin.getDataFolder(), "guis.yml");
+        this.guisConfig = migrator.migrate("guis.yml", guisFile);
+        if (this.guisConfig == null) this.guisConfig = YamlConfiguration.loadConfiguration(guisFile);
+
         cacheConfig();
     }
 
@@ -51,12 +60,8 @@ public class ConfigManager {
         FileConfiguration config = plugin.getConfig();
 
         debugMode = config.getBoolean("debug-mode", false);
-        updateCheckerEnabled = config.getBoolean("update-checker.enabled", true);
-        updateCheckerNotifyAdmins = config.getBoolean("update-checker.notify-admins", true);
-        updateCheckerInterval = config.getInt("update-checker.check-interval", 24);
-        onlyUpdateMessages = config.getBoolean("messages.only-update-messages", false);
-        maxDrainBlocks = config.getInt("performance.max-drain-blocks", 1000);
-        globalCooldown = config.getInt("performance.global-cooldown", 5);
+        maxDrainBlocks = config.getInt("performance.max-drain-blocks", 100);
+        globalCooldown = config.getInt("global-cooldown", 0);
         asyncProcessing = config.getBoolean("performance.async-processing", true);
         autoDetectHooks = config.getBoolean("integrations.auto-detect-hooks", true);
 
@@ -81,15 +86,24 @@ public class ConfigManager {
     }
 
     public void reload() {
+        ConfigMigrator migrator = new ConfigMigrator(plugin);
+        
+        migrator.migrate("config.yml");
         plugin.reloadConfig();
+
+        this.bucketsConfig = migrator.migrate("buckets.yml", bucketsFile);
+        if (this.bucketsConfig == null) this.bucketsConfig = YamlConfiguration.loadConfiguration(bucketsFile);
+
+        this.messagesConfig = migrator.migrate("messages.yml", messagesFile);
+        if (this.messagesConfig == null) this.messagesConfig = YamlConfiguration.loadConfiguration(messagesFile);
+
+        this.guisConfig = migrator.migrate("guis.yml", guisFile);
+        if (this.guisConfig == null) this.guisConfig = YamlConfiguration.loadConfiguration(guisFile);
+
         cacheConfig();
     }
 
     public boolean isDebugMode() { return debugMode; }
-    public boolean isUpdateCheckerEnabled() { return updateCheckerEnabled; }
-    public boolean isUpdateCheckerNotifyAdmins() { return updateCheckerNotifyAdmins; }
-    public int getUpdateCheckerInterval() { return updateCheckerInterval; }
-    public boolean isOnlyUpdateMessages() { return onlyUpdateMessages; }
     public int getMaxDrainBlocks() { return maxDrainBlocks; }
     public int getGlobalCooldown() { return globalCooldown; }
     public boolean isAsyncProcessing() { return asyncProcessing; }
@@ -104,12 +118,23 @@ public class ConfigManager {
     }
 
     public FileConfiguration getBucketsConfig() {
-        File bucketsFile = new File(plugin.getDataFolder(), "buckets.yml");
-        return YamlConfiguration.loadConfiguration(bucketsFile);
+        return bucketsConfig;
+    }
+
+    public void saveBucketsConfig() {
+        try {
+            bucketsConfig.save(bucketsFile);
+        } catch (IOException e) {
+            plugin.getLogger().severe("Could not save buckets.yml!");
+            e.printStackTrace();
+        }
     }
 
     public FileConfiguration getMessagesConfig() {
-        File messagesFile = new File(plugin.getDataFolder(), "messages.yml");
-        return YamlConfiguration.loadConfiguration(messagesFile);
+        return messagesConfig;
+    }
+
+    public FileConfiguration getGuisConfig() {
+        return guisConfig;
     }
 }

@@ -1,0 +1,111 @@
+# =================================================================== #
+#                                                                     #
+#                   InfiniteBuckets - GUI Configuration               #
+#                                                                     #
+# =================================================================== #
+# Configure the look and feel of all menus here.
+# You can use MiniMessage formatting for titles and items.
+
+guis:
+  # The main bucket creation/editor interface
+  builder:
+    title: "<gold><b>Bucket Builder</b></gold>"
+    size: 54
+    filler:
+      material: "GRAY_STAINED_GLASS_PANE"
+      name: " "
+    items:
+      liquid-selector:
+        slot: 13
+        name: "<blue>Select Liquid Type"
+        lore:
+          - "<gray>Current: <aqua><liquid></aqua></gray>"
+          - ""
+          - "<yellow>Click to change the liquid type.</yellow>"
+      edit-name:
+        slot: 20
+        material: "NAME_TAG"
+        name: "<yellow>Edit Display Name"
+        lore:
+          - "<gray>Current: <white><name></white></gray>"
+          - ""
+          - "<yellow>Click to edit the display name.</yellow>"
+      edit-lore:
+        slot: 22
+        material: "BOOK"
+        name: "<yellow>Edit Lore"
+        lore:
+          - "<gray>Click to edit the description lines."
+          - "<gray>Use <white>|</white> to separate lines."
+      usage-limit:
+        slot: 24
+        material: "REPEATER"
+        name: "<yellow>Usage Limit"
+        lore:
+          - "<gray>Current: <white><limit></white></gray>"
+          - ""
+          - "<yellow>Click to cycle between:</yellow>"
+          - "<gray> - Infinite</gray>"
+          - "<gray> - 100 uses</gray>"
+          - "<gray> - 500 uses</gray>"
+      glowing:
+        slot: 33
+        material: "GLOWSTONE_DUST"
+        name: "<yellow>Toggle Glowing"
+        lore:
+          - "<gray>Status: <status></gray>"
+          - ""
+          - "<yellow>Click to toggle the enchantment glint.</yellow>"
+      save:
+        slot: 49
+        material: "NETHER_STAR"
+        name: "<green><b>Save Bucket</b></green>"
+        lore:
+          - "<gray>Saves the bucket to the config</gray>"
+          - "<gray>and adds it to the list.</gray>"
+      cancel:
+        slot: 45
+        material: "BARRIER"
+        name: "<red>Cancel"
+        lore:
+          - "<gray>Discard all changes and</gray>"
+          - "<gray>return to the bucket list.</gray>"
+
+  # The paginated list of all created buckets
+  list:
+    title: "<gold><b>Infinite Buckets</b></gold> <dark_gray>| Page <page>"
+    size: 54
+    filler:
+      material: "GRAY_STAINED_GLASS_PANE"
+      name: " "
+    create-item:
+      slot: 49
+      material: "NETHER_STAR"
+      name: "<green>Create New Bucket"
+      lore:
+        - "<gray>Click to open the builder</gray>"
+        - "<gray>and create a new bucket.</gray>"
+    bucket-item:
+      lore-suffix:
+        - ""
+        - "<yellow>Left-Click to edit</yellow>"
+        - "<red>Right-Click to delete</red>"
+        - "<aqua>Shift-Click to get item</aqua>"
+
+  # Liquid selection menu
+  liquid-selector:
+    title: "<blue><b>Select Liquid Type</b></blue>"
+    size: 27
+
+  # Confirmation dialog for deletion
+  confirm-delete:
+    title: "<red>Delete <bucket>?"
+    size: 27
+    confirm:
+      slot: 11
+      material: "LIME_STAINED_GLASS_PANE"
+      name: "<green>Confirm Deletion"
+    cancel:
+      slot: 15
+      material: "RED_STAINED_GLASS_PANE"
+      name: "<red>Cancel"

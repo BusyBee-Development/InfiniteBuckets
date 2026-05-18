@@ -5,6 +5,7 @@
 *.iws
 out/
 libs/
+docs/
 
 # Maven
 target/

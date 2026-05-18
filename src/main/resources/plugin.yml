@@ -1,7 +1,7 @@
 name: InfiniteBuckets
 version: ${project.version}
 main: net.busybee.InfiniteBuckets.Main
-api-version: '1.20'
+api-version: '1.21'
 folia-supported: true
 authors: [ djtmk ]
 description: Provides customizable infinite water and lava buckets.
@@ -19,12 +19,12 @@ commands:
     aliases: [infb, ib]
 
 permissions:
-  infb.admin:
-    description: Allows access to all admin commands for InfiniteBuckets.
+  infinitebuckets.admin:
+    description: Allows access to all admin commands and GUIs.
     default: op
-  infb.use.water:
+  infinitebuckets.use.water:
     description: Allows use of the infinite water bucket.
     default: true
-  infb.use.lava:
+  infinitebuckets.use.lava:
     description: Allows use of the infinite lava bucket.
     default: true

@@ -1,52 +1,65 @@
 # =================================================================== #
-#                           GENERAL SETTINGS                          #
+#                                                                     #
+#                   InfiniteBuckets - Main Configuration              #
+#                                                                     #
 # =================================================================== #
 
-# Enable this to see detailed diagnostic messages in the console.
-# This is useful for debugging issues with hooks or bucket usage.
+# Enable debug mode to see more detailed logs in the console.
+# Recommended to keep this false unless troubleshooting.
 debug-mode: false
 
-# Enable automatic update checking and notifications for admins
-update-checker:
-  enabled: true
-  notify-admins: true
-  check-interval: 24  # hours
-
-# Message settings
-messages:
-  # When true, only update notifications will be shown (all other messages from messages.yml will be disabled)
-  only-update-messages: false
-
-# Performance and safety settings
+# Performance settings
 performance:
-  # Maximum number of blocks that can be affected by drain-area buckets per use
-  max-drain-blocks: 1000
-  # Global cooldown between bucket uses (in ticks, 20 ticks = 1 second)
-  global-cooldown: 5
-  # Enable async processing for large drain operations
+  # The maximum number of blocks that can be drained in a single use.
+  # Higher values may impact server performance.
+  max-drain-blocks: 100
+  # Should the plugin use asynchronous processing for block updates?
+  # This is recommended for performance on Folia/Paper.
   async-processing: true
 
-# Integration settings for protection plugins
+# Global cooldown between bucket uses (in milliseconds).
+# This applies to all custom buckets unless a specific cooldown is set.
+global-cooldown: 0
+
+# Hooks integration
 integrations:
-  # Automatically detect and hook into protection plugins
+  # Should the plugin automatically detect and enable protection hooks?
   auto-detect-hooks: true
-  # List of protection plugins to explicitly enable/disable
+  # Manually enable or disable specific hooks.
   hooks:
     worldguard: true
     lands: true
-    superiorskyblock: true
     bentobox: true
+    superiorskyblock: true
 
-# World restrictions
+# Database settings
+# Use SQLITE for local storage or MYSQL for network-wide persistence.
+database:
+  type: "SQLITE"
+  mysql:
+    host: "localhost"
+    port: 3306
+    database: "infinitebuckets"
+    username: "root"
+    password: ""
+    use-ssl: false
+    pool-settings:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      max-lifetime: 1800000
+      connection-timeout: 5000
+
+# World-specific settings
 world-settings:
-  # Worlds where infinite buckets are completely disabled
-  disabled-worlds:
-    - "test"
-  # Default nether restrictions (can be overridden per bucket)
+  # List of worlds where infinite buckets are completely disabled.
+  disabled-worlds: []
+  
+  # Should buckets be restricted in the Nether by default?
+  # (e.g., placing water in the Nether)
   default-nether-restriction: true
-  # Worlds with special rules
+  
+  # Custom rules for specific worlds.
   world-rules:
-    # Example:
-    # nether:
-    #   allow-water-buckets: false
-    #   allow-lava-buckets: true
+    world_nether:
+      allow-water: false
+      allow-lava: true

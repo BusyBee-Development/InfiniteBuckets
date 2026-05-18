@@ -1,40 +1,45 @@
+# =================================================================== #
+#                                                                     #
+#                   InfiniteBuckets - Language File                   #
+#                                                                     #
+# =================================================================== #
 # For help with formatting (colors, gradients, etc.), please refer to
 # the MiniMessage documentation: https://docs.advntr.dev/minimessage/format.html
 
 # The prefix that appears before most plugin messages.
-# You can use MiniMessage formatting here, including gradients and hex colors.
-plugin-prefix: "<gradient:#00A6FF:#00E1FF>InfiniteBuckets</gradient>"
+plugin-prefix: "<gold><b>InfiniteBuckets</b></gold> <dark_gray>»</dark_gray> "
 
-# The message sent when a player doesn't have permission for a command.
+# General Messages
 no-permission-command: "<red>You do not have permission to use this command.</red>"
-
-# The message sent when a player tries to use a bucket they don't have permission for.
 no-permission-use: "<gray>You do not have permission to use the <bucket_name><gray>.</gray>"
-
-# The message sent when a player cannot build in a protected region.
 no-island-permission: "<red>You do not have permission to build here.</red>"
-
-# The message sent when a bucket is disabled in the Nether.
 nether-disabled: "<red>This bucket is disabled in the Nether.</red>"
-
-# The message sent when a bucket is disabled in the current world.
 world-disabled: "<red>Infinite buckets are disabled in this world.</red>"
 bucket-disabled-world: "<red>This bucket is disabled in this world.</red>"
-
-# Message sent on successful plugin reload.
 reload-success: "<gray>Plugin configuration has been successfully reloaded.</gray>"
 
-# Message sent on successful bucket drain.
-drain-success: "<green>Successfully drained <aqua><blocks_drained></aqua> blocks with the <bucket_name><green>."
+# GUI Messages
+gui:
+  prompts:
+    enter-name: "<yellow>Please type the new display name in chat. Type <white>'cancel'</white> to stop."
+    enter-lore: "<yellow>Type the lore lines. Use <white>'|'</white> for new lines. Type <white>'cancel'</white> to stop."
+    name-updated: "<green>Display name updated to: <name>"
+    lore-updated: "<green>Lore updated!"
+    invalid-format: "<red>Invalid format! Please check your color tags."
+    cancelled: "<red>Editing cancelled."
+  status:
+    saved: "<green>Bucket successfully saved to config!"
+    deleted: "<red>Bucket has been removed."
+  cooldown:
+    active: "<red>You must wait <seconds>s before using <bucket_name> again."
 
-# Messages for limited-use buckets
+# Bucket Logic Messages
+drain-success: "<green>Successfully drained <aqua><blocks_drained></aqua> blocks with the <bucket_name><green>."
 bucket-no-uses: "<red>The <bucket_name><red> has no uses left.</red>"
 bucket-depleted: "<gray>Your <bucket_name><gray> has been depleted.</gray>"
-
-# Message for dispenser interactions
 dispenser-no-limited-uses: "<red>Limited-use buckets cannot be dispensed.</red>"
 
-# Messages for the /infb give command.
+# Command Messages
 give:
   sender: "<gray>You have given <#00E1FF><player></#00E1FF> <white><amount>x</white> <bucket_name><gray>.</gray>"
   receiver: "<gray>You have received <white><amount>x</white> <bucket_name><gray>.</gray>"
@@ -42,22 +47,21 @@ give:
   invalid-bucket: "<red>Invalid bucket type specified: <bucket>.</red>"
   invalid-amount: "<red>The amount must be a positive number.</red>"
 
-# The help menu displayed with /infb help.
-# Each line in the list will be sent as a separate message.
+# Help Menu
 help-menu:
   - ""
-  - " <gradient:#00A6FF:#00E1FF><b>InfiniteBuckets Help Menu</b></gradient>"
+  - " <gold><b>InfiniteBuckets Help</b></gold>"
+  - " <gray>» <aqua>/ib builder</aqua> <dark_gray>- Open the bucket builder GUI</dark_gray>"
+  - " <gray>» <aqua>/ib list</aqua> <dark_gray>- Open the created buckets list</dark_gray>"
+  - " <gray>» <aqua>/ib give <player> <bucket> [amount]</aqua> <dark_gray>- Give a bucket to a player</dark_gray>"
+  - " <gray>» <aqua>/ib reload</aqua> <dark_gray>- Reload all configurations</dark_gray>"
   - ""
-  - " <gray>» <#00E1FF>/infb give <player> <bucket> [amount]</#00E1FF> <dark_gray>- Gives a player an infinite bucket.</dark_gray>"
-  - " <gray>» <#00E1FF>/infb reload</#00E1FF> <dark_gray>- Reloads the plugin's configuration.</dark_gray>"
-  - " <gray>» <#00E1FF>/infb help</#00E1FF> <dark_gray>- Shows this help menu.</dark_gray>"
-  - ""
-# The message sent to admins when a new version of the plugin is available.
-# The click-to-download action is automatically attached to the last line.
+
+# Update Notifications
 update-notifier:
   - ""
-  - " <gradient:#00A6FF:#00E1FF><b>InfiniteBuckets Update</b></gradient>"
-  - " <gray>A new version is available! <dark_gray>(You are on v<current_version>)</dark_gray>"
-  - " <green>»</green> <white>Latest Version: <gold><b>v<new_version></b></gold>"
-  - " <aqua><i><click:open_url:'https://modrinth.com/plugin/infinitebuckets/versions'><hover:show_text:'<gray>Click to open the download page.'>Click here to download the update.</hover></click></i></aqua>"
+  - " <gold><b>InfiniteBuckets Update Available</b></gold>"
+  - " <gray>A new version is available! <dark_gray>(Current: v<current_version>)</dark_gray>"
+  - " <green>»</green> <white>Latest: <gold><b>v<new_version></b></gold>"
+  - " <aqua><i><click:open_url:'https://modrinth.com/plugin/infinitebuckets/versions'><hover:show_text:'<gray>Click to open download page.'>Click here to download the update.</hover></click></i></aqua>"
   - ""

@@ -44,16 +44,18 @@ All commands use the `/infinitebuckets` base command (aliases: `/infb`, `/ib`):
 | Command | Permission | Description |
 |---------|-----------|-------------|
 | `/infb help` | None | Display the help menu |
-| `/infb reload` | `infb.admin` | Reload all configuration files |
-| `/infb give <player> <bucket> [amount]` | `infb.admin` | Give a player infinite buckets |
+| `/ib builder` | `infinitebuckets.admin` | Open the bucket builder GUI |
+| `/ib list` | `infinitebuckets.admin` | View/Edit created buckets |
+| `/ib reload` | `infinitebuckets.admin` | Reload all configurations |
+| `/ib give <player> <bucket> [amount]` | `infinitebuckets.admin` | Give an infinite bucket |
 
 ## Permissions
 
 | Permission | Default | Description |
 |-----------|---------|-------------|
-| `infb.admin` | op | Access to admin commands (reload, give) |
-| `infb.use.water` | true | Use infinite water buckets |
-| `infb.use.lava` | true | Use infinite lava buckets |
+| `infinitebuckets.admin` | op | Access to all admin commands and GUIs |
+| `infinitebuckets.use.water` | true | Use infinite water buckets |
+| `infinitebuckets.use.lava` | true | Use infinite lava buckets |
 
 Additional permissions can be configured per-bucket in `buckets.yml`.
 

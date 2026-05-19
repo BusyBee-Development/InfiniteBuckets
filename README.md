@@ -86,18 +86,22 @@ All player-facing messages with MiniMessage formatting support:
 
 ## Technical Details
 
-- **Minecraft Version**: 1.20+
+- **Minecraft Version**: 1.21+
 - **Server Software**: Spigot, Paper (recommended), or Folia
-- **Java Version**: 17+
-- **API Version**: 1.20
+- **Java Version**: 21+
+- **API Version**: 1.21
 
 ### Dependencies (Soft)
 All protection plugins are optional soft dependencies:
 - WorldGuard (v7.0.14+)
-- Lands API (v7.17.2+)
-- SuperiorSkyblock2 API (2025.1+)
+- Lands API (v7.25.4+)
+- SuperiorSkyblock2 API (2025.2.1+)
 - BentoBox (v2.7.0)
 
 ### Bundled Libraries
 - FoliaLib (v0.5.1) - For Folia and Paper scheduler compatibility
+- FastInv (v3.0.4) - For easy GUI creation
+- XSeries (v26.x) - For cross-version material and sound support
+- bStats (v3.2.1) - For anonymous plugin analytics
+- HikariCP (v6.2.1) - For high-performance database connection pooling
 

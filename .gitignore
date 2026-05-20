@@ -33,6 +33,10 @@ logs/
 # Runtime
 run/
 
+# Environment and Token files
+src/main/resources/faststats.properties
+src/main/resources/bstats.properties
+
 # Markdown files (except README)
 *.md
 !README.md

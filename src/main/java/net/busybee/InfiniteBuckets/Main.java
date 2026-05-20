@@ -12,10 +12,11 @@ import net.busybee.InfiniteBuckets.hooks.HookManager;
 import net.busybee.InfiniteBuckets.inventory.impl.ChatPromptListener;
 import net.busybee.InfiniteBuckets.item.BucketRegistry;
 import net.busybee.InfiniteBuckets.item.ItemEvents;
+import net.busybee.InfiniteBuckets.utils.BStatsManager;
 import net.busybee.InfiniteBuckets.utils.DebugLogger;
+import net.busybee.InfiniteBuckets.utils.FastStatsManager;
 import net.busybee.InfiniteBuckets.utils.MessageManager;
 import net.busybee.InfiniteBuckets.utils.VersionCheck;
-import org.bstats.bukkit.Metrics;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
@@ -38,6 +39,7 @@ public final class Main extends JavaPlugin {
     private DebugLogger debugLogger;
     private HookManager hookManager;
     private ExecutorService asyncExecutor;
+    private FastStatsManager fastStatsManager;
 
     public static PlatformScheduler scheduler() {
       return scheduler;
@@ -80,8 +82,10 @@ public final class Main extends JavaPlugin {
         this.getServer().getPluginManager().registerEvents(new VersionCheck(this), this);
         this.getServer().getPluginManager().registerEvents(new ChatPromptListener(), this);
 
-        // Initialize bStats metrics
-        new Metrics(this, 28821);
+        // Initialize metrics
+        new BStatsManager(this);
+        this.fastStatsManager = new FastStatsManager(this);
+        this.fastStatsManager.onEnable();
 
         lifecycle.markRunning();
         this.getLogger().info("InfiniteBuckets v" + this.getDescription().getVersion() + " has been enabled.");
@@ -104,6 +108,10 @@ public final class Main extends JavaPlugin {
             } catch (InterruptedException e) {
                 asyncExecutor.shutdownNow();
             }
+        }
+
+        if (fastStatsManager != null) {
+            fastStatsManager.onDisable();
         }
 
         lifecycle.markStopped();

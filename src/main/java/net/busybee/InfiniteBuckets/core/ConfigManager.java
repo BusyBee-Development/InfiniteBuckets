@@ -119,11 +119,6 @@ public class ConfigManager {
         return worldRules.get(worldName);
     }
 
-    /**
-     * Checks world-settings.* against a placement of the given liquid type in
-     * the given world. Returns a messages.yml key to deny with, or null if
-     * placement is allowed.
-     */
     public String checkWorldRestriction(World world, Material liquidType) {
         String worldName = world.getName();
         if (disabledWorlds.contains(worldName)) {
@@ -162,7 +157,6 @@ public class ConfigManager {
     public FileConfiguration getMessagesConfig() {
         return messagesConfig;
     }
-
     public FileConfiguration getGuisConfig() {
         return guisConfig;
     }

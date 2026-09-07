@@ -33,7 +33,6 @@ public final class BentoBoxHook implements ProtectionHook {
 
         User user = User.getInstance(player);
 
-        // Try to use BUCKET flag if available, otherwise fall back to PLACE_BLOCKS
         if (!checkedForBucketFlag) {
             try {
                 bucketFlag = Flags.BUCKET;

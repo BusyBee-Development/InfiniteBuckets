@@ -33,7 +33,6 @@ public class BucketListGUI extends FastInv {
 
         if (config == null) return;
 
-        // Fill background
         ConfigurationSection fillerSection = config.getConfigurationSection("filler");
         if (fillerSection != null) {
             ItemStack filler = GUIUtils.createItem(fillerSection);

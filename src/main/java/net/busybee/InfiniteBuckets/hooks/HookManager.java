@@ -30,13 +30,6 @@ public final class HookManager {
         detectHooks();
     }
 
-    /**
-     * Re-runs hook detection against the current config/plugin state in place,
-     * so anything holding a reference to this HookManager (e.g. listeners
-     * registered once at startup) automatically sees the refreshed hooks
-     * after {@code /infinitebuckets reload} instead of needing to be
-     * re-registered against a brand-new instance.
-     */
     public void reload() {
         detectHooks();
     }
@@ -100,12 +93,6 @@ public final class HookManager {
         return true;
     }
 
-    /**
-     * Player-less variant used by automation contexts (e.g. a dispenser) where
-     * there's no player to check permissions/membership against. Hooks that
-     * can't meaningfully evaluate this fail open, same as they already do for
-     * unclaimed/unregioned locations.
-     */
     public boolean canBuild(Block block) {
         for (ProtectionHook hook : activeHooks) {
             if (!hook.canBuild(block)) {

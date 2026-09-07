@@ -21,13 +21,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.EnumSet;
 import java.util.Set;
 
-/**
- * Anti-dupe / anti-bypass coverage for infinite buckets: keeps them out of
- * dispensers, droppers and hoppers unless a bucket template has explicitly
- * opted into automation use ({@code allow-automation: true}), and even then
- * never lets a limited-use bucket be dispensed, since its uses-remaining
- * PDC value can't be tracked/decremented through that path.
- */
 public final class BucketProtectionListener implements Listener {
 
     private static final Set<InventoryType> AUTOMATION_INVENTORIES = EnumSet.of(
@@ -79,13 +72,11 @@ public final class BucketProtectionListener implements Listener {
 
         Inventory clicked = event.getClickedInventory();
 
-        // Direct placement into an open dispenser/dropper/hopper slot.
         if (clicked != null && AUTOMATION_INVENTORIES.contains(clicked.getType())) {
             registry.getTemplate(event.getCursor()).ifPresent(template -> denyAutomationTransfer(event, player, template));
             return;
         }
 
-        // Shift-click from the player's own inventory into an open dispenser/dropper/hopper.
         if (event.isShiftClick() && clicked instanceof PlayerInventory) {
             Inventory top = event.getView().getTopInventory();
             if (AUTOMATION_INVENTORIES.contains(top.getType())) {

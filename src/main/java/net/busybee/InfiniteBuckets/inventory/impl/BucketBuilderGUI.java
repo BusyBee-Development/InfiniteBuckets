@@ -6,7 +6,6 @@ import fr.mrmicky.fastinv.FastInv;
 import net.busybee.InfiniteBuckets.Main;
 import net.busybee.InfiniteBuckets.bucket.BucketTemplate;
 import net.busybee.InfiniteBuckets.utils.GUIUtils;
-import net.busybee.InfiniteBuckets.utils.MessageManager;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -54,7 +53,6 @@ public class BucketBuilderGUI extends FastInv {
     public void refresh() {
         if (config == null) return;
 
-        // Fill background
         ConfigurationSection fillerSection = config.getConfigurationSection("filler");
         if (fillerSection != null) {
             ItemStack filler = GUIUtils.createItem(fillerSection);
@@ -66,7 +64,6 @@ public class BucketBuilderGUI extends FastInv {
         ConfigurationSection items = config.getConfigurationSection("items");
         if (items == null) return;
 
-        // Liquid Selector
         ConfigurationSection liquidSec = items.getConfigurationSection("liquid-selector");
         if (liquidSec != null) {
             Material liquidIcon = template.getLiquidType() == Material.LAVA ? Material.LAVA_BUCKET :
@@ -77,7 +74,6 @@ public class BucketBuilderGUI extends FastInv {
                     e -> new LiquidSelectorGUI(this).open((Player) e.getWhoClicked()));
         }
 
-        // Edit Name
         ConfigurationSection nameSec = items.getConfigurationSection("edit-name");
         if (nameSec != null) {
             setItem(nameSec.getInt("slot"), GUIUtils.createItem(nameSec, Placeholder.parsed("name", template.getDisplayName())),
@@ -87,7 +83,6 @@ public class BucketBuilderGUI extends FastInv {
                     });
         }
 
-        // Edit Lore
         ConfigurationSection loreSec = items.getConfigurationSection("edit-lore");
         if (loreSec != null) {
             setItem(loreSec.getInt("slot"), GUIUtils.createItem(loreSec),
@@ -97,7 +92,6 @@ public class BucketBuilderGUI extends FastInv {
                     });
         }
 
-        // Usage Limit
         ConfigurationSection limitSec = items.getConfigurationSection("usage-limit");
         if (limitSec != null) {
             String limitStr = template.getUsageLimit() == -1 ? "Infinite" : String.valueOf(template.getUsageLimit());
@@ -110,7 +104,6 @@ public class BucketBuilderGUI extends FastInv {
                     });
         }
 
-        // Glowing
         ConfigurationSection glowSec = items.getConfigurationSection("glowing");
         if (glowSec != null) {
             String status = template.isGlowing() ? "<green>Enabled</green>" : "<red>Disabled</red>";
@@ -121,7 +114,6 @@ public class BucketBuilderGUI extends FastInv {
                     });
         }
 
-        // Save
         ConfigurationSection saveSec = items.getConfigurationSection("save");
         if (saveSec != null) {
             setItem(saveSec.getInt("slot"), GUIUtils.createItem(saveSec), e -> {
@@ -131,7 +123,6 @@ public class BucketBuilderGUI extends FastInv {
             });
         }
 
-        // Cancel
         ConfigurationSection cancelSec = items.getConfigurationSection("cancel");
         if (cancelSec != null) {
             setItem(cancelSec.getInt("slot"), GUIUtils.createItem(cancelSec), e -> new BucketListGUI().open((Player) e.getWhoClicked()));

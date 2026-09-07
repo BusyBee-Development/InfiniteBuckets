@@ -17,22 +17,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
-/**
- * Backstop for vanilla bucket mechanics. {@link BucketUseListener} cancels
- * the PlayerInteractEvent before vanilla ever acts, so under normal play
- * these handlers never fire for a tracked bucket. They exist for edge cases
- * where something else (another plugin, a forced interaction) drives
- * vanilla bucket use directly instead of going through our interact handler.
- * <p>
- * {@link PlayerBucketEvent#getItemStack()} returns the RESULTING item (e.g.
- * a plain empty bucket) rather than the original tagged item, so it can
- * never be used to detect an infinite bucket. Detection here instead reads
- * the original item straight from the hand that triggered the event
- * ({@link PlayerBucketEvent#getHand()}), and — since Bukkit's cancel-revert
- * for buckets is inconsistent for off-hand across some server forks —
- * explicitly restores that original item into the same hand slot next tick
- * rather than trusting cancellation alone.
- */
 public final class BucketVanillaGuardListener implements Listener {
 
     private final BucketRegistry registry;

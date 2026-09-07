@@ -20,19 +20,14 @@ public class BucketTemplate {
     private List<String> lore;
     private Material liquidType;
     private BucketMode mode;
-    private int usageLimit; // -1 for infinite
-    private long cooldown; // in milliseconds
+    private int usageLimit;
+    private long cooldown;
     private String permission;
     private boolean glowing;
     private int customModelData;
     private XSound placeSound;
     private XSound refillSound;
     private XMaterial icon;
-    /**
-     * Whether this bucket may be used by automation (dispensers/hoppers).
-     * Defaults to false: infinite buckets are player-hand-only unless an
-     * admin explicitly opts a template in via buckets.yml.
-     */
     private boolean allowAutomation;
 
     public enum BucketMode {

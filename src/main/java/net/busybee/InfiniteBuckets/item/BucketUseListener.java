@@ -23,12 +23,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
-/**
- * Handles right-click use of an infinite bucket: permission, world
- * restrictions, cooldown, and liquid placement/drain. Treats main-hand and
- * off-hand identically — whichever hand triggered the interaction is the
- * hand that gets read from and written back to.
- */
 public final class BucketUseListener implements Listener {
 
     private final Main plugin;

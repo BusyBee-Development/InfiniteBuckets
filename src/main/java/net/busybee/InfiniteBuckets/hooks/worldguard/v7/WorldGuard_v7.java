@@ -25,8 +25,6 @@ public final class WorldGuard_v7 implements ProtectionHook {
     public boolean canBuild(Block block) {
         RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
         RegionQuery query = container.createQuery();
-        // Null player evaluates the flag as a non-member would see it, which is
-        // the right check for an automated source like a dispenser.
         return query.testState(BukkitAdapter.adapt(block.getLocation()), (LocalPlayer) null, Flags.BUILD);
     }
 }

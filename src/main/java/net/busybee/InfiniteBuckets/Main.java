@@ -72,7 +72,6 @@ public final class Main extends JavaPlugin {
         this.getServer().getPluginManager().registerEvents(new VersionCheck(this), this);
         this.getServer().getPluginManager().registerEvents(new ChatPromptListener(this), this);
 
-        // Initialize metrics
         new BStatsManager(this);
         this.fastStatsManager = new FastStatsManager(this);
         this.fastStatsManager.onEnable();

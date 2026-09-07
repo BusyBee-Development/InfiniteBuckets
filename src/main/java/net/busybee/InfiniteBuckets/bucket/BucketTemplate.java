@@ -28,6 +28,12 @@ public class BucketTemplate {
     private XSound placeSound;
     private XSound refillSound;
     private XMaterial icon;
+    /**
+     * Whether this bucket may be used by automation (dispensers/hoppers).
+     * Defaults to false: infinite buckets are player-hand-only unless an
+     * admin explicitly opts a template in via buckets.yml.
+     */
+    private boolean allowAutomation;
 
     public enum BucketMode {
         VANILLA_LIKE, DRAIN_AREA

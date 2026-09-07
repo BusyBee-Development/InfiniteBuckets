@@ -7,10 +7,8 @@ import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.util.List;
 
 public final class MessageManager {
@@ -35,12 +33,7 @@ public final class MessageManager {
     }
 
     private void loadMessages() {
-        File messagesFile = new File(plugin.getDataFolder(), "messages.yml");
-        if (!messagesFile.exists()) {
-            plugin.saveResource("messages.yml", false);
-        }
-
-        this.messagesConfig = YamlConfiguration.loadConfiguration(messagesFile);
+        this.messagesConfig = plugin.getConfigManager().getMessagesConfig();
 
         String prefixString = messagesConfig.getString("plugin-prefix", "<gold><b>InfiniteBuckets</b></gold> <dark_gray>»</dark_gray> ");
         this.prefix = miniMessage.deserialize(legacyToMiniMessage(prefixString));

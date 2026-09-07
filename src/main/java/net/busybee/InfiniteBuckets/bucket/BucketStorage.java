@@ -41,6 +41,7 @@ public class BucketStorage {
                     .placeSound(XSound.matchXSound(bucketSection.getString("place-sound", "ITEM_BUCKET_EMPTY")).orElse(XSound.ITEM_BUCKET_EMPTY))
                     .refillSound(XSound.matchXSound(bucketSection.getString("refill-sound", "ITEM_BUCKET_FILL")).orElse(XSound.ITEM_BUCKET_FILL))
                     .icon(XMaterial.matchXMaterial(bucketSection.getString("icon", "WATER_BUCKET")).orElse(XMaterial.WATER_BUCKET))
+                    .allowAutomation(bucketSection.getBoolean("allow-automation", false))
                     .build());
         }
         return templates;
@@ -61,6 +62,7 @@ public class BucketStorage {
         config.set(path + "place-sound", template.getPlaceSound().name());
         config.set(path + "refill-sound", template.getRefillSound().name());
         config.set(path + "icon", template.getIcon().name());
+        config.set(path + "allow-automation", template.isAllowAutomation());
 
         plugin.getConfigManager().saveBucketsConfig();
     }

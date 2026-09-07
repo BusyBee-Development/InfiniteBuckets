@@ -1,31 +1,33 @@
 package net.busybee.InfiniteBuckets.utils;
 
-import dev.faststats.bukkit.BukkitMetrics;
-import dev.faststats.core.ErrorTracker;
-import dev.faststats.core.data.Metric;
+import dev.faststats.ErrorTracker;
+import dev.faststats.bukkit.BukkitContext;
+import dev.faststats.data.Metric;
 import net.busybee.InfiniteBuckets.Main;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Properties;
 
 public class FastStatsManager {
     private final Main plugin;
-    private final BukkitMetrics metrics;
+    private final BukkitContext context;
 
     public static final ErrorTracker ERROR_TRACKER = ErrorTracker.contextAware()
             .anonymize("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", "[uuid hidden]")
-            .ignoreError(java.lang.reflect.InvocationTargetException.class);
+            .ignoreError(InvocationTargetException.class);
 
     public FastStatsManager(Main plugin) {
         this.plugin = plugin;
         String token = loadToken();
 
-        this.metrics = BukkitMetrics.factory()
-                .token(token)
-                .errorTracker(ERROR_TRACKER)
-                .addMetric(Metric.number("registered_buckets", () -> plugin.getBucketRegistry().getRegisteredTemplates().size()))
-                .create(plugin);
+        this.context = new BukkitContext.Factory(plugin, token)
+                .errorTrackerService(ERROR_TRACKER)
+                .metrics(factory -> factory
+                        .addMetric(Metric.number("registered_buckets", () -> plugin.getBucketRegistry().getRegisteredTemplates().size()))
+                        .create())
+                .create();
     }
 
     private String loadToken() {
@@ -40,11 +42,11 @@ public class FastStatsManager {
     }
 
     public void onEnable() {
-        metrics.ready();
+        context.ready();
         plugin.getLogger().info("FastStats metrics have been enabled!");
     }
 
     public void onDisable() {
-        metrics.shutdown();
+        context.shutdown();
     }
 }

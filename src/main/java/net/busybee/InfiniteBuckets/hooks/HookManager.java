@@ -13,19 +13,37 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
 public final class HookManager {
 
+    private final Main plugin;
     private final List<ProtectionHook> activeHooks = new ArrayList<>();
-    private final Map<String, Supplier<ProtectionHook>> availableHooks = new HashMap<>();
+    private final Map<String, Supplier<ProtectionHook>> availableHooks = new LinkedHashMap<>();
 
     public HookManager(Main plugin) {
+        this.plugin = plugin;
         registerDefaultHooks();
-        
+        detectHooks();
+    }
+
+    /**
+     * Re-runs hook detection against the current config/plugin state in place,
+     * so anything holding a reference to this HookManager (e.g. listeners
+     * registered once at startup) automatically sees the refreshed hooks
+     * after {@code /infinitebuckets reload} instead of needing to be
+     * re-registered against a brand-new instance.
+     */
+    public void reload() {
+        detectHooks();
+    }
+
+    private void detectHooks() {
+        activeHooks.clear();
+
         ConfigManager config = plugin.getConfigManager();
         if (!config.isAutoDetectHooks()) {
             plugin.getDebugLogger().debug("Auto-detect hooks is disabled.");
@@ -36,7 +54,7 @@ public final class HookManager {
 
         for (Map.Entry<String, Supplier<ProtectionHook>> entry : availableHooks.entrySet()) {
             String pluginName = entry.getKey();
-            
+
             if (!config.isHookEnabled(pluginName)) {
                 plugin.getDebugLogger().debug("Hook for " + pluginName + " is disabled in config.");
                 continue;
@@ -75,6 +93,22 @@ public final class HookManager {
     public boolean canBuild(Player player, Block block) {
         for (ProtectionHook hook : activeHooks) {
             if (!hook.canBuild(player, block)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Player-less variant used by automation contexts (e.g. a dispenser) where
+     * there's no player to check permissions/membership against. Hooks that
+     * can't meaningfully evaluate this fail open, same as they already do for
+     * unclaimed/unregioned locations.
+     */
+    public boolean canBuild(Block block) {
+        for (ProtectionHook hook : activeHooks) {
+            if (!hook.canBuild(block)) {
                 return false;
             }
         }

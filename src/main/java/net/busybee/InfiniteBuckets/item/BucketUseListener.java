@@ -1,13 +1,10 @@
 package net.busybee.InfiniteBuckets.item;
 
-import com.cryptomorin.xseries.XSound;
 import com.tcoded.folialib.impl.PlatformScheduler;
 import net.busybee.InfiniteBuckets.Main;
 import net.busybee.InfiniteBuckets.bucket.BucketFactory;
 import net.busybee.InfiniteBuckets.bucket.BucketTemplate;
-import net.busybee.InfiniteBuckets.database.DatabaseManager;
 import net.busybee.InfiniteBuckets.hooks.HookManager;
-import net.busybee.InfiniteBuckets.utils.DebugLogger;
 import net.busybee.InfiniteBuckets.utils.MessageManager;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.Material;
@@ -17,61 +14,42 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.player.PlayerBucketEmptyEvent;
-import org.bukkit.event.player.PlayerBucketFillEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
-import java.util.UUID;
 
-public final class ItemEvents implements Listener {
+/**
+ * Handles right-click use of an infinite bucket: permission, world
+ * restrictions, cooldown, and liquid placement/drain. Treats main-hand and
+ * off-hand identically — whichever hand triggered the interaction is the
+ * hand that gets read from and written back to.
+ */
+public final class BucketUseListener implements Listener {
 
     private final Main plugin;
     private final PlatformScheduler scheduler;
     private final BucketRegistry registry;
     private final MessageManager messages;
-    private final DebugLogger debugLogger;
-    private final HookManager hookManager;
 
-    public ItemEvents(@NotNull Main plugin) {
+    public BucketUseListener(@NotNull Main plugin) {
         this.plugin = plugin;
-        this.scheduler = Main.scheduler();
+        this.scheduler = plugin.getBucketScheduler().platform();
         this.registry = plugin.getBucketRegistry();
         this.messages = plugin.getMessageManager();
-        this.debugLogger = plugin.getDebugLogger();
-        this.hookManager = plugin.getHookManager();
-    }
-
-    @EventHandler(priority = EventPriority.HIGH)
-    public void onPlayerSwapHandItems(@NotNull PlayerSwapHandItemsEvent event) {
-        if (registry.getTemplate(event.getMainHandItem()).isPresent() || registry.getTemplate(event.getOffHandItem()).isPresent()) {
-            event.setCancelled(true);
-        }
-    }
-
-    @EventHandler(priority = EventPriority.HIGH)
-    public void onInventoryClick(@NotNull InventoryClickEvent event) {
-        if (!(event.getWhoClicked() instanceof Player player) || !(event.getClickedInventory() instanceof PlayerInventory)) return;
-        if (event.getSlot() == 40 && registry.getTemplate(event.getCursor()).isPresent()) {
-            event.setCancelled(true);
-            return;
-        }
-        if (event.isShiftClick() && registry.getTemplate(event.getCurrentItem()).isPresent()) {
-            if (player.getInventory().getItemInOffHand().getType() == Material.AIR) event.setCancelled(true);
-        }
     }
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onPlayerInteract(@NotNull PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND || (event.getAction() != Action.RIGHT_CLICK_BLOCK && event.getAction() != Action.RIGHT_CLICK_AIR)) return;
+        EquipmentSlot hand = event.getHand();
+        if ((hand != EquipmentSlot.HAND && hand != EquipmentSlot.OFF_HAND)
+                || (event.getAction() != Action.RIGHT_CLICK_BLOCK && event.getAction() != Action.RIGHT_CLICK_AIR)) {
+            return;
+        }
 
         ItemStack item = event.getItem();
         Optional<BucketTemplate> templateOpt = registry.getTemplate(item);
@@ -86,6 +64,14 @@ public final class ItemEvents implements Listener {
             return;
         }
 
+        String denyKey = plugin.getConfigManager().checkWorldRestriction(player.getWorld(), template.getLiquidType());
+        if (denyKey != null) {
+            messages.send(player, denyKey, Placeholder.parsed("bucket_name", template.getDisplayName()));
+            return;
+        }
+
+        long generation = plugin.getLifecycle().getGeneration();
+
         plugin.getDatabaseManager().getCooldown(player.getUniqueId(), template.getId()).thenAccept(expiry -> {
             long now = System.currentTimeMillis();
             if (expiry > now) {
@@ -97,7 +83,9 @@ public final class ItemEvents implements Listener {
             }
 
             scheduler.runAtEntity(player, task -> {
-                ItemStack currentItem = player.getInventory().getItemInMainHand();
+                if (!plugin.getLifecycle().isActive(generation)) return;
+
+                ItemStack currentItem = player.getInventory().getItem(hand);
                 if (!registry.getTemplate(currentItem).map(t -> t.getId().equals(template.getId())).orElse(false)) return;
 
                 ItemMeta meta = currentItem.getItemMeta();
@@ -111,11 +99,12 @@ public final class ItemEvents implements Listener {
                     }
                 }
 
+                HookManager hookManager = plugin.getHookManager();
                 boolean success;
                 if (template.getMode() == BucketTemplate.BucketMode.DRAIN_AREA) {
-                    success = handleDrainArea(player, template, event);
+                    success = handleDrainArea(player, template, event, hookManager);
                 } else {
-                    success = handleVanillaLike(player, template, event);
+                    success = handleVanillaLike(player, template, event, hookManager);
                 }
 
                 if (success) {
@@ -130,10 +119,12 @@ public final class ItemEvents implements Listener {
                         uses--;
                         if (uses <= 0) {
                             currentItem.setAmount(currentItem.getAmount() - 1);
+                            player.getInventory().setItem(hand, currentItem);
                             messages.send(player, "bucket-depleted", Placeholder.parsed("bucket_name", template.getDisplayName()));
                         } else {
                             meta.getPersistentDataContainer().set(BucketFactory.USES_REMAINING_KEY, PersistentDataType.INTEGER, uses);
                             currentItem.setItemMeta(meta);
+                            player.getInventory().setItem(hand, currentItem);
                         }
                     }
                 }
@@ -141,7 +132,7 @@ public final class ItemEvents implements Listener {
         });
     }
 
-    private boolean handleVanillaLike(Player player, BucketTemplate template, PlayerInteractEvent event) {
+    private boolean handleVanillaLike(Player player, BucketTemplate template, PlayerInteractEvent event, HookManager hookManager) {
         Block clickedBlock = event.getClickedBlock();
         if (clickedBlock == null) return false;
 
@@ -155,7 +146,7 @@ public final class ItemEvents implements Listener {
         return true;
     }
 
-    private boolean handleDrainArea(Player player, BucketTemplate template, PlayerInteractEvent event) {
+    private boolean handleDrainArea(Player player, BucketTemplate template, PlayerInteractEvent event, HookManager hookManager) {
         Block clickedBlock = event.getClickedBlock();
         if (clickedBlock == null) return false;
 
@@ -174,15 +165,5 @@ public final class ItemEvents implements Listener {
             template.getPlaceSound().play(player);
         });
         return true;
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void onFill(PlayerBucketFillEvent event) {
-        if (registry.getTemplate(event.getItemStack()).isPresent()) event.setCancelled(true);
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void onEmpty(PlayerBucketEmptyEvent event) {
-        if (registry.getTemplate(event.getItemStack()).isPresent()) event.setCancelled(true);
     }
 }

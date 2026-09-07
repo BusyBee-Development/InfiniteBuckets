@@ -2,6 +2,7 @@ package net.busybee.InfiniteBuckets.inventory.impl;
 
 import net.busybee.InfiniteBuckets.Main;
 import net.busybee.InfiniteBuckets.bucket.BucketTemplate;
+import net.busybee.InfiniteBuckets.scheduling.BucketScheduler;
 import net.busybee.InfiniteBuckets.utils.MessageManager;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
@@ -19,6 +20,12 @@ import java.util.UUID;
 public class ChatPromptListener implements Listener {
 
     private static final Map<UUID, PromptData> activePrompts = new HashMap<>();
+
+    private final BucketScheduler scheduler;
+
+    public ChatPromptListener(Main plugin) {
+        this.scheduler = plugin.getBucketScheduler();
+    }
 
     public enum PromptType {
         NAME, LORE
@@ -44,7 +51,7 @@ public class ChatPromptListener implements Listener {
 
         if (message.equalsIgnoreCase("cancel")) {
             Main.getInstance().getMessageManager().send(player, "gui.prompts.cancelled");
-            Main.scheduler().runNextTick(p -> new BucketBuilderGUI(data.template()).open(player));
+            scheduler.platform().runNextTick(p -> new BucketBuilderGUI(data.template()).open(player));
             return;
         }
 
@@ -74,6 +81,6 @@ public class ChatPromptListener implements Listener {
             }
         }
 
-        Main.scheduler().runNextTick(p -> new BucketBuilderGUI(data.template()).open(player));
+        scheduler.platform().runNextTick(p -> new BucketBuilderGUI(data.template()).open(player));
     }
 }

@@ -74,6 +74,8 @@ public class DatabaseManager {
         }
 
         return CompletableFuture.supplyAsync(() -> {
+            if (plugin.getLifecycle().isStoppingOrStopped()) return 0L;
+
             try (Connection conn = getConnection();
                  PreparedStatement ps = conn.prepareStatement("SELECT expiry FROM player_cooldowns WHERE uuid = ? AND bucket_id = ?")) {
                 ps.setString(1, uuid.toString());
@@ -96,6 +98,8 @@ public class DatabaseManager {
         cooldownCache.put(key, expiry);
 
         CompletableFuture.runAsync(() -> {
+            if (plugin.getLifecycle().isStoppingOrStopped()) return;
+
             try (Connection conn = getConnection();
                  PreparedStatement ps = conn.prepareStatement(
                          "REPLACE INTO player_cooldowns (uuid, bucket_id, expiry) VALUES (?, ?, ?)")) {

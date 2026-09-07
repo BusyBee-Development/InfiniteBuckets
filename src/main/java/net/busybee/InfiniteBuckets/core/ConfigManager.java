@@ -2,6 +2,8 @@ package net.busybee.InfiniteBuckets.core;
 
 import net.busybee.InfiniteBuckets.Main;
 import net.busybee.InfiniteBuckets.utils.ConfigMigrator;
+import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -115,6 +117,33 @@ public class ConfigManager {
     public boolean isDefaultNetherRestriction() { return defaultNetherRestriction; }
     public ConfigurationSection getWorldRule(String worldName) {
         return worldRules.get(worldName);
+    }
+
+    /**
+     * Checks world-settings.* against a placement of the given liquid type in
+     * the given world. Returns a messages.yml key to deny with, or null if
+     * placement is allowed.
+     */
+    public String checkWorldRestriction(World world, Material liquidType) {
+        String worldName = world.getName();
+        if (disabledWorlds.contains(worldName)) {
+            return "world-disabled";
+        }
+
+        ConfigurationSection rule = worldRules.get(worldName);
+        if (rule != null) {
+            String key = liquidType == Material.LAVA ? "allow-lava" : "allow-water";
+            if (!rule.getBoolean(key, true)) {
+                return "bucket-disabled-world";
+            }
+            return null;
+        }
+
+        if (defaultNetherRestriction && world.getEnvironment() == World.Environment.NETHER && liquidType == Material.WATER) {
+            return "nether-disabled";
+        }
+
+        return null;
     }
 
     public FileConfiguration getBucketsConfig() {

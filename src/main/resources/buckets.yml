@@ -22,6 +22,7 @@ buckets:
     place-sound: ITEM_BUCKET_EMPTY
     refill-sound: ITEM_BUCKET_FILL
     icon: WATER_BUCKET
+    allow-automation: false
   lava_infinite:
     display-name: "<red>Infinite Lava Bucket</red>"
     lore:
@@ -37,3 +38,4 @@ buckets:
     place-sound: ITEM_BUCKET_EMPTY
     refill-sound: ITEM_BUCKET_FILL
     icon: LAVA_BUCKET
+    allow-automation: false

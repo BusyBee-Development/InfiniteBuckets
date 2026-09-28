@@ -27,12 +27,28 @@ public class BucketStorage {
             ConfigurationSection bucketSection = section.getConfigurationSection(id);
             if (bucketSection == null) continue;
 
+            String liquidName = bucketSection.getString("liquid-type", "WATER");
+            Material liquid = Material.matchMaterial(liquidName);
+            if (liquid == null || !BucketTemplate.PLACEABLE_LIQUIDS.contains(liquid)) {
+                plugin.getLogger().warning("Skipping bucket '" + id + "': liquid-type " + liquidName
+                        + " can't be placed. Use one of " + BucketTemplate.PLACEABLE_LIQUIDS + ".");
+                continue;
+            }
+
+            BucketTemplate.BucketMode mode;
+            try {
+                mode = BucketTemplate.BucketMode.valueOf(bucketSection.getString("mode", "VANILLA_LIKE").toUpperCase());
+            } catch (IllegalArgumentException e) {
+                plugin.getLogger().warning("Bucket '" + id + "' has an unknown mode; using VANILLA_LIKE.");
+                mode = BucketTemplate.BucketMode.VANILLA_LIKE;
+            }
+
             templates.add(BucketTemplate.builder()
                     .id(id)
-                    .displayName(bucketSection.getString("display-name"))
+                    .displayName(bucketSection.getString("display-name", id))
                     .lore(bucketSection.getStringList("lore"))
-                    .liquidType(Material.valueOf(bucketSection.getString("liquid-type", "WATER")))
-                    .mode(BucketTemplate.BucketMode.valueOf(bucketSection.getString("mode", "VANILLA_LIKE")))
+                    .liquidType(liquid)
+                    .mode(mode)
                     .usageLimit(bucketSection.getInt("usage-limit", -1))
                     .cooldown(bucketSection.getLong("cooldown", 0))
                     .permission(bucketSection.getString("permission"))

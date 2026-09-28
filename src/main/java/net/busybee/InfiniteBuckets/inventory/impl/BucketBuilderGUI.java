@@ -66,9 +66,7 @@ public class BucketBuilderGUI extends FastInv {
 
         ConfigurationSection liquidSec = items.getConfigurationSection("liquid-selector");
         if (liquidSec != null) {
-            Material liquidIcon = template.getLiquidType() == Material.LAVA ? Material.LAVA_BUCKET :
-                    (template.getLiquidType() == Material.POWDER_SNOW ? Material.POWDER_SNOW_BUCKET :
-                     (template.getLiquidType() == Material.MILK_BUCKET ? Material.MILK_BUCKET : Material.WATER_BUCKET));
+            Material liquidIcon = BucketTemplate.bucketIcon(template.getLiquidType());
             setItem(liquidSec.getInt("slot"), GUIUtils.createItem(liquidIcon, liquidSec.getString("name"), liquidSec.getStringList("lore"),
                     Placeholder.parsed("liquid", template.getLiquidType().name())),
                     e -> new LiquidSelectorGUI(this).open((Player) e.getWhoClicked()));

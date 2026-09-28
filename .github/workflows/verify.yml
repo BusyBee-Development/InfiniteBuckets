@@ -26,7 +26,14 @@ jobs:
           distribution: temurin
           java-version: '${{ steps.jdk.outputs.version }}'
           cache: maven
+          # Writes ~/.m2/settings.xml so the private ANO repo resolves (secrets unset = no-op for public-only poms)
+          server-id: ano-private-releases
+          server-username: ANO_REPO_USERNAME
+          server-password: ANO_REPO_PASSWORD
       - name: Build and test
+        env:
+          ANO_REPO_USERNAME: ${{ secrets.ANO_REPO_USERNAME }}
+          ANO_REPO_PASSWORD: ${{ secrets.ANO_REPO_PASSWORD }}
         run: mvn --batch-mode clean verify
       - name: Check artifact
         run: |

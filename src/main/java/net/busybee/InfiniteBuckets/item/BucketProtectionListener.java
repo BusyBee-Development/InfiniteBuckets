@@ -39,10 +39,9 @@ public final class BucketProtectionListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH)
     public void onDispense(@NotNull BlockDispenseEvent event) {
         registry.getTemplate(event.getItem()).ifPresent(template -> {
-            if (!isAutomationAllowed(template)) {
-                event.setCancelled(true);
-                return;
-            }
+            // Always cancel: the vanilla dispenser would swap the infinite bucket for an empty one
+            event.setCancelled(true);
+            if (!isAutomationAllowed(template) || template.getMode() != BucketTemplate.BucketMode.VANILLA_LIKE) return;
 
             Block dispenser = event.getBlock();
             Block target = dispenser.getBlockData() instanceof Directional directional
@@ -51,9 +50,13 @@ public final class BucketProtectionListener implements Listener {
 
             String denyKey = plugin.getConfigManager().checkWorldRestriction(dispenser.getWorld(), template.getLiquidType());
             HookManager hookManager = plugin.getHookManager();
-            if (denyKey != null || !hookManager.canBuild(target)) {
-                event.setCancelled(true);
-            }
+            if (denyKey != null || !hookManager.canBuild(target)) return;
+
+            plugin.getBucketScheduler().platform().runAtLocation(target.getLocation(), task -> {
+                if (LiquidPlacement.place(target, template.getLiquidType())) {
+                    template.getPlaceSound().play(target.getLocation());
+                }
+            });
         });
     }
 

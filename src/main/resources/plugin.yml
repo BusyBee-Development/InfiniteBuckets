@@ -7,6 +7,9 @@ authors: [ djtmk ]
 description: Provides customizable infinite water and lava buckets.
 website: https://modrinth.com/plugin/infinitebuckets
 
+libraries:
+  - com.zaxxer:HikariCP:7.1.0
+
 softdepend:
   - SuperiorSkyblock2
   - WorldGuard

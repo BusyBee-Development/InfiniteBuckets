@@ -5,6 +5,7 @@ import org.bukkit.configuration.ConfigurationSection;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
 import java.util.UUID;
@@ -50,7 +51,7 @@ public class DatabaseManager {
                      "CREATE TABLE IF NOT EXISTS player_cooldowns (" +
                              "uuid VARCHAR(36) NOT NULL, " +
                              "bucket_id VARCHAR(64) NOT NULL, " +
-                             "expiry LONG NOT NULL, " +
+                             "expiry BIGINT NOT NULL, " +
                              "PRIMARY KEY (uuid, bucket_id))")) {
             ps.executeUpdate();
         }
@@ -80,9 +81,9 @@ public class DatabaseManager {
                  PreparedStatement ps = conn.prepareStatement("SELECT expiry FROM player_cooldowns WHERE uuid = ? AND bucket_id = ?")) {
                 ps.setString(1, uuid.toString());
                 ps.setString(2, bucketId);
-                var rs = ps.executeQuery();
-                if (rs.next()) {
-                    long expiry = rs.getLong("expiry");
+                try (ResultSet rs = ps.executeQuery()) {
+                    long expiry = rs.next() ? rs.getLong("expiry") : 0L;
+                    // Cache misses too, so buckets without a cooldown don't hit the database on every click
                     cooldownCache.put(key, expiry);
                     return expiry;
                 }

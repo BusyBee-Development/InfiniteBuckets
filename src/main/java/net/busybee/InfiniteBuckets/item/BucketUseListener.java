@@ -7,23 +7,33 @@ import net.busybee.InfiniteBuckets.bucket.BucketTemplate;
 import net.busybee.InfiniteBuckets.hooks.HookManager;
 import net.busybee.InfiniteBuckets.utils.MessageManager;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
+import org.bukkit.Bukkit;
+import org.bukkit.FluidCollisionMode;
 import org.bukkit.Material;
+import org.bukkit.Tag;
 import org.bukkit.block.Block;
+import org.bukkit.block.data.Waterlogged;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
 public final class BucketUseListener implements Listener {
+
+    private static final int DRAIN_RADIUS = 3;
+    private static final int TARGET_RANGE = 5;
 
     private final Main plugin;
     private final PlatformScheduler scheduler;
@@ -49,8 +59,19 @@ public final class BucketUseListener implements Listener {
         Optional<BucketTemplate> templateOpt = registry.getTemplate(item);
         if (templateOpt.isEmpty()) return;
 
-        event.setCancelled(true);
         Player player = event.getPlayer();
+        Block clicked = event.getClickedBlock();
+
+        // Like vanilla, a bucket doesn't stop you opening a chest or door unless you sneak
+        if (clicked != null && !player.isSneaking() && isUsableBlock(clicked)) return;
+
+        // The vanilla bucket must never run, or it turns into an empty bucket
+        event.setUseItemInHand(Event.Result.DENY);
+        event.setUseInteractedBlock(Event.Result.DENY);
+        // The client already predicted the bucket emptying (most visibly in the off hand). Resend the
+        // real inventory next tick, after the rest of this click's packets, or it keeps showing an empty bucket.
+        scheduler.runAtEntity(player, task -> player.updateInventory());
+
         BucketTemplate template = templateOpt.get();
 
         if (template.getPermission() != null && !player.hasPermission(template.getPermission())) {
@@ -63,6 +84,11 @@ public final class BucketUseListener implements Listener {
             messages.send(player, denyKey, Placeholder.parsed("bucket_name", template.getDisplayName()));
             return;
         }
+
+        Block target = template.getMode() == BucketTemplate.BucketMode.DRAIN_AREA
+                ? drainCentre(player, clicked)
+                : placementTarget(template.getLiquidType(), clicked, event);
+        if (target == null) return;
 
         long generation = plugin.getLifecycle().getGeneration();
 
@@ -79,85 +105,114 @@ public final class BucketUseListener implements Listener {
             scheduler.runAtEntity(player, task -> {
                 if (!plugin.getLifecycle().isActive(generation)) return;
 
-                ItemStack currentItem = player.getInventory().getItem(hand);
-                if (!registry.getTemplate(currentItem).map(t -> t.getId().equals(template.getId())).orElse(false)) return;
+                ItemStack current = player.getInventory().getItem(hand);
+                if (!isSameTemplate(current, template)) return;
 
-                ItemMeta meta = currentItem.getItemMeta();
-                Integer uses = null;
-                if (template.getUsageLimit() > 0) {
-                    uses = meta.getPersistentDataContainer().get(BucketFactory.USES_REMAINING_KEY, PersistentDataType.INTEGER);
-                    if (uses == null) uses = template.getUsageLimit();
-                    if (uses <= 0) {
-                        messages.send(player, "bucket-no-uses", Placeholder.parsed("bucket_name", template.getDisplayName()));
-                        return;
-                    }
+                if (template.getUsageLimit() > 0 && usesLeft(current, template) <= 0) {
+                    messages.send(player, "bucket-no-uses", Placeholder.parsed("bucket_name", template.getDisplayName()));
+                    return;
                 }
 
-                HookManager hookManager = plugin.getHookManager();
-                boolean success;
-                if (template.getMode() == BucketTemplate.BucketMode.DRAIN_AREA) {
-                    success = handleDrainArea(player, template, event, hookManager);
-                } else {
-                    success = handleVanillaLike(player, template, event, hookManager);
-                }
+                HookManager hooks = plugin.getHookManager();
+                scheduler.runAtLocation(target.getLocation(), placeTask -> {
+                    boolean done = template.getMode() == BucketTemplate.BucketMode.DRAIN_AREA
+                            ? drain(player, template, target, hooks)
+                            : place(player, template, target, hooks);
+                    if (!done) return;
 
-                if (success) {
-                    long bucketCooldown = template.getCooldown();
-                    long cooldownToApply = bucketCooldown > 0 ? bucketCooldown : plugin.getConfigManager().getGlobalCooldown();
-
-                    if (cooldownToApply > 0) {
-                        plugin.getDatabaseManager().setCooldown(player.getUniqueId(), template.getId(), now + cooldownToApply);
-                    }
-
-                    if (uses != null) {
-                        uses--;
-                        if (uses <= 0) {
-                            currentItem.setAmount(currentItem.getAmount() - 1);
-                            player.getInventory().setItem(hand, currentItem);
-                            messages.send(player, "bucket-depleted", Placeholder.parsed("bucket_name", template.getDisplayName()));
-                        } else {
-                            meta.getPersistentDataContainer().set(BucketFactory.USES_REMAINING_KEY, PersistentDataType.INTEGER, uses);
-                            currentItem.setItemMeta(meta);
-                            player.getInventory().setItem(hand, currentItem);
-                        }
-                    }
-                }
+                    template.getPlaceSound().play(target.getLocation());
+                    scheduler.runAtEntity(player, useTask -> consumeUse(player, hand, template, now));
+                });
             });
         });
     }
 
-    private boolean handleVanillaLike(Player player, BucketTemplate template, PlayerInteractEvent event, HookManager hookManager) {
-        Block clickedBlock = event.getClickedBlock();
-        if (clickedBlock == null) return false;
+    /** Applies the cooldown and, for limited buckets, takes one use off the bucket in {@code hand}. */
+    private void consumeUse(Player player, EquipmentSlot hand, BucketTemplate template, long usedAt) {
+        long cooldown = template.getCooldown() > 0 ? template.getCooldown() : plugin.getConfigManager().getGlobalCooldown();
+        if (cooldown > 0) {
+            plugin.getDatabaseManager().setCooldown(player.getUniqueId(), template.getId(), usedAt + cooldown);
+        }
 
-        Block targetBlock = clickedBlock.getRelative(event.getBlockFace());
-        if (!hookManager.canBuild(player, targetBlock)) return false;
+        if (template.getUsageLimit() <= 0) return;
 
-        scheduler.runAtLocation(targetBlock.getLocation(), task -> {
-            targetBlock.setType(template.getLiquidType());
-            template.getPlaceSound().play(player);
-        });
-        return true;
+        ItemStack current = player.getInventory().getItem(hand);
+        if (!isSameTemplate(current, template)) return;
+
+        int uses = usesLeft(current, template) - 1;
+        if (uses <= 0) {
+            current.setAmount(current.getAmount() - 1);
+            player.getInventory().setItem(hand, current.getAmount() > 0 ? current : null);
+            messages.send(player, "bucket-depleted", Placeholder.parsed("bucket_name", template.getDisplayName()));
+            return;
+        }
+
+        ItemMeta meta = current.getItemMeta();
+        meta.getPersistentDataContainer().set(BucketFactory.USES_REMAINING_KEY, PersistentDataType.INTEGER, uses);
+        current.setItemMeta(meta);
+        player.getInventory().setItem(hand, current);
     }
 
-    private boolean handleDrainArea(Player player, BucketTemplate template, PlayerInteractEvent event, HookManager hookManager) {
-        Block clickedBlock = event.getClickedBlock();
-        if (clickedBlock == null) return false;
+    /** Where the liquid goes: into a waterloggable or replaceable block that was clicked, otherwise against the clicked face. */
+    private @Nullable Block placementTarget(Material liquid, @Nullable Block clicked, PlayerInteractEvent event) {
+        if (clicked == null) return null;
 
-        int radius = 3;
-        scheduler.runAtLocation(clickedBlock.getLocation(), task -> {
-            for (int x = -radius; x <= radius; x++) {
-                for (int y = -radius; y <= radius; y++) {
-                    for (int z = -radius; z <= radius; z++) {
-                        Block b = clickedBlock.getRelative(x, y, z);
-                        if (b.getType() == template.getLiquidType() && hookManager.canBuild(player, b)) {
-                            b.setType(Material.AIR);
-                        }
-                    }
+        if (liquid == Material.WATER && clicked.getBlockData() instanceof Waterlogged waterlogged && !waterlogged.isWaterlogged()) {
+            return clicked;
+        }
+        if (clicked.isReplaceable()) return clicked;
+        return clicked.getRelative(event.getBlockFace());
+    }
+
+    private @Nullable Block drainCentre(Player player, @Nullable Block clicked) {
+        if (clicked != null) return clicked;
+        // Clicking a pool surface is an air click; find the liquid the player is looking at
+        return player.getTargetBlockExact(TARGET_RANGE, FluidCollisionMode.SOURCE_ONLY);
+    }
+
+    private boolean place(Player player, BucketTemplate template, Block target, HookManager hooks) {
+        return hooks.canBuild(player, target) && LiquidPlacement.place(target, template.getLiquidType());
+    }
+
+    private boolean drain(Player player, BucketTemplate template, Block centre, HookManager hooks) {
+        Material liquid = template.getLiquidType();
+        int max = plugin.getConfigManager().getMaxDrainBlocks();
+        int drained = 0;
+
+        for (int x = -DRAIN_RADIUS; x <= DRAIN_RADIUS && drained < max; x++) {
+            for (int y = -DRAIN_RADIUS; y <= DRAIN_RADIUS && drained < max; y++) {
+                for (int z = -DRAIN_RADIUS; z <= DRAIN_RADIUS && drained < max; z++) {
+                    Block block = centre.getRelative(x, y, z);
+                    if (block.getType() != liquid || !Bukkit.isOwnedByCurrentRegion(block)) continue;
+                    if (!hooks.canBuild(player, block)) continue;
+                    block.setType(Material.AIR);
+                    drained++;
                 }
             }
-            template.getPlaceSound().play(player);
-        });
-        return true;
+        }
+        return drained > 0;
+    }
+
+    private boolean isSameTemplate(@Nullable ItemStack item, BucketTemplate template) {
+        return registry.getTemplate(item).map(t -> t.getId().equals(template.getId())).orElse(false);
+    }
+
+    private int usesLeft(ItemStack item, BucketTemplate template) {
+        Integer uses = item.getItemMeta().getPersistentDataContainer().get(BucketFactory.USES_REMAINING_KEY, PersistentDataType.INTEGER);
+        return uses != null ? uses : template.getUsageLimit();
+    }
+
+    private static boolean isUsableBlock(Block block) {
+        Material type = block.getType();
+        return block.getState(false) instanceof InventoryHolder
+                || Tag.DOORS.isTagged(type)
+                || Tag.TRAPDOORS.isTagged(type) && type != Material.IRON_TRAPDOOR
+                || Tag.FENCE_GATES.isTagged(type)
+                || Tag.BUTTONS.isTagged(type)
+                || Tag.BEDS.isTagged(type)
+                || Tag.ANVIL.isTagged(type)
+                || type == Material.LEVER
+                || type == Material.CRAFTING_TABLE
+                || type == Material.ENCHANTING_TABLE;
     }
 }

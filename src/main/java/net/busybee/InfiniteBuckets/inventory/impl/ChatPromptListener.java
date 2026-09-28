@@ -11,15 +11,16 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ChatPromptListener implements Listener {
 
-    private static final Map<UUID, PromptData> activePrompts = new HashMap<>();
+    private static final Map<UUID, PromptData> activePrompts = new ConcurrentHashMap<>();
 
     private final BucketScheduler scheduler;
 
@@ -51,7 +52,7 @@ public class ChatPromptListener implements Listener {
 
         if (message.equalsIgnoreCase("cancel")) {
             Main.getInstance().getMessageManager().send(player, "gui.prompts.cancelled");
-            scheduler.platform().runNextTick(p -> new BucketBuilderGUI(data.template()).open(player));
+            scheduler.platform().runAtEntity(player, t -> new BucketBuilderGUI(data.template()).open(player));
             return;
         }
 
@@ -81,6 +82,11 @@ public class ChatPromptListener implements Listener {
             }
         }
 
-        scheduler.platform().runNextTick(p -> new BucketBuilderGUI(data.template()).open(player));
+        scheduler.platform().runAtEntity(player, t -> new BucketBuilderGUI(data.template()).open(player));
+    }
+
+    @EventHandler
+    public void onQuit(PlayerQuitEvent event) {
+        activePrompts.remove(event.getPlayer().getUniqueId());
     }
 }

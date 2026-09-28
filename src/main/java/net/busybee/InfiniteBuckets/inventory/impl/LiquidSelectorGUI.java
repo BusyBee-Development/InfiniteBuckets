@@ -3,6 +3,7 @@ package net.busybee.InfiniteBuckets.inventory.impl;
 import com.cryptomorin.xseries.XMaterial;
 import fr.mrmicky.fastinv.FastInv;
 import net.busybee.InfiniteBuckets.Main;
+import net.busybee.InfiniteBuckets.bucket.BucketTemplate;
 import net.busybee.InfiniteBuckets.utils.GUIUtils;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -21,21 +22,12 @@ public class LiquidSelectorGUI extends FastInv {
                 Main.getInstance().getMessageManager().serialize(
                         Main.getInstance().getMessageManager().parse(config != null ? config.getString("title", "Select Liquid") : "Select Liquid")));
 
-        Material[] liquids = {
-                Material.WATER_BUCKET,
-                Material.LAVA_BUCKET,
-                Material.MILK_BUCKET,
-                Material.POWDER_SNOW_BUCKET
-        };
-
-        for (int i = 0; i < liquids.length; i++) {
-            Material liquid = liquids[i];
-            setItem(i, GUIUtils.createItem(liquid, "<aqua>" + liquid.name(), new ArrayList<>()), e -> {
-                Material type = liquid == Material.WATER_BUCKET ? Material.WATER :
-                               (liquid == Material.LAVA_BUCKET ? Material.LAVA :
-                               (liquid == Material.POWDER_SNOW_BUCKET ? Material.POWDER_SNOW : Material.MILK_BUCKET));
-                parent.getTemplate().setLiquidType(type);
-                parent.getTemplate().setIcon(XMaterial.matchXMaterial(liquid));
+        int slot = 0;
+        for (Material liquid : BucketTemplate.PLACEABLE_LIQUIDS) {
+            Material icon = BucketTemplate.bucketIcon(liquid);
+            setItem(slot++, GUIUtils.createItem(icon, "<aqua>" + liquid.name(), new ArrayList<>()), e -> {
+                parent.getTemplate().setLiquidType(liquid);
+                parent.getTemplate().setIcon(XMaterial.matchXMaterial(icon));
                 parent.refresh();
                 parent.open((Player) e.getWhoClicked());
             });

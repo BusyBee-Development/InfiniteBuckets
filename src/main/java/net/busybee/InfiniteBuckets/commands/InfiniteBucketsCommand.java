@@ -124,8 +124,14 @@ public final class InfiniteBucketsCommand implements CommandExecutor, TabComplet
 
         ItemStack item = BucketFactory.createBucket(template);
         if (item != null) {
-            item.setAmount(amount);
-            target.getInventory().addItem(item);
+            int count = amount;
+            // Folia: only the player's own region may touch their inventory (console runs on the global region)
+            plugin.getBucketScheduler().platform().runAtEntity(target, task -> {
+                for (int i = 0; i < count; i++) {
+                    target.getInventory().addItem(item.clone())
+                            .values().forEach(left -> target.getWorld().dropItemNaturally(target.getLocation(), left));
+                }
+            });
             debugLogger.debug("Gave " + amount + "x " + template.getId() + " to " + target.getName() + " by " + sender.getName());
 
             messages.send(sender, "give.sender",

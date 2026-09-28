@@ -15,6 +15,9 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class BucketTemplate {
+    /** Block types a bucket can place. Anything else can't be set as a block. */
+    public static final List<Material> PLACEABLE_LIQUIDS = List.of(Material.WATER, Material.LAVA, Material.POWDER_SNOW);
+
     private String id;
     private String displayName;
     private List<String> lore;
@@ -29,6 +32,14 @@ public class BucketTemplate {
     private XSound refillSound;
     private XMaterial icon;
     private boolean allowAutomation;
+
+    public static Material bucketIcon(Material liquid) {
+        return switch (liquid) {
+            case LAVA -> Material.LAVA_BUCKET;
+            case POWDER_SNOW -> Material.POWDER_SNOW_BUCKET;
+            default -> Material.WATER_BUCKET;
+        };
+    }
 
     public enum BucketMode {
         VANILLA_LIKE, DRAIN_AREA

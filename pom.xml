@@ -78,17 +78,18 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- Protection hooks (soft dependencies) -->
+        <!-- Protection hooks (soft dependencies). WorldGuard 7.0.18+ and WorldEdit 7.4.3+ are compiled
+             for Java 25, which a Java 21 compiler can't read, so stay on the last Java 21 releases. -->
         <dependency>
             <groupId>com.sk89q.worldguard</groupId>
             <artifactId>worldguard-bukkit</artifactId>
-            <version>7.0.19</version>
+            <version>7.0.17</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.sk89q.worldedit</groupId>
             <artifactId>worldedit-bukkit</artifactId>
-            <version>7.4.5</version>
+            <version>7.4.2</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

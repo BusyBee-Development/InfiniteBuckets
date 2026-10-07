@@ -111,7 +111,9 @@ public class ConfigManager {
     public boolean isAsyncProcessing() { return asyncProcessing; }
     public boolean isAutoDetectHooks() { return autoDetectHooks; }
     public boolean isHookEnabled(String hookName) {
-        return enabledHooks.getOrDefault(hookName.toLowerCase(), true);
+        // config.yml lists the SuperiorSkyblock2 plugin as "superiorskyblock"
+        String key = hookName.equalsIgnoreCase("SuperiorSkyblock2") ? "superiorskyblock" : hookName.toLowerCase();
+        return enabledHooks.getOrDefault(key, true);
     }
     public List<String> getDisabledWorlds() { return disabledWorlds; }
     public boolean isDefaultNetherRestriction() { return defaultNetherRestriction; }

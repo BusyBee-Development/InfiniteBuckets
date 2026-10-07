@@ -86,10 +86,10 @@ All player-facing messages with MiniMessage formatting support:
 
 ## Technical Details
 
-- **Minecraft Version**: 1.21+
+- **Minecraft Version**: 1.20.1+
 - **Server Software**: Spigot, Paper (recommended), or Folia
 - **Java Version**: 21+
-- **API Version**: 1.21
+- **API Version**: 1.20
 
 ### Dependencies (Soft)
 All protection plugins are optional soft dependencies:

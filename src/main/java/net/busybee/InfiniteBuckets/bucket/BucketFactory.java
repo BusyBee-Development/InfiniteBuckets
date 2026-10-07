@@ -5,6 +5,8 @@ import net.busybee.InfiniteBuckets.utils.MessageManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.NamespacedKey;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
@@ -51,10 +53,21 @@ public class BucketFactory {
         }
 
         if (template.isGlowing()) {
-            meta.setEnchantmentGlintOverride(true);
+            applyGlow(meta);
         }
 
         item.setItemMeta(meta);
         return item;
+    }
+
+    private static void applyGlow(ItemMeta meta) {
+        // Glint override arrived in 1.20.5, above the 1.20.1 API this compiles against, so reach it by reflection
+        try {
+            ItemMeta.class.getMethod("setEnchantmentGlintOverride", Boolean.class).invoke(meta, true);
+        } catch (ReflectiveOperationException e) {
+            // Older servers get a hidden enchantment instead
+            meta.addEnchant(Enchantment.LURE, 1, true);
+            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+        }
     }
 }

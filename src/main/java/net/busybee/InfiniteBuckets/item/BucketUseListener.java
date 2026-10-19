@@ -5,6 +5,7 @@ import net.busybee.InfiniteBuckets.Main;
 import net.busybee.InfiniteBuckets.bucket.BucketFactory;
 import net.busybee.InfiniteBuckets.bucket.BucketTemplate;
 import net.busybee.InfiniteBuckets.hooks.HookManager;
+import net.busybee.InfiniteBuckets.hooks.protectionhook.ProtectionHook;
 import net.busybee.InfiniteBuckets.utils.MessageManager;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.Bukkit;
@@ -12,6 +13,7 @@ import org.bukkit.FluidCollisionMode;
 import org.bukkit.Material;
 import org.bukkit.Tag;
 import org.bukkit.block.Block;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Waterlogged;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -187,7 +189,14 @@ public final class BucketUseListener implements Listener {
     }
 
     private boolean place(Player player, BucketTemplate template, Block target, HookManager hooks) {
-        return hooks.canBuild(player, target) && LiquidPlacement.place(target, template.getLiquidType());
+        if (!hooks.canBuild(player, target, ProtectionHook.Action.PLACE)) return false;
+
+        Material replacedType = target.getType();
+        BlockData replacedData = target.getBlockData();
+        if (!LiquidPlacement.place(target, template.getLiquidType())) return false;
+
+        hooks.logLiquidPlaced(player.getName(), target, replacedType, replacedData, template.getLiquidType());
+        return true;
     }
 
     private boolean drain(Player player, BucketTemplate template, Block centre, HookManager hooks) {
@@ -204,7 +213,8 @@ public final class BucketUseListener implements Listener {
                         if (Math.max(Math.abs(x), Math.max(Math.abs(y), Math.abs(z))) != d) continue;
                         Block block = centre.getRelative(x, y, z);
                         if (block.getType() != liquid || !Bukkit.isOwnedByCurrentRegion(block)) continue;
-                        if (!hooks.canBuild(player, block)) continue;
+                        if (!hooks.canBuild(player, block, ProtectionHook.Action.BREAK)) continue;
+                        hooks.logLiquidRemoved(player.getName(), block);
                         block.setType(Material.AIR);
                         drained++;
                     }

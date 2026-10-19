@@ -25,12 +25,15 @@ global-cooldown: 0
 integrations:
   # Should the plugin automatically detect and enable protection hooks?
   auto-detect-hooks: true
-  # Manually enable or disable specific hooks.
+  # Manually enable or disable specific hooks. LandClaim claims are WorldGuard regions, so the
+  # worldguard hook protects them.
   hooks:
     worldguard: true
     lands: true
     bentobox: true
     superiorskyblock: true
+    # Logs bucket placements and drains to CoreProtect, so /co lookup and /co rollback cover them.
+    coreprotect: true
 
 # Database settings
 # Use SQLITE for local storage or MYSQL for network-wide persistence.

@@ -4,7 +4,9 @@ import net.busybee.InfiniteBuckets.Main;
 import net.busybee.InfiniteBuckets.bucket.BucketTemplate;
 import net.busybee.InfiniteBuckets.hooks.HookManager;
 import net.busybee.InfiniteBuckets.utils.MessageManager;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Directional;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -53,7 +55,11 @@ public final class BucketProtectionListener implements Listener {
             if (denyKey != null || !hookManager.canBuild(target)) return;
 
             plugin.getBucketScheduler().platform().runAtLocation(target.getLocation(), task -> {
+                Material replacedType = target.getType();
+                BlockData replacedData = target.getBlockData();
                 if (LiquidPlacement.place(target, template.getLiquidType())) {
+                    // CoreProtect's own name for dispenser actions
+                    hookManager.logLiquidPlaced("#dispenser", target, replacedType, replacedData, template.getLiquidType());
                     template.getPlaceSound().play(target.getLocation());
                 }
             });

@@ -1,6 +1,5 @@
 package net.busybee.InfiniteBuckets.inventory.impl;
 
-import com.cryptomorin.xseries.XMaterial;
 import fr.mrmicky.fastinv.FastInv;
 import net.busybee.InfiniteBuckets.Main;
 import net.busybee.InfiniteBuckets.bucket.BucketTemplate;
@@ -26,8 +25,10 @@ public class LiquidSelectorGUI extends FastInv {
         for (Material liquid : BucketTemplate.PLACEABLE_LIQUIDS) {
             Material icon = BucketTemplate.bucketIcon(liquid);
             setItem(slot++, GUIUtils.createItem(icon, "<aqua>" + liquid.name(), new ArrayList<>()), e -> {
-                parent.getTemplate().setLiquidType(liquid);
-                parent.getTemplate().setIcon(XMaterial.matchXMaterial(icon));
+                BucketTemplate template = parent.getTemplate();
+                template.setLiquidType(liquid);
+                // Keep a hand-picked icon (a sponge, say); otherwise match the new liquid and mode
+                if (template.hasDefaultIcon()) template.setIcon(BucketTemplate.defaultIcon(template.getMode(), liquid));
                 parent.refresh();
                 parent.open((Player) e.getWhoClicked());
             });

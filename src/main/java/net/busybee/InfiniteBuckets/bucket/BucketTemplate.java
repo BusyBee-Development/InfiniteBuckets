@@ -47,6 +47,17 @@ public class BucketTemplate {
         };
     }
 
+    /** The icon a bucket gets unless someone picked their own: an empty bucket for drain buckets, the filled one otherwise. */
+    public static XMaterial defaultIcon(BucketMode mode, Material liquid) {
+        return mode == BucketMode.DRAIN_AREA ? XMaterial.BUCKET : XMaterial.matchXMaterial(bucketIcon(liquid));
+    }
+
+    /** Whether the icon is one of the built-in bucket icons rather than one picked by hand. */
+    public boolean hasDefaultIcon() {
+        return icon == XMaterial.BUCKET || icon == XMaterial.WATER_BUCKET || icon == XMaterial.LAVA_BUCKET
+                || icon == XMaterial.POWDER_SNOW_BUCKET;
+    }
+
     public enum BucketMode {
         VANILLA_LIKE, DRAIN_AREA
     }

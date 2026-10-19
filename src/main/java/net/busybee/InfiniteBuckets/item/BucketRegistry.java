@@ -14,6 +14,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static net.busybee.InfiniteBuckets.bucket.BucketFactory.BUCKET_ID_KEY;
+import static net.busybee.InfiniteBuckets.bucket.BucketFactory.LEGACY_BUCKET_ID_KEY;
 
 public final class BucketRegistry {
 
@@ -30,6 +31,7 @@ public final class BucketRegistry {
 
     public void reload() {
         this.templateMap.clear();
+        this.storage.migrate();
         this.loadBuckets();
     }
 
@@ -51,12 +53,9 @@ public final class BucketRegistry {
         ItemMeta meta = item.getItemMeta();
         PersistentDataContainer container = meta.getPersistentDataContainer();
 
-        if (container.has(BUCKET_ID_KEY, PersistentDataType.STRING)) {
-            String id = container.get(BUCKET_ID_KEY, PersistentDataType.STRING);
-            return getTemplate(id);
-        }
-
-        return Optional.empty();
+        String id = container.get(BUCKET_ID_KEY, PersistentDataType.STRING);
+        if (id == null) id = container.get(LEGACY_BUCKET_ID_KEY, PersistentDataType.STRING);
+        return id != null ? getTemplate(id) : Optional.empty();
     }
 
     public Collection<BucketTemplate> getRegisteredTemplates() {

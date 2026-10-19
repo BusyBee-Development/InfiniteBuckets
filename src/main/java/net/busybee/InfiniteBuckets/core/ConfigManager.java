@@ -44,8 +44,7 @@ public class ConfigManager {
         plugin.reloadConfig();
 
         this.bucketsFile = new File(plugin.getDataFolder(), "buckets.yml");
-        this.bucketsConfig = migrator.migrate("buckets.yml", bucketsFile);
-        if (this.bucketsConfig == null) this.bucketsConfig = YamlConfiguration.loadConfiguration(bucketsFile);
+        loadBucketsConfig();
 
         this.messagesFile = new File(plugin.getDataFolder(), "messages.yml");
         this.messagesConfig = migrator.migrate("messages.yml", messagesFile);
@@ -93,8 +92,7 @@ public class ConfigManager {
         migrator.migrate("config.yml");
         plugin.reloadConfig();
 
-        this.bucketsConfig = migrator.migrate("buckets.yml", bucketsFile);
-        if (this.bucketsConfig == null) this.bucketsConfig = YamlConfiguration.loadConfiguration(bucketsFile);
+        loadBucketsConfig();
 
         this.messagesConfig = migrator.migrate("messages.yml", messagesFile);
         if (this.messagesConfig == null) this.messagesConfig = YamlConfiguration.loadConfiguration(messagesFile);
@@ -103,6 +101,15 @@ public class ConfigManager {
         if (this.guisConfig == null) this.guisConfig = YamlConfiguration.loadConfiguration(guisFile);
 
         cacheConfig();
+    }
+
+    /**
+     * buckets.yml holds the server's own buckets, so it is never merged with the defaults: that would
+     * bring back deleted default buckets and blocked the old-format migration in BucketStorage.
+     */
+    private void loadBucketsConfig() {
+        if (!bucketsFile.exists()) plugin.saveResource("buckets.yml", false);
+        this.bucketsConfig = YamlConfiguration.loadConfiguration(bucketsFile);
     }
 
     public boolean isDebugMode() { return debugMode; }

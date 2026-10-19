@@ -17,6 +17,9 @@ import java.util.stream.Collectors;
 public class BucketFactory {
     public static final NamespacedKey BUCKET_ID_KEY = new NamespacedKey(Main.getInstance(), "bucket_id");
     public static final NamespacedKey USES_REMAINING_KEY = new NamespacedKey(Main.getInstance(), "uses_remaining");
+    /** Keys written by builds before 26.9. Items handed out back then still carry them. */
+    public static final NamespacedKey LEGACY_BUCKET_ID_KEY = new NamespacedKey(Main.getInstance(), "infinite_bucket_id");
+    public static final NamespacedKey LEGACY_USES_KEY = new NamespacedKey(Main.getInstance(), "infinite_bucket_uses");
 
     public static ItemStack createBucket(BucketTemplate template) {
         ItemStack item = template.getIcon().parseItem();

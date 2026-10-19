@@ -24,6 +24,7 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -198,7 +199,13 @@ public final class BucketUseListener implements Listener {
     }
 
     private int usesLeft(ItemStack item, BucketTemplate template) {
-        Integer uses = item.getItemMeta().getPersistentDataContainer().get(BucketFactory.USES_REMAINING_KEY, PersistentDataType.INTEGER);
+        PersistentDataContainer container = item.getItemMeta().getPersistentDataContainer();
+        Integer uses = container.get(BucketFactory.USES_REMAINING_KEY, PersistentDataType.INTEGER);
+        if (uses == null) {
+            // Old items count down in their own key; -1 there meant unlimited
+            Integer legacy = container.get(BucketFactory.LEGACY_USES_KEY, PersistentDataType.INTEGER);
+            if (legacy != null && legacy >= 0) uses = legacy;
+        }
         return uses != null ? uses : template.getUsageLimit();
     }
 

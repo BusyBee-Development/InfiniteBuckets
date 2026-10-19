@@ -17,6 +17,9 @@ import java.util.List;
 public class BucketTemplate {
     /** Block types a bucket can place. Anything else can't be set as a block. */
     public static final List<Material> PLACEABLE_LIQUIDS = List.of(Material.WATER, Material.LAVA, Material.POWDER_SNOW);
+    public static final int DEFAULT_DRAIN_RADIUS = 3;
+    /** Keeps one click from scanning (and loading) a huge area. 16 is a 33x33x33 cube. */
+    public static final int MAX_DRAIN_RADIUS = 16;
 
     private String id;
     private String displayName;
@@ -32,6 +35,9 @@ public class BucketTemplate {
     private XSound refillSound;
     private XMaterial icon;
     private boolean allowAutomation;
+    /** DRAIN_AREA only: how far the drained cube reaches from the clicked block on each axis. */
+    @Builder.Default
+    private int drainRadius = DEFAULT_DRAIN_RADIUS;
 
     public static Material bucketIcon(Material liquid) {
         return switch (liquid) {

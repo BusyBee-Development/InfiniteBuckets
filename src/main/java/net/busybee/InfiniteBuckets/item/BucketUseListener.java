@@ -33,7 +33,6 @@ import java.util.Optional;
 
 public final class BucketUseListener implements Listener {
 
-    private static final int DRAIN_RADIUS = 3;
     private static final int TARGET_RANGE = 5;
 
     private final Main plugin;
@@ -142,16 +141,32 @@ public final class BucketUseListener implements Listener {
 
         int uses = usesLeft(current, template) - 1;
         if (uses <= 0) {
+            // Only the item that was used runs out; the rest of a stack keeps its own uses
             current.setAmount(current.getAmount() - 1);
             player.getInventory().setItem(hand, current.getAmount() > 0 ? current : null);
             messages.send(player, "bucket-depleted", Placeholder.parsed("bucket_name", template.getDisplayName()));
             return;
         }
 
+        // Every item in a stack shares the stack's counter, so split the used one off before counting down
+        ItemStack rest = null;
+        if (current.getAmount() > 1) {
+            rest = current.clone();
+            rest.setAmount(current.getAmount() - 1);
+            current.setAmount(1);
+        }
+
         ItemMeta meta = current.getItemMeta();
         meta.getPersistentDataContainer().set(BucketFactory.USES_REMAINING_KEY, PersistentDataType.INTEGER, uses);
         current.setItemMeta(meta);
         player.getInventory().setItem(hand, current);
+
+        // The used one stays in the hand so the next click keeps using it; the rest moves into the inventory
+        if (rest != null) {
+            for (ItemStack overflow : player.getInventory().addItem(rest).values()) {
+                player.getWorld().dropItem(player.getLocation(), overflow);
+            }
+        }
     }
 
     /** Where the liquid goes: into a waterloggable or replaceable block that was clicked, otherwise against the clicked face. */
@@ -177,17 +192,22 @@ public final class BucketUseListener implements Listener {
 
     private boolean drain(Player player, BucketTemplate template, Block centre, HookManager hooks) {
         Material liquid = template.getLiquidType();
+        int radius = template.getDrainRadius();
         int max = plugin.getConfigManager().getMaxDrainBlocks();
         int drained = 0;
 
-        for (int x = -DRAIN_RADIUS; x <= DRAIN_RADIUS && drained < max; x++) {
-            for (int y = -DRAIN_RADIUS; y <= DRAIN_RADIUS && drained < max; y++) {
-                for (int z = -DRAIN_RADIUS; z <= DRAIN_RADIUS && drained < max; z++) {
-                    Block block = centre.getRelative(x, y, z);
-                    if (block.getType() != liquid || !Bukkit.isOwnedByCurrentRegion(block)) continue;
-                    if (!hooks.canBuild(player, block)) continue;
-                    block.setType(Material.AIR);
-                    drained++;
+        // Work outward one shell at a time, so when max-drain-blocks cuts it short the blocks nearest the click go first
+        for (int d = 0; d <= radius && drained < max; d++) {
+            for (int x = -d; x <= d && drained < max; x++) {
+                for (int y = -d; y <= d && drained < max; y++) {
+                    for (int z = -d; z <= d && drained < max; z++) {
+                        if (Math.max(Math.abs(x), Math.max(Math.abs(y), Math.abs(z))) != d) continue;
+                        Block block = centre.getRelative(x, y, z);
+                        if (block.getType() != liquid || !Bukkit.isOwnedByCurrentRegion(block)) continue;
+                        if (!hooks.canBuild(player, block)) continue;
+                        block.setType(Material.AIR);
+                        drained++;
+                    }
                 }
             }
         }

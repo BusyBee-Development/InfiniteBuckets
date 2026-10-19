@@ -53,6 +53,14 @@ public class BucketStorage {
                 mode = BucketTemplate.BucketMode.VANILLA_LIKE;
             }
 
+            int drainRadius = bucketSection.getInt("drain-radius", BucketTemplate.DEFAULT_DRAIN_RADIUS);
+            if (drainRadius < 1 || drainRadius > BucketTemplate.MAX_DRAIN_RADIUS) {
+                int clamped = Math.max(1, Math.min(BucketTemplate.MAX_DRAIN_RADIUS, drainRadius));
+                plugin.getLogger().warning("Bucket '" + id + "': drain-radius " + drainRadius + " is outside 1-"
+                        + BucketTemplate.MAX_DRAIN_RADIUS + "; using " + clamped + ".");
+                drainRadius = clamped;
+            }
+
             templates.add(BucketTemplate.builder()
                     .id(id)
                     .displayName(bucketSection.getString("display-name", id))
@@ -68,6 +76,7 @@ public class BucketStorage {
                     .refillSound(XSound.matchXSound(bucketSection.getString("refill-sound", "ITEM_BUCKET_FILL")).orElse(XSound.ITEM_BUCKET_FILL))
                     .icon(XMaterial.matchXMaterial(bucketSection.getString("icon", "WATER_BUCKET")).orElse(XMaterial.WATER_BUCKET))
                     .allowAutomation(bucketSection.getBoolean("allow-automation", false))
+                    .drainRadius(drainRadius)
                     .build());
         }
         return templates;
@@ -89,6 +98,8 @@ public class BucketStorage {
         config.set(path + "refill-sound", template.getRefillSound().name());
         config.set(path + "icon", template.getIcon().name());
         config.set(path + "allow-automation", template.isAllowAutomation());
+        // Only drain buckets use it, so placing buckets don't get the key
+        config.set(path + "drain-radius", template.getMode() == BucketTemplate.BucketMode.DRAIN_AREA ? template.getDrainRadius() : null);
 
         plugin.getConfigManager().saveBucketsConfig();
     }

@@ -10,8 +10,8 @@ debug-mode: false
 
 # Performance settings
 performance:
-  # The maximum number of blocks that can be drained in a single use.
-  # Higher values may impact server performance.
+  # The maximum number of blocks that can be drained in a single use, whatever a bucket's drain-radius.
+  # Blocks nearest the click are drained first. Higher values may impact server performance.
   max-drain-blocks: 100
   # Should the plugin use asynchronous processing for block updates?
   # This is recommended for performance on Folia/Paper.

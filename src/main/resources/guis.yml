@@ -48,6 +48,31 @@ guis:
           - "<gray> - Infinite</gray>"
           - "<gray> - 100 uses</gray>"
           - "<gray> - 500 uses</gray>"
+      mode:
+        slot: 29
+        material: "HOPPER"
+        name: "<yellow>Mode"
+        # What <mode> shows for each mode
+        place-label: "<aqua>Place liquid</aqua>"
+        drain-label: "<gold>Drain area</gold>"
+        lore:
+          - "<gray>Current: <mode></gray>"
+          - ""
+          - "<gray>Place liquid: right-click places the liquid.</gray>"
+          - "<gray>Drain area: right-click removes the liquid around it.</gray>"
+          - ""
+          - "<yellow>Click to switch.</yellow>"
+      # Only shown for DRAIN_AREA buckets
+      drain-radius:
+        slot: 31
+        material: "SPONGE"
+        name: "<yellow>Drain Radius"
+        lore:
+          - "<gray>Current: <white><radius></white> <dark_gray>(<size>x<size>x<size>)</dark_gray></gray>"
+          - ""
+          - "<yellow>Left-click: <white>+1</white></yellow>"
+          - "<yellow>Right-click: <white>-1</white></yellow>"
+          - "<gray>Range: 1 - <max></gray>"
       glowing:
         slot: 33
         material: "GLOWSTONE_DUST"

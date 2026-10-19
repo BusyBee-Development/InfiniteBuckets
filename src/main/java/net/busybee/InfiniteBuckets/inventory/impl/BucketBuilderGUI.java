@@ -102,6 +102,33 @@ public class BucketBuilderGUI extends FastInv {
                     });
         }
 
+        ConfigurationSection modeSec = items.getConfigurationSection("mode");
+        if (modeSec != null) {
+            boolean drain = template.getMode() == BucketTemplate.BucketMode.DRAIN_AREA;
+            String mode = drain ? modeSec.getString("drain-label", "Drain area") : modeSec.getString("place-label", "Place liquid");
+            setItem(modeSec.getInt("slot"), GUIUtils.createItem(modeSec, Placeholder.parsed("mode", mode)),
+                    e -> {
+                        BucketTemplate.BucketMode next = drain ? BucketTemplate.BucketMode.VANILLA_LIKE : BucketTemplate.BucketMode.DRAIN_AREA;
+                        template.setMode(next);
+                        if (template.hasDefaultIcon()) template.setIcon(BucketTemplate.defaultIcon(next, template.getLiquidType()));
+                        refresh();
+                    });
+        }
+
+        ConfigurationSection radiusSec = items.getConfigurationSection("drain-radius");
+        if (radiusSec != null && template.getMode() == BucketTemplate.BucketMode.DRAIN_AREA) {
+            int radius = template.getDrainRadius();
+            setItem(radiusSec.getInt("slot"), GUIUtils.createItem(radiusSec,
+                            Placeholder.unparsed("radius", String.valueOf(radius)),
+                            Placeholder.unparsed("size", String.valueOf(radius * 2 + 1)),
+                            Placeholder.unparsed("max", String.valueOf(BucketTemplate.MAX_DRAIN_RADIUS))),
+                    e -> {
+                        int change = e.isRightClick() ? -1 : 1;
+                        template.setDrainRadius(Math.max(1, Math.min(BucketTemplate.MAX_DRAIN_RADIUS, radius + change)));
+                        refresh();
+                    });
+        }
+
         ConfigurationSection glowSec = items.getConfigurationSection("glowing");
         if (glowSec != null) {
             String status = template.isGlowing() ? "<green>Enabled</green>" : "<red>Disabled</red>";

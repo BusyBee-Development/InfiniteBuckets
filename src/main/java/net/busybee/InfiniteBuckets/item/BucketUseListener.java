@@ -202,10 +202,11 @@ public final class BucketUseListener implements Listener {
     private boolean drain(Player player, BucketTemplate template, Block centre, HookManager hooks) {
         Material liquid = template.getLiquidType();
         int radius = template.getDrainRadius();
-        int max = plugin.getConfigManager().getMaxDrainBlocks();
+        int limit = plugin.getConfigManager().getDrainBlockLimit();
+        int max = limit > 0 ? limit : Integer.MAX_VALUE;
         int drained = 0;
 
-        // Work outward one shell at a time, so when max-drain-blocks cuts it short the blocks nearest the click go first
+        // Work outward one shell at a time, so when drain-block-limit cuts it short the blocks nearest the click go first
         for (int d = 0; d <= radius && drained < max; d++) {
             for (int x = -d; x <= d && drained < max; x++) {
                 for (int y = -d; y <= d && drained < max; y++) {

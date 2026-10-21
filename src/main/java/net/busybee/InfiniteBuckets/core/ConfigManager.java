@@ -18,7 +18,7 @@ public class ConfigManager {
 
     private final Main plugin;
     private boolean debugMode;
-    private int maxDrainBlocks;
+    private int drainBlockLimit;
     private int globalCooldown;
     private boolean asyncProcessing;
     private boolean autoDetectHooks;
@@ -39,9 +39,10 @@ public class ConfigManager {
 
     public void loadConfigs() {
         ConfigMigrator migrator = new ConfigMigrator(plugin);
-        
+
         migrator.migrate("config.yml");
         plugin.reloadConfig();
+        migrateDrainLimit();
 
         this.bucketsFile = new File(plugin.getDataFolder(), "buckets.yml");
         loadBucketsConfig();
@@ -61,7 +62,7 @@ public class ConfigManager {
         FileConfiguration config = plugin.getConfig();
 
         debugMode = config.getBoolean("debug-mode", false);
-        maxDrainBlocks = config.getInt("performance.max-drain-blocks", 100);
+        drainBlockLimit = config.getInt("performance.drain-block-limit", 0);
         globalCooldown = config.getInt("global-cooldown", 0);
         asyncProcessing = config.getBoolean("performance.async-processing", true);
         autoDetectHooks = config.getBoolean("integrations.auto-detect-hooks", true);
@@ -91,6 +92,7 @@ public class ConfigManager {
         
         migrator.migrate("config.yml");
         plugin.reloadConfig();
+        migrateDrainLimit();
 
         loadBucketsConfig();
 
@@ -104,6 +106,21 @@ public class ConfigManager {
     }
 
     /**
+     * Replaces the old performance.max-drain-blocks. Its default of 100 capped every drain below the
+     * bucket's drain-radius (a radius-2 cube is 125 blocks), so the old default is dropped and only a
+     * value someone picked themselves is carried over to drain-block-limit.
+     */
+    private void migrateDrainLimit() {
+        FileConfiguration config = plugin.getConfig();
+        if (!config.contains("performance.max-drain-blocks")) return;
+
+        int old = config.getInt("performance.max-drain-blocks");
+        if (old != 100 && old > 0) config.set("performance.drain-block-limit", old);
+        config.set("performance.max-drain-blocks", null);
+        plugin.saveConfig();
+    }
+
+    /**
      * buckets.yml holds the server's own buckets, so it is never merged with the defaults: that would
      * bring back deleted default buckets and blocked the old-format migration in BucketStorage.
      */
@@ -113,7 +130,7 @@ public class ConfigManager {
     }
 
     public boolean isDebugMode() { return debugMode; }
-    public int getMaxDrainBlocks() { return maxDrainBlocks; }
+    public int getDrainBlockLimit() { return drainBlockLimit; }
     public int getGlobalCooldown() { return globalCooldown; }
     public boolean isAsyncProcessing() { return asyncProcessing; }
     public boolean isAutoDetectHooks() { return autoDetectHooks; }

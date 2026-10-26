@@ -6,7 +6,7 @@
 
     <groupId>net.busybee.infinitebuckets</groupId>
     <artifactId>InfiniteBuckets</artifactId>
-    <version>26.10.2</version>
+    <version>26.10.3</version>
     <packaging>jar</packaging>
 
     <name>InfiniteBuckets</name>

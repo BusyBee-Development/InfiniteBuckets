@@ -77,6 +77,7 @@ public class BucketStorage {
                     .icon(XMaterial.matchXMaterial(bucketSection.getString("icon", "WATER_BUCKET")).orElse(XMaterial.WATER_BUCKET))
                     .allowAutomation(bucketSection.getBoolean("allow-automation", false))
                     .drainRadius(drainRadius)
+                    .placeBlock(bucketSection.getBoolean("place-block", false))
                     .build());
         }
         return templates;
@@ -99,7 +100,9 @@ public class BucketStorage {
         config.set(path + "icon", template.getIcon().name());
         config.set(path + "allow-automation", template.isAllowAutomation());
         // Only drain buckets use it, so placing buckets don't get the key
-        config.set(path + "drain-radius", template.getMode() == BucketTemplate.BucketMode.DRAIN_AREA ? template.getDrainRadius() : null);
+        boolean drain = template.getMode() == BucketTemplate.BucketMode.DRAIN_AREA;
+        config.set(path + "drain-radius", drain ? template.getDrainRadius() : null);
+        config.set(path + "place-block", drain && template.isPlaceBlock() ? true : null);
 
         plugin.getConfigManager().saveBucketsConfig();
     }

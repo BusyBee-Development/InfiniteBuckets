@@ -129,6 +129,16 @@ public class BucketBuilderGUI extends FastInv {
                     });
         }
 
+        ConfigurationSection placeBlockSec = items.getConfigurationSection("place-block");
+        if (placeBlockSec != null && template.getMode() == BucketTemplate.BucketMode.DRAIN_AREA) {
+            String status = template.isPlaceBlock() ? "<green>Enabled</green>" : "<red>Disabled</red>";
+            setItem(placeBlockSec.getInt("slot"), GUIUtils.createItem(placeBlockSec, Placeholder.parsed("status", status)),
+                    e -> {
+                        template.setPlaceBlock(!template.isPlaceBlock());
+                        refresh();
+                    });
+        }
+
         ConfigurationSection glowSec = items.getConfigurationSection("glowing");
         if (glowSec != null) {
             String status = template.isGlowing() ? "<green>Enabled</green>" : "<red>Disabled</red>";

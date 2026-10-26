@@ -38,6 +38,8 @@ public class BucketTemplate {
     /** DRAIN_AREA only: how far the drained cube reaches from the clicked block on each axis. */
     @Builder.Default
     private int drainRadius = DEFAULT_DRAIN_RADIUS;
+    /** DRAIN_AREA only: place a real block (the icon) like a vanilla sponge and drain around it, using up the item. */
+    private boolean placeBlock;
 
     public static Material bucketIcon(Material liquid) {
         return switch (liquid) {

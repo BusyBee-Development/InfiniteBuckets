@@ -25,8 +25,9 @@ import java.util.Set;
 
 public final class BucketProtectionListener implements Listener {
 
+    // Only blocks that can fire a bucket. Hoppers just carry items, so shop chests and storage can still be fed.
     private static final Set<InventoryType> AUTOMATION_INVENTORIES = EnumSet.of(
-            InventoryType.DISPENSER, InventoryType.DROPPER, InventoryType.HOPPER);
+            InventoryType.DISPENSER, InventoryType.DROPPER);
 
     private final Main plugin;
     private final BucketRegistry registry;
@@ -68,6 +69,7 @@ public final class BucketProtectionListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onHopperMove(@NotNull InventoryMoveItemEvent event) {
+        if (!AUTOMATION_INVENTORIES.contains(event.getDestination().getType())) return;
         registry.getTemplate(event.getItem()).ifPresent(template -> {
             if (!isAutomationAllowed(template)) {
                 event.setCancelled(true);

@@ -73,6 +73,19 @@ guis:
           - "<yellow>Left-click: <white>+1</white></yellow>"
           - "<yellow>Right-click: <white>-1</white></yellow>"
           - "<gray>Range: 1 - <max></gray>"
+      # Only shown for DRAIN_AREA buckets
+      place-block:
+        slot: 40
+        material: "WET_SPONGE"
+        name: "<yellow>Place as Block"
+        lore:
+          - "<gray>Status: <status></gray>"
+          - ""
+          - "<gray>On: right-click places the icon as a block</gray>"
+          - "<gray>like a sponge, drains around it and uses</gray>"
+          - "<gray>up the item.</gray>"
+          - ""
+          - "<yellow>Click to toggle.</yellow>"
       glowing:
         slot: 33
         material: "GLOWSTONE_DUST"

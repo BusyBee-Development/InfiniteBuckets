@@ -15,6 +15,7 @@ import org.bukkit.Tag;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Waterlogged;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
@@ -28,6 +29,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -87,8 +89,10 @@ public final class BucketUseListener implements Listener {
             return;
         }
 
-        Block target = template.getMode() == BucketTemplate.BucketMode.DRAIN_AREA
-                ? drainCentre(player, clicked)
+        boolean drainMode = template.getMode() == BucketTemplate.BucketMode.DRAIN_AREA;
+        boolean placeBlock = drainMode && template.isPlaceBlock();
+        Block target = placeBlock ? blockTarget(player, clicked, event)
+                : drainMode ? drainCentre(player, clicked)
                 : placementTarget(template.getLiquidType(), clicked, event);
         if (target == null) return;
 
@@ -117,13 +121,16 @@ public final class BucketUseListener implements Listener {
 
                 HookManager hooks = plugin.getHookManager();
                 scheduler.runAtLocation(target.getLocation(), placeTask -> {
-                    boolean done = template.getMode() == BucketTemplate.BucketMode.DRAIN_AREA
-                            ? drain(player, template, target, hooks)
+                    boolean done = placeBlock ? placeBlock(player, template, target, hooks)
+                            : drainMode ? drain(player, template, target, hooks)
                             : place(player, template, target, hooks);
                     if (!done) return;
 
                     template.getPlaceSound().play(target.getLocation());
-                    scheduler.runAtEntity(player, useTask -> consumeUse(player, hand, template, now));
+                    scheduler.runAtEntity(player, useTask -> {
+                        if (placeBlock) consumeItem(player, hand, template, now);
+                        else consumeUse(player, hand, template, now);
+                    });
                 });
             });
         });
@@ -131,10 +138,7 @@ public final class BucketUseListener implements Listener {
 
     /** Applies the cooldown and, for limited buckets, takes one use off the bucket in {@code hand}. */
     private void consumeUse(Player player, EquipmentSlot hand, BucketTemplate template, long usedAt) {
-        long cooldown = template.getCooldown() > 0 ? template.getCooldown() : plugin.getConfigManager().getGlobalCooldown();
-        if (cooldown > 0) {
-            plugin.getDatabaseManager().setCooldown(player.getUniqueId(), template.getId(), usedAt + cooldown);
-        }
+        applyCooldown(player, template, usedAt);
 
         if (template.getUsageLimit() <= 0) return;
 
@@ -169,6 +173,53 @@ public final class BucketUseListener implements Listener {
                 player.getWorld().dropItem(player.getLocation(), overflow);
             }
         }
+    }
+
+    /** Applies the cooldown and takes the placed item out of {@code hand}, like placing a vanilla sponge. */
+    private void consumeItem(Player player, EquipmentSlot hand, BucketTemplate template, long usedAt) {
+        applyCooldown(player, template, usedAt);
+
+        ItemStack current = player.getInventory().getItem(hand);
+        if (!isSameTemplate(current, template)) return;
+        current.setAmount(current.getAmount() - 1);
+        player.getInventory().setItem(hand, current.getAmount() > 0 ? current : null);
+    }
+
+    private void applyCooldown(Player player, BucketTemplate template, long usedAt) {
+        long cooldown = template.getCooldown() > 0 ? template.getCooldown() : plugin.getConfigManager().getGlobalCooldown();
+        if (cooldown > 0) {
+            plugin.getDatabaseManager().setCooldown(player.getUniqueId(), template.getId(), usedAt + cooldown);
+        }
+    }
+
+    /** Where a placed block goes: into a replaceable block that was clicked, otherwise against the clicked face. */
+    private @Nullable Block blockTarget(Player player, @Nullable Block clicked, PlayerInteractEvent event) {
+        // Clicking a lava or water surface is an air click; put the block into the source being looked at
+        if (clicked == null) return player.getTargetBlockExact(TARGET_RANGE, FluidCollisionMode.SOURCE_ONLY);
+        return clicked.isReplaceable() ? clicked : clicked.getRelative(event.getBlockFace());
+    }
+
+    /** Puts the bucket's block down like a vanilla sponge, then drains the liquid around it. */
+    private boolean placeBlock(Player player, BucketTemplate template, Block target, HookManager hooks) {
+        if (!target.isReplaceable() || !hooks.canBuild(player, target, ProtectionHook.Action.PLACE)) return false;
+        // Like vanilla, never place a block inside a mob or player
+        if (!target.getWorld().getNearbyEntities(BoundingBox.of(target), e -> e instanceof LivingEntity).isEmpty()) return false;
+
+        Material blockType = placedBlockType(template);
+        Material replacedType = target.getType();
+        BlockData replacedData = target.getBlockData();
+        // No physics: a vanilla sponge would otherwise also soak up nearby water, skipping the protection checks
+        target.setType(blockType, false);
+        hooks.logLiquidPlaced(player.getName(), target, replacedType, replacedData, blockType);
+
+        drain(player, template, target, hooks);
+        return true;
+    }
+
+    /** The icon if it is a full block (a sponge, say), otherwise a sponge. */
+    private static Material placedBlockType(BucketTemplate template) {
+        Material icon = template.getIcon() != null ? template.getIcon().get() : null;
+        return icon != null && icon.isBlock() && icon.isSolid() ? icon : Material.SPONGE;
     }
 
     /** Where the liquid goes: into a waterloggable or replaceable block that was clicked, otherwise against the clicked face. */

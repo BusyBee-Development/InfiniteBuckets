@@ -1,107 +1,52 @@
 # InfiniteBuckets
 
-A flexible and powerful Spigot/Paper plugin that provides fully customizable infinite buckets with advanced features, protection plugin integration, and extensive configuration options.
+[![Modrinth](https://img.shields.io/modrinth/v/infinitebuckets?label=Modrinth&color=00AF5C)](https://modrinth.com/plugin/infinitebuckets)
+[![Downloads](https://img.shields.io/modrinth/dt/infinitebuckets?label=Downloads&color=00AF5C)](https://modrinth.com/plugin/infinitebuckets)
+[![Wiki](https://img.shields.io/badge/Wiki-busybeedev.net-F5B800)](https://busybeedev.net/docs/InfiniteBuckets/intro)
+[![Discord](https://img.shields.io/badge/Discord-Join-5865F2?logo=discord&logoColor=white)](https://discord.com/invite/abdm29q7af)
+
+An infinite water and lava bucket plugin for Minecraft Paper, Spigot and Folia servers. It adds buckets that never run out, limited-use buckets, and sponges that drain lava or water around them.
 
 ## Features
 
-### Bucket Types
-- **Vanilla-like Buckets**: Infinite water and lava buckets that behave like vanilla Minecraft buckets
-  - Works with dispensers for automated fluid placement
-  - Configurable Nether restrictions
-  - World-specific rules
-- **Drain Area Buckets**: Sponge-like buckets that can drain fluids in a configurable radius
-  - Customizable drain radius and block limits
-  - Removes waterlogged blocks
-  - Per-use cooldown system
-- **Limited Use Buckets**: Buckets with a specific number of uses before depletion
-  - Dynamic lore showing remaining uses
-  - Fully customizable behavior
+- Infinite water, lava and powder snow buckets that work like vanilla ones
+- Sponges and drain buckets that clear liquid in a radius, used from the hand or placed as a block
+- Limited uses and cooldowns per bucket
+- In-game bucket builder, no YAML needed
+- WorldGuard, Lands, SuperiorSkyblock2 and BentoBox protection, with CoreProtect logging
+- Native Folia support
 
-### Protection Plugin Integration
-The plugin automatically hooks into popular protection plugins to prevent unauthorized bucket usage:
-- **WorldGuard** (v7+)
-- **Lands**
-- **SuperiorSkyblock2**
-- **BentoBox**
+## Requirements
 
-### Customization
-- **MiniMessage Support**: Full support for gradients, hex colors, and rich text formatting
-- **Custom Bucket Creation**: Define unlimited custom bucket types with unique properties
-- **Permission-based Access**: Fine-grained permission control for each bucket type
-- **World Restrictions**: Disable buckets in specific worlds or dimensions
-- **Update Notifications**: Automatic update checking with in-game notifications for admins
+- Minecraft 1.20.1+
+- Paper, Spigot or Folia
+- Java 21+
 
-### Performance & Safety
-- Async processing for large drain operations
-- Configurable safety limits to prevent server lag
-- Global cooldown system between bucket uses
-- Debug mode for troubleshooting
+## Installation
 
-## Commands
+1. Download the latest release from [Modrinth](https://modrinth.com/plugin/infinitebuckets).
+2. Drop the jar into your `plugins` folder.
+3. Restart the server.
 
-All commands use the `/infinitebuckets` base command (aliases: `/infb`, `/ib`):
+## Documentation
 
-| Command | Permission | Description |
-|---------|-----------|-------------|
-| `/infb help` | None | Display the help menu |
-| `/ib builder` | `infinitebuckets.admin` | Open the bucket builder GUI |
-| `/ib list` | `infinitebuckets.admin` | View/Edit created buckets |
-| `/ib reload` | `infinitebuckets.admin` | Reload all configurations |
-| `/ib give <player> <bucket> [amount]` | `infinitebuckets.admin` | Give an infinite bucket |
+Everything else, including commands, permissions, configuration and integrations, is on the **[wiki](https://busybeedev.net/docs/InfiniteBuckets/intro)**.
 
-## Permissions
+- [Quick Start](https://busybeedev.net/docs/InfiniteBuckets/quick-start)
+- [Commands & Permissions](https://busybeedev.net/docs/InfiniteBuckets/commands-permissions)
+- [Buckets Configuration](https://busybeedev.net/docs/InfiniteBuckets/buckets-configuration)
+- [Drain Buckets & Sponges](https://busybeedev.net/docs/InfiniteBuckets/drain-buckets-sponges)
+- [FAQ](https://busybeedev.net/docs/InfiniteBuckets/faq)
 
-| Permission | Default | Description |
-|-----------|---------|-------------|
-| `infinitebuckets.admin` | op | Access to all admin commands and GUIs |
-| `infinitebuckets.use.water` | true | Use infinite water buckets |
-| `infinitebuckets.use.lava` | true | Use infinite lava buckets |
+## Support
 
-Additional permissions can be configured per-bucket in `buckets.yml`.
+- Bugs and feature requests: [GitHub Issues](https://github.com/BusyBee-Development/InfiniteBuckets/issues)
+- Questions and help: [Discord](https://discord.com/invite/abdm29q7af)
 
-## Configuration Files
+## Credits
 
-### config.yml
-Main plugin settings including:
-- Debug mode toggle
-- Update checker settings
-- Performance and safety limits
-- World restrictions and rules
-- Protection plugin integration settings
+- [djtmk](https://github.com/djtmk1), developer and maintainer
 
-### buckets.yml
-Defines all bucket types with full customization:
-- Built-in presets (water, lava, sponge buckets)
-- Custom bucket definitions
-- Bucket behavior modes (vanilla_like, drain_area)
-- Uses, capacity, lore, and display names
-- Per-bucket permissions and world rules
+## License
 
-### messages.yml
-All player-facing messages with MiniMessage formatting support:
-- Custom plugin prefix
-- Command responses
-- Error messages
-- Update notifications
-
-## Technical Details
-
-- **Minecraft Version**: 1.20.1+
-- **Server Software**: Spigot, Paper (recommended), or Folia
-- **Java Version**: 21+
-- **API Version**: 1.20
-
-### Dependencies (Soft)
-All protection plugins are optional soft dependencies:
-- WorldGuard (v7.0.14+)
-- Lands API (v7.25.4+)
-- SuperiorSkyblock2 API (2025.2.1+)
-- BentoBox (v2.7.0)
-
-### Bundled Libraries
-- FoliaLib (v0.5.1) - For Folia and Paper scheduler compatibility
-- FastInv (v3.0.4) - For easy GUI creation
-- XSeries (v26.x) - For cross-version material and sound support
-- bStats (v3.2.1) - For anonymous plugin analytics
-- HikariCP (v6.2.1) - For high-performance database connection pooling
-
+Licensed under the [BusyBee AAR License](LICENSE).

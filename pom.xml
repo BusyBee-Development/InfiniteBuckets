@@ -142,15 +142,9 @@
             <version>26.x</version>
         </dependency>
         <dependency>
-            <groupId>org.bstats</groupId>
-            <artifactId>bstats-bukkit</artifactId>
-            <version>3.2.1</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
             <groupId>dev.faststats.metrics</groupId>
             <artifactId>bukkit</artifactId>
-            <version>0.30.2</version>
+            <version>0.31.0</version>
         </dependency>
     </dependencies>
 
@@ -239,10 +233,6 @@
                                     <shadedPattern>net.busybee.infinitebuckets.libs.xseries</shadedPattern>
                                 </relocation>
                                 <relocation>
-                                    <pattern>org.bstats</pattern>
-                                    <shadedPattern>net.busybee.infinitebuckets.libs.bstats</shadedPattern>
-                                </relocation>
-                                <relocation>
                                     <pattern>dev.faststats</pattern>
                                     <shadedPattern>net.busybee.infinitebuckets.libs.faststats</shadedPattern>
                                 </relocation>
@@ -266,12 +256,6 @@
                                 <filter>
                                     <!-- FoliaLib picks its scheduler implementation by reflection; keep it whole -->
                                     <artifact>com.tcoded:FoliaLib</artifact>
-                                    <includes>
-                                        <include>**</include>
-                                    </includes>
-                                </filter>
-                                <filter>
-                                    <artifact>org.bstats:*</artifact>
                                     <includes>
                                         <include>**</include>
                                     </includes>

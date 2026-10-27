@@ -15,7 +15,6 @@ import net.busybee.InfiniteBuckets.item.BucketVanillaGuardListener;
 import net.busybee.InfiniteBuckets.item.PlacedBucketBlockListener;
 import net.busybee.InfiniteBuckets.item.PlacedBucketBlocks;
 import net.busybee.InfiniteBuckets.scheduling.BucketScheduler;
-import net.busybee.InfiniteBuckets.utils.BStatsManager;
 import net.busybee.InfiniteBuckets.utils.DebugLogger;
 import net.busybee.InfiniteBuckets.utils.FastStatsManager;
 import net.busybee.InfiniteBuckets.utils.MessageManager;
@@ -77,7 +76,6 @@ public final class Main extends JavaPlugin {
         this.getServer().getPluginManager().registerEvents(new VersionCheck(this), this);
         this.getServer().getPluginManager().registerEvents(new ChatPromptListener(this), this);
 
-        new BStatsManager(this);
         this.fastStatsManager = new FastStatsManager(this);
         this.fastStatsManager.onEnable();
 

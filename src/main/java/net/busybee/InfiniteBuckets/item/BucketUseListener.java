@@ -102,7 +102,7 @@ public final class BucketUseListener implements Listener {
             long now = System.currentTimeMillis();
             if (expiry > now) {
                 long remaining = (expiry - now) / 1000 + 1;
-                messages.send(player, "cooldown.active",
+                messages.send(player, "gui.cooldown.active",
                         Placeholder.parsed("bucket_name", template.getDisplayName()),
                         Placeholder.unparsed("seconds", String.valueOf(remaining)));
                 return;

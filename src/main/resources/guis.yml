@@ -82,8 +82,9 @@ guis:
           - "<gray>Status: <status></gray>"
           - ""
           - "<gray>On: right-click places the icon as a block</gray>"
-          - "<gray>like a sponge, drains around it and uses</gray>"
-          - "<gray>up the item.</gray>"
+          - "<gray>like a sponge and drains around it. Each</gray>"
+          - "<gray>placement takes one use; mine the block</gray>"
+          - "<gray>to get the bucket back.</gray>"
           - ""
           - "<yellow>Click to toggle.</yellow>"
       glowing:

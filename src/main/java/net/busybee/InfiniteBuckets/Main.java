@@ -12,6 +12,8 @@ import net.busybee.InfiniteBuckets.item.BucketProtectionListener;
 import net.busybee.InfiniteBuckets.item.BucketRegistry;
 import net.busybee.InfiniteBuckets.item.BucketUseListener;
 import net.busybee.InfiniteBuckets.item.BucketVanillaGuardListener;
+import net.busybee.InfiniteBuckets.item.PlacedBucketBlockListener;
+import net.busybee.InfiniteBuckets.item.PlacedBucketBlocks;
 import net.busybee.InfiniteBuckets.scheduling.BucketScheduler;
 import net.busybee.InfiniteBuckets.utils.BStatsManager;
 import net.busybee.InfiniteBuckets.utils.DebugLogger;
@@ -30,6 +32,7 @@ public final class Main extends JavaPlugin {
     private ConfigManager configManager;
     private MessageManager messageManager;
     private BucketRegistry bucketRegistry;
+    private PlacedBucketBlocks placedBucketBlocks;
     private DatabaseManager databaseManager;
     private DebugLogger debugLogger;
     private HookManager hookManager;
@@ -54,6 +57,7 @@ public final class Main extends JavaPlugin {
         this.databaseManager.initialize();
 
         this.bucketRegistry = new BucketRegistry(this);
+        this.placedBucketBlocks = new PlacedBucketBlocks(this);
         this.hookManager = new HookManager(this);
 
         PluginCommand command = this.getCommand("infinitebuckets");
@@ -69,6 +73,7 @@ public final class Main extends JavaPlugin {
         this.getServer().getPluginManager().registerEvents(new BucketUseListener(this), this);
         this.getServer().getPluginManager().registerEvents(new BucketProtectionListener(this), this);
         this.getServer().getPluginManager().registerEvents(new BucketVanillaGuardListener(this), this);
+        this.getServer().getPluginManager().registerEvents(new PlacedBucketBlockListener(placedBucketBlocks), this);
         this.getServer().getPluginManager().registerEvents(new VersionCheck(this), this);
         this.getServer().getPluginManager().registerEvents(new ChatPromptListener(this), this);
 
@@ -125,6 +130,9 @@ public final class Main extends JavaPlugin {
     }
     public BucketRegistry getBucketRegistry() {
         return bucketRegistry;
+    }
+    public PlacedBucketBlocks getPlacedBucketBlocks() {
+        return placedBucketBlocks;
     }
     public DatabaseManager getDatabaseManager() {
         return databaseManager;

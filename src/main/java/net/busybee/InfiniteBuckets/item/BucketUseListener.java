@@ -119,16 +119,19 @@ public final class BucketUseListener implements Listener {
                     return;
                 }
 
+                // Placing a block counts as one use; the block keeps the rest and gives them back when broken
+                int usesAfterPlace = template.getUsageLimit() > 0 ? usesLeft(current, template) - 1 : -1;
+
                 HookManager hooks = plugin.getHookManager();
                 scheduler.runAtLocation(target.getLocation(), placeTask -> {
-                    boolean done = placeBlock ? placeBlock(player, template, target, hooks)
+                    boolean done = placeBlock ? placeBlock(player, template, target, hooks, usesAfterPlace)
                             : drainMode ? drain(player, template, target, hooks)
                             : place(player, template, target, hooks);
                     if (!done) return;
 
                     template.getPlaceSound().play(target.getLocation());
                     scheduler.runAtEntity(player, useTask -> {
-                        if (placeBlock) consumeItem(player, hand, template, now);
+                        if (placeBlock) consumeItem(player, hand, template, now, usesAfterPlace == 0);
                         else consumeUse(player, hand, template, now);
                     });
                 });
@@ -176,13 +179,15 @@ public final class BucketUseListener implements Listener {
     }
 
     /** Applies the cooldown and takes the placed item out of {@code hand}, like placing a vanilla sponge. */
-    private void consumeItem(Player player, EquipmentSlot hand, BucketTemplate template, long usedAt) {
+    private void consumeItem(Player player, EquipmentSlot hand, BucketTemplate template, long usedAt, boolean lastUse) {
         applyCooldown(player, template, usedAt);
 
         ItemStack current = player.getInventory().getItem(hand);
         if (!isSameTemplate(current, template)) return;
         current.setAmount(current.getAmount() - 1);
         player.getInventory().setItem(hand, current.getAmount() > 0 ? current : null);
+        // The block breaks into a plain one after its last use
+        if (lastUse) messages.send(player, "bucket-depleted", Placeholder.parsed("bucket_name", template.getDisplayName()));
     }
 
     private void applyCooldown(Player player, BucketTemplate template, long usedAt) {
@@ -200,7 +205,7 @@ public final class BucketUseListener implements Listener {
     }
 
     /** Puts the bucket's block down like a vanilla sponge, then drains the liquid around it. */
-    private boolean placeBlock(Player player, BucketTemplate template, Block target, HookManager hooks) {
+    private boolean placeBlock(Player player, BucketTemplate template, Block target, HookManager hooks, int usesAfterPlace) {
         if (!target.isReplaceable() || !hooks.canBuild(player, target, ProtectionHook.Action.PLACE)) return false;
         // Like vanilla, never place a block inside a mob or player
         if (!target.getWorld().getNearbyEntities(BoundingBox.of(target), e -> e instanceof LivingEntity).isEmpty()) return false;
@@ -215,6 +220,9 @@ public final class BucketUseListener implements Listener {
         // No physics, for the same reason
         target.setType(blockType, false);
         hooks.logLiquidPlaced(player.getName(), target, replacedType, replacedData, blockType);
+        // Remember it so breaking it gives the bucket back; with no uses left it breaks into a plain block
+        if (usesAfterPlace != 0) plugin.getPlacedBucketBlocks().mark(target, template.getId(), usesAfterPlace);
+        else plugin.getPlacedBucketBlocks().clear(target);
         return true;
     }
 

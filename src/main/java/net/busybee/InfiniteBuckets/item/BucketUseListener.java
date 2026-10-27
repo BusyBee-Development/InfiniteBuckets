@@ -205,14 +205,16 @@ public final class BucketUseListener implements Listener {
         // Like vanilla, never place a block inside a mob or player
         if (!target.getWorld().getNearbyEntities(BoundingBox.of(target), e -> e instanceof LivingEntity).isEmpty()) return false;
 
+        // Drain before placing: each drained block updates its neighbours, and a vanilla sponge already
+        // in place would wake up, soak up the water itself (skipping the protection checks) and turn wet
+        drain(player, template, target, hooks);
+
         Material blockType = placedBlockType(template);
         Material replacedType = target.getType();
         BlockData replacedData = target.getBlockData();
-        // No physics: a vanilla sponge would otherwise also soak up nearby water, skipping the protection checks
+        // No physics, for the same reason
         target.setType(blockType, false);
         hooks.logLiquidPlaced(player.getName(), target, replacedType, replacedData, blockType);
-
-        drain(player, template, target, hooks);
         return true;
     }
 

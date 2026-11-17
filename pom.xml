@@ -6,7 +6,7 @@
 
     <groupId>net.busybee.infinitebuckets</groupId>
     <artifactId>InfiniteBuckets</artifactId>
-    <version>26.10.4</version>
+    <version>26.11.0</version>
     <packaging>jar</packaging>
 
     <name>InfiniteBuckets</name>
@@ -105,13 +105,19 @@
         <dependency>
             <groupId>com.bgsoftware</groupId>
             <artifactId>SuperiorSkyblockAPI</artifactId>
-            <version>2026.2</version>
+            <version>2026.3</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>world.bentobox</groupId>
             <artifactId>bentobox</artifactId>
             <version>2.7.0</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.GriefPrevention</groupId>
+            <artifactId>GriefPrevention</artifactId>
+            <version>18.0.0</version>
             <scope>provided</scope>
         </dependency>
 
@@ -127,7 +133,7 @@
         <dependency>
             <groupId>com.tcoded</groupId>
             <artifactId>FoliaLib</artifactId>
-            <version>0.5.1</version>
+            <version>0.5.2</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -144,7 +150,7 @@
         <dependency>
             <groupId>dev.faststats.metrics</groupId>
             <artifactId>bukkit</artifactId>
-            <version>0.31.0</version>
+            <version>0.32.2</version>
         </dependency>
     </dependencies>
 

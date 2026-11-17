@@ -31,6 +31,7 @@ See the [Performance Guide](../advanced-optimization/performance-guide.md) for w
 | `integrations.hooks.lands`            | Lands.                                                                              | `true`  |
 | `integrations.hooks.bentobox`         | BentoBox.                                                                           | `true`  |
 | `integrations.hooks.superiorskyblock` | SuperiorSkyblock2.                                                                  | `true`  |
+| `integrations.hooks.griefprevention`  | GriefPrevention.                                                                    | `true`  |
 | `integrations.hooks.coreprotect`      | Log bucket placements and drains to CoreProtect.                                   | `true`  |
 
 See [Protection Plugins](../integrations/protection-plugins.md) and [CoreProtect](../integrations/coreprotect.md).

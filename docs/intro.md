@@ -4,7 +4,7 @@ title: Introduction
 sidebar_position: 1
 ---
 
-Fully customizable infinite buckets for **Paper**, **Spigot**, and **Folia** 1.20.1+. Hand out
+Fully customizable infinite buckets for **Paper** and **Folia** 1.20.1+. Hand out
 water and lava buckets that never run out, limited-use buckets that count down, and sponges that
 drain lava or water around them, either from your hand or placed as a real block. Every bucket is
 defined in `buckets.yml` or built in-game, and every use respects your protection plugins.
@@ -15,7 +15,7 @@ defined in `buckets.yml` or built in-game, and every use respects your protectio
 - **[Core Reference](core-reference/commands-permissions.md)**: every command, permission node, and the in-game Bucket Builder.
 - **[Features & Modules](features-modules/placing-buckets.md)**: placing buckets, drain buckets and sponges, limited uses and cooldowns, hoppers and dispensers.
 - **[Configuration](configuration/buckets-configuration.md)**: `buckets.yml` with full examples, `config.yml`, messages, and the database.
-- **[Integrations](integrations/protection-plugins.md)**: WorldGuard, Lands, SuperiorSkyblock2, BentoBox, and CoreProtect.
+- **[Integrations](integrations/protection-plugins.md)**: WorldGuard, Lands, SuperiorSkyblock2, BentoBox, GriefPrevention, and CoreProtect.
 - **[Advanced Optimization](advanced-optimization/performance-guide.md)**: drain performance, Folia, upgrading from older versions, and troubleshooting.
 - **[Support](support/faq.md)**: FAQ and how to get help.
 
@@ -25,7 +25,7 @@ defined in `buckets.yml` or built in-game, and every use respects your protectio
 - **Drain buckets and sponges** that clear a whole cube of liquid (radius 1 to 16) with one click, or go down as a block like a vanilla sponge and come back when mined.
 - **Limited uses and cooldowns** per bucket, with each item in a stack keeping its own uses.
 - **In-game Bucket Builder** to create and edit buckets without touching YAML.
-- **Protection plugin support** for WorldGuard (and WorldGuard-based claim plugins), Lands, SuperiorSkyblock2, and BentoBox.
+- **Protection plugin support** for WorldGuard (and WorldGuard-based claim plugins), Lands, SuperiorSkyblock2, BentoBox, and GriefPrevention.
 - **CoreProtect logging**, so `/co rollback` takes back bucket griefing.
 - **Folia support** through region-aware scheduling.
 

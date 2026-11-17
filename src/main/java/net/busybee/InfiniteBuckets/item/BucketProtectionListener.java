@@ -42,8 +42,12 @@ public final class BucketProtectionListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH)
     public void onDispense(@NotNull BlockDispenseEvent event) {
         registry.getTemplate(event.getItem()).ifPresent(template -> {
+            // A protection plugin that already stopped this dispense (GriefPrevention across a claim
+            // edge, say) gets the final word, as it would for a vanilla bucket
+            boolean blocked = event.isCancelled();
             // Always cancel: the vanilla dispenser would swap the infinite bucket for an empty one
             event.setCancelled(true);
+            if (blocked) return;
             if (!isAutomationAllowed(template) || template.getMode() != BucketTemplate.BucketMode.VANILLA_LIKE) return;
 
             Block dispenser = event.getBlock();

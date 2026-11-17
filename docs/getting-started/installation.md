@@ -4,7 +4,7 @@ title: Installation
 sidebar_position: 2
 ---
 
-1. Check the [Requirements](requirements.md): Java 21+, Paper/Spigot/Folia 1.20.1+.
+1. Check the [Requirements](requirements.md): Java 21+, Paper or Folia 1.20.1+.
 2. Download the latest jar from [Modrinth](https://modrinth.com/plugin/infinitebuckets).
 3. Drop the jar into your server's `plugins/` folder.
 4. Start (or restart) the server. On first run, InfiniteBuckets creates `plugins/InfiniteBuckets/`:

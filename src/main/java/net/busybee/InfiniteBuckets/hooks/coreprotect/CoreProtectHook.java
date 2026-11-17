@@ -51,4 +51,12 @@ public final class CoreProtectHook {
     public void logLiquidRemoved(String user, Block block) {
         api.logRemoval(user, block.getLocation(), block.getType(), block.getBlockData());
     }
+
+    /**
+     * Call before the water is taken out of a waterlogged block. Logged as water with no block data,
+     * like CoreProtect's own bucket logging, so a rollback waterlogs the block again instead of replacing it.
+     */
+    public void logWaterlogDrained(String user, Block block) {
+        api.logRemoval(user, block.getLocation(), Material.WATER, null);
+    }
 }

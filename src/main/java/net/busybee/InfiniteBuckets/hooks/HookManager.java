@@ -4,6 +4,7 @@ import net.busybee.InfiniteBuckets.Main;
 import net.busybee.InfiniteBuckets.core.ConfigManager;
 import net.busybee.InfiniteBuckets.hooks.bentobox.BentoBoxHook;
 import net.busybee.InfiniteBuckets.hooks.coreprotect.CoreProtectHook;
+import net.busybee.InfiniteBuckets.hooks.griefprevention.GriefPreventionHook;
 import net.busybee.InfiniteBuckets.hooks.lands.LandsHook;
 import net.busybee.InfiniteBuckets.hooks.protectionhook.ProtectionHook;
 import net.busybee.InfiniteBuckets.hooks.superiorskyblock.SuperiorSkyblockHook;
@@ -91,6 +92,7 @@ public final class HookManager {
         availableHooks.put("Lands", LandsHook::new);
         availableHooks.put("SuperiorSkyblock2", SuperiorSkyblockHook::new);
         availableHooks.put("BentoBox", BentoBoxHook::new);
+        availableHooks.put("GriefPrevention", GriefPreventionHook::new);
     }
 
     public void registerHook(String pluginName, Supplier<ProtectionHook> hookSupplier) {
@@ -121,6 +123,12 @@ public final class HookManager {
     public void logLiquidRemoved(String user, Block block) {
         CoreProtectHook hook = coreProtect;
         if (hook != null) hook.logLiquidRemoved(user, block);
+    }
+
+    /** Logs the water drained out of a waterlogged block to CoreProtect, if it is hooked. Call before draining. */
+    public void logWaterlogDrained(String user, Block block) {
+        CoreProtectHook hook = coreProtect;
+        if (hook != null) hook.logWaterlogDrained(user, block);
     }
 
     public boolean canBuild(Block block) {

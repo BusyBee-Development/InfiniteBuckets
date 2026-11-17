@@ -7,7 +7,8 @@ sidebar_position: 1
 ## Server
 
 - **Minecraft 1.20.1 or newer.**
-- **Paper** (recommended), **Spigot**, or **Folia**. On Folia every bucket action runs on the region
+- **Paper** (or a fork such as Purpur) or **Folia**. Plain Spigot isn't supported: the plugin uses
+  Paper's API for its messages and menus. On Folia every bucket action runs on the region
   that owns the block or player. See [Folia Support](../advanced-optimization/folia-support.md).
 
 ## Java
@@ -25,6 +26,7 @@ present:
 | Lands               | Checks the land's block-place flag for the player.                 |
 | SuperiorSkyblock2   | Checks the island's `BUILD` privilege.                             |
 | BentoBox            | Checks the island's bucket flag.                                   |
+| GriefPrevention     | Checks the player's build trust in the claim.                      |
 | CoreProtect         | Logs every bucket placement and drain, so they can be rolled back. |
 
 See [Protection Plugins](../integrations/protection-plugins.md) and

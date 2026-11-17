@@ -5,7 +5,8 @@ sidebar_position: 1
 ---
 
 **Does this work on Spigot, or only Paper?**
-Paper, Spigot, and Folia 1.20.1+ are all supported. See [Requirements](../getting-started/requirements.md).
+Paper (and forks such as Purpur) and Folia 1.20.1+. Plain Spigot isn't supported, because the
+plugin uses Paper's API for its messages and menus. See [Requirements](../getting-started/requirements.md).
 
 **Do I need to restart after editing a config?**
 No. `/infb reload` (permission `infinitebuckets.admin`) reloads every file.

@@ -33,7 +33,9 @@ import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.EnumSet;
 import java.util.Optional;
+import java.util.Set;
 
 public final class BucketUseListener implements Listener {
 
@@ -274,16 +276,47 @@ public final class BucketUseListener implements Listener {
                     for (int z = -d; z <= d && drained < max; z++) {
                         if (Math.max(Math.abs(x), Math.max(Math.abs(y), Math.abs(z))) != d) continue;
                         Block block = centre.getRelative(x, y, z);
-                        if (block.getType() != liquid || !Bukkit.isOwnedByCurrentRegion(block)) continue;
+                        if (!holdsLiquid(block, liquid) || !Bukkit.isOwnedByCurrentRegion(block)) continue;
                         if (!hooks.canBuild(player, block, ProtectionHook.Action.BREAK)) continue;
-                        hooks.logLiquidRemoved(player.getName(), block);
-                        block.setType(Material.AIR);
+                        drainBlock(player, block, liquid, hooks);
                         drained++;
                     }
                 }
             }
         }
         return drained > 0;
+    }
+
+    /** Plants that only grow in water and count as a water source, so they refill a drained pool. */
+    private static final Set<Material> WATER_PLANTS = EnumSet.of(
+            Material.SEAGRASS, Material.TALL_SEAGRASS, Material.KELP, Material.KELP_PLANT, Material.BUBBLE_COLUMN);
+
+    /** Whether draining {@code liquid} should touch this block: the liquid itself, a water plant, or a waterlogged block. */
+    private static boolean holdsLiquid(Block block, Material liquid) {
+        if (block.getType() == liquid) return true;
+        if (liquid != Material.WATER) return false;
+        return WATER_PLANTS.contains(block.getType())
+                || block.getBlockData() instanceof Waterlogged waterlogged && waterlogged.isWaterlogged();
+    }
+
+    /** Takes the liquid out of one block the way a vanilla sponge does. */
+    private void drainBlock(Player player, Block block, Material liquid, HookManager hooks) {
+        // Waterlogged blocks (slabs, stairs, coral, ...) keep the block and just lose the water
+        if (block.getType() != liquid && block.getBlockData() instanceof Waterlogged waterlogged) {
+            hooks.logWaterlogDrained(player.getName(), block);
+            waterlogged.setWaterlogged(false);
+            block.setBlockData(waterlogged);
+            return;
+        }
+
+        // Water plants break and drop what they would drop by hand (kelp), like a vanilla sponge
+        if (WATER_PLANTS.contains(block.getType())) {
+            for (ItemStack drop : block.getDrops()) {
+                block.getWorld().dropItemNaturally(block.getLocation().add(0.5, 0.5, 0.5), drop);
+            }
+        }
+        hooks.logLiquidRemoved(player.getName(), block);
+        block.setType(Material.AIR);
     }
 
     private boolean isSameTemplate(@Nullable ItemStack item, BucketTemplate template) {

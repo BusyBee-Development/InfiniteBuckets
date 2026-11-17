@@ -33,6 +33,7 @@ integrations:
     lands: true
     bentobox: true
     superiorskyblock: true
+    griefprevention: true
     # Logs bucket placements and drains to CoreProtect, so /co lookup and /co rollback cover them.
     coreprotect: true
 

@@ -17,6 +17,7 @@ console shows `Hooked into <plugin>.` for each one found on startup.
 | **Lands**                  | The land's block-place flag for the player.                                                          |
 | **SuperiorSkyblock2**      | The island's `BUILD` privilege.                                                                      |
 | **BentoBox**               | The island's bucket flag (BSkyBlock, AcidIsland and other BentoBox gamemodes).                       |
+| **GriefPrevention**        | The claim's build trust, the same as placing or breaking a block: the owner and players they `/trust` can use buckets in the claim, others can't. Admin claims, `/ignoreclaims` and GriefPrevention's own wilderness rules apply. |
 
 ## What gets checked
 
@@ -25,7 +26,9 @@ console shows `Hooked into <plugin>.` for each one found on startup.
   are skipped, so a drain next to a claim stops at its edge.
 - **Placing a sponge block** (`place-block`): the block it goes into, then each drained block as
   above.
-- **Dispensers:** the block in front of the dispenser, checked without a player.
+- **Dispensers:** the block in front of the dispenser, checked without a player. A dispense your
+  protection plugin blocks stays blocked: with GriefPrevention, a dispenser can't pour liquid across
+  a claim's edge, the same as with a vanilla bucket.
 
 ## Turning hooks off
 
@@ -40,6 +43,7 @@ integrations:
     lands: true
     bentobox: true
     superiorskyblock: true
+    griefprevention: true
     coreprotect: true
 ```
 
@@ -52,5 +56,6 @@ If players can use buckets where they shouldn't:
 1. Check the console for `Hooked into <plugin>.` on startup. No line means the plugin wasn't found
    or its hook is off in `config.yml`.
 2. Check whether the player has WorldGuard's region bypass (`worldguard.region.bypass.<world>`);
-   op includes it.
+   op includes it. With GriefPrevention, check they aren't trusted in the claim (`/trustlist`) and
+   haven't turned on `/ignoreclaims`.
 3. Turn on `debug-mode` and run `/infb reload` to see which hooks are skipped and why.

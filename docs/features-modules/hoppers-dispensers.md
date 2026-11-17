@@ -24,7 +24,7 @@ bucket (`mode: VANILLA_LIKE`) can be dispensed:
 - A drain bucket in a dispenser does nothing.
 
 A dispenser's liquid follows the [world rules](../configuration/main-configuration.md#world-rules)
-and protection at the target block, and [CoreProtect](../integrations/coreprotect.md) logs it under
+and protection at the target block (a dispenser outside a claim can't pour into it), and [CoreProtect](../integrations/coreprotect.md) logs it under
 `#dispenser`.
 
 ```yaml

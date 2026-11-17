@@ -5,7 +5,7 @@
 [![Wiki](https://img.shields.io/badge/Wiki-busybeedev.net-F5B800)](https://busybeedev.net/docs/InfiniteBuckets/intro)
 [![Discord](https://img.shields.io/badge/Discord-Join-5865F2?logo=discord&logoColor=white)](https://discord.com/invite/abdm29q7af)
 
-An infinite water and lava bucket plugin for Minecraft Paper, Spigot and Folia servers. It adds buckets that never run out, limited-use buckets, and sponges that drain lava or water around them.
+An infinite water and lava bucket plugin for Minecraft Paper and Folia servers. It adds buckets that never run out, limited-use buckets, and sponges that drain lava or water around them.
 
 ## Features
 
@@ -13,13 +13,13 @@ An infinite water and lava bucket plugin for Minecraft Paper, Spigot and Folia s
 - Sponges and drain buckets that clear liquid in a radius, used from the hand or placed as a block
 - Limited uses and cooldowns per bucket
 - In-game bucket builder, no YAML needed
-- WorldGuard, Lands, SuperiorSkyblock2 and BentoBox protection, with CoreProtect logging
+- WorldGuard, Lands, SuperiorSkyblock2, BentoBox and GriefPrevention protection, with CoreProtect logging
 - Native Folia support
 
 ## Requirements
 
 - Minecraft 1.20.1+
-- Paper, Spigot or Folia
+- Paper (or a fork such as Purpur) or Folia
 - Java 21+
 
 ## Installation

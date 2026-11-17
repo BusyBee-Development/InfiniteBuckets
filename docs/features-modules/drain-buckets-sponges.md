@@ -27,6 +27,13 @@ A value above 16 is lowered to 16, with a warning in the console when the plugin
 of the bucket's own `liquid-type` are removed: a lava sponge leaves water alone. Blocks nearest the
 centre go first.
 
+A water drain handles everything that holds water, like a vanilla sponge:
+
+- **Waterlogged blocks** (slabs, stairs, fences, coral, sea pickles, ...) keep the block and lose
+  the water.
+- **Water plants** (kelp, seagrass, tall seagrass) and bubble columns are removed. Kelp drops as an
+  item, the same as breaking it by hand.
+
 ## Click to drain
 
 Right-click a block in or next to the liquid, or aim at a liquid surface and right-click: the drain
